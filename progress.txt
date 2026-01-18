@@ -32,3 +32,44 @@
 
 **Linting:**
 - All files pass Biome linting checks
+
+---
+
+### Task 1.2: Create TypeScript types from API documentation (COMPLETED)
+
+**Files Created:**
+- `src/types/enums.ts` - All enums (Role, OrderType, OrderStatus, OrderItemStatus, WaiterCallStatus, MenuCategoryType, PaymentMethod, ReservationStatus, CustomerType, DeviceType, DevicePlatform, SortOrder, ServiceFeeType, DiscountType, DiscountValueType, DiscountApplicableTo, BillStatus, ReasonTemplateType, DayOfWeek)
+- `src/types/models.ts` - Domain models (Translation, Account, Zone, Table, WaiterCall, MenuCategory, MenuItemAvailability, Extra, MenuItem, CustomerAddress, Customer, OrderItemExtra, OrderItem, Order, BillItem, Bill, BillDiscount, Payment, Discount, ServiceFee, Reservation, ReasonTemplate)
+- `src/types/api.ts` - All API request/response types including:
+  - Common types (PaginatedResponse, PaginationParams, SortParams, ApiError)
+  - Authentication types (LoginRequest, LoginResponse, CheckSessionResponse)
+  - Waiter call types (CreateWaiterCallRequest, GetWaiterCallsParams, etc.)
+  - Order types (CreateOrderRequest, GetOrdersParams, UpdateOrderRequest, etc.)
+  - Order item types (CreateOrderItemRequest, BatchCreateOrderItemsRequest, BatchUpdateOrderItemStatusRequest, KitchenViewResponse, etc.)
+  - Table & Zone types
+  - Menu types
+  - Customer types
+  - Bill & Payment types
+  - Discount types
+  - Reservation types
+  - Service Fee types
+  - Reason Template types
+  - SSE Event types (WaiterCallEvent, OrderCreatedEvent, OrderItemCreatedEvent, etc.)
+- `src/types/index.ts` - Central export file for all types
+
+**Files Modified:**
+- `jest.config.js` - Added ts-jest transform for proper TypeScript support
+
+**Tests Created:**
+- `src/__tests__/types.test.ts` - 70 tests covering:
+  - All 19 enums with value verification
+  - 14 model types with object creation
+  - 12 API request/response types
+  - 5 SSE event types
+  - Type export verification
+
+**Test Results:**
+- 82 tests passing (12 dependency tests + 70 type tests)
+
+**Linting:**
+- All files pass Biome linting checks

@@ -4,6 +4,16 @@ module.exports = {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   testMatch: ['**/__tests__/**/*.(test|spec).(ts|tsx|js|jsx)'],
   testPathIgnorePatterns: ['/node_modules/'],
+  transform: {
+    '^.+\\.(ts|tsx)$': [
+      'ts-jest',
+      {
+        tsconfig: 'tsconfig.json',
+        useESM: false,
+      },
+    ],
+    '^.+\\.(js|jsx)$': 'babel-jest',
+  },
   transformIgnorePatterns: [
     'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|react-native-sse|react-native-uuid|react-native-toast-message|@react-native-async-storage|zustand|@tanstack)',
   ],

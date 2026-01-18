@@ -125,7 +125,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - `react-native-toast-message` (notifications)
   - `expo-secure-store` (secure credential storage)
 
-- [ ] **1.2** Create TypeScript types from API documentation:
+- [x] **1.2** Create TypeScript types from API documentation:
   - `types/api.ts` - All API request/response types
   - `types/models.ts` - Domain models (Order, Table, MenuItem, etc.)
   - `types/enums.ts` - All enums (OrderStatus, PaymentMethod, etc.)
