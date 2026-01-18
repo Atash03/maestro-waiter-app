@@ -130,7 +130,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - `types/models.ts` - Domain models (Order, Table, MenuItem, etc.)
   - `types/enums.ts` - All enums (OrderStatus, PaymentMethod, etc.)
 
-- [ ] **1.3** Implement API client (`services/api/client.ts`):
+- [x] **1.3** Implement API client (`services/api/client.ts`):
   - Configure base URL and default headers
   - Implement request/response interceptors
   - Add automatic session header injection

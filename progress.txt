@@ -73,3 +73,40 @@
 
 **Linting:**
 - All files pass Biome linting checks
+
+---
+
+### Task 1.3: Implement API client (COMPLETED)
+
+**Files Created:**
+- `src/services/api/client.ts` - Full-featured API client with:
+  - `ApiClient` class with configurable base URL, timeout, and retry settings
+  - `ApiClientError` custom error class with status code, error code, and retry flag
+  - Request interceptor for automatic session header injection (maestro-session-id, x-device-id, x-device-type, x-device-platform, x-device-name, x-app-version)
+  - Response interceptor for error handling:
+    - 401 (Unauthorized): Clears session and triggers onUnauthorized callback
+    - 403 (Forbidden): Triggers onForbidden callback with error message
+  - Exponential backoff retry logic for network failures and server errors
+  - HTTP methods: GET, POST, PUT, PATCH, DELETE
+  - Session management: setSessionInfo, getSessionInfo
+  - Platform utilities: getDevicePlatform, getDeviceType
+  - Singleton pattern: initializeApiClient, getApiClient, isApiClientInitialized, resetApiClient
+- `src/services/api/index.ts` - Central export file for API services
+
+**Tests Created:**
+- `src/__tests__/api-client.test.ts` - 33 tests covering:
+  - Constructor and axios instance creation
+  - Session management (set/get/clear)
+  - Request interceptor header injection
+  - Response error handling (401, 403, network errors, timeout, server errors)
+  - HTTP methods (GET, POST, PUT, PATCH, DELETE)
+  - Retry logic with exponential backoff
+  - ApiClientError class
+  - Singleton functions
+  - Platform utilities
+
+**Test Results:**
+- 115 tests passing (12 dependency + 70 types + 33 API client tests)
+
+**Linting:**
+- All files pass Biome linting checks
