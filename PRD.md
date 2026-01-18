@@ -152,7 +152,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - `services/api/discounts.ts` - discount queries
   - `services/api/extras.ts` - extras queries
 
-- [ ] **1.5** Implement auth store (`stores/authStore.ts`):
+- [x] **1.5** Implement auth store (`stores/authStore.ts`):
   - Session ID storage
   - User account info
   - Device ID management (generate once, persist)

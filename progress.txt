@@ -206,3 +206,65 @@
 
 **Linting:**
 - All files pass Biome linting checks
+
+---
+
+### Task 1.5: Implement auth store (COMPLETED)
+
+**Files Created:**
+- `src/stores/authStore.ts` - Full-featured Zustand authentication store with:
+  - `AuthState` interface defining all state and actions
+  - Session ID storage (persisted securely using expo-secure-store)
+  - User account info (Account from API)
+  - Device ID management (generate UUID once on first launch, persist across app reinstalls)
+  - `initialize()` - Restores session on app start, validates with server
+  - `login(request, rememberMe?)` - Authenticates user, saves session, updates API client
+  - `logout()` - Clears session, calls API logout, clears storage
+  - `validateSession()` - Checks if current session is still valid with server
+  - `clearError()` - Clears error messages
+  - `setRememberMe(value)` - Sets remember me preference
+  - Automatic API client session header injection
+  - SecureStore with AsyncStorage fallback for environments where SecureStore isn't available
+  - "Remember me" feature that saves username for next login
+- `src/stores/index.ts` - Central export file for stores
+
+**Custom Hooks Exported:**
+- `useAuthStore` - Full store access
+- `useIsAuthenticated` - Optimized hook for auth status only
+- `useAccount` - Optimized hook for account info only
+- `useAuthLoading` - Loading states (isInitializing, isLoggingIn, isLoggingOut)
+- `useAuthError` - Error state only
+- `useRememberMe` - Remember me data (rememberMe flag and savedUsername)
+
+**Files Modified:**
+- `jest.setup.js` - Updated AsyncStorage mock to use proper structure with __esModule flag
+
+**Tests Created:**
+- `src/__tests__/auth-store.test.ts` - 31 tests covering:
+  - Initial state verification
+  - Device ID creation and persistence
+  - Session restoration on initialize
+  - Invalid session handling
+  - Remember me preference loading
+  - SecureStore to AsyncStorage fallback
+  - Successful login with session persistence
+  - Login progress state (isLoggingIn)
+  - Remember me username saving
+  - Login failure error handling
+  - Device ID not initialized error
+  - API client session info updates
+  - Successful logout with session clearing
+  - Logout progress state (isLoggingOut)
+  - Logout error resilience (clears session even if API fails)
+  - Session validation
+  - Error clearing
+  - Remember me preference setting
+  - Hook exports verification
+  - AuthState type export verification
+  - Store index exports verification
+
+**Test Results:**
+- 201 tests passing (12 dependency + 70 types + 33 API client + 55 API endpoints + 31 auth store tests)
+
+**Linting:**
+- All files pass Biome linting checks
