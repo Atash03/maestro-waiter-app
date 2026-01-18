@@ -110,3 +110,99 @@
 
 **Linting:**
 - All files pass Biome linting checks
+
+---
+
+### Task 1.4: Create API endpoint modules (COMPLETED)
+
+**Files Created/Updated:**
+- `src/services/api/auth.ts` - Authentication endpoints:
+  - `login(request)` - POST /auth/login
+  - `checkSession()` - GET /auth/check
+  - `logout()` - POST /auth/logout
+
+- `src/services/api/orders.ts` - Order CRUD operations:
+  - `createOrder(request)` - POST /order
+  - `getOrders(params?)` - GET /order with query params
+  - `getOrder(id)` - GET /order/:id
+  - `updateOrder(id, request)` - PUT /order/:id
+
+- `src/services/api/orderItems.ts` - Order item operations:
+  - `createOrderItem(request)` - POST /order-item
+  - `batchCreateOrderItems(request)` - POST /order-item/batch
+  - `getOrderItems(params?)` - GET /order-item
+  - `getOrderItem(id)` - GET /order-item/:id
+  - `updateOrderItem(id, request)` - PUT /order-item/:id
+  - `batchUpdateOrderItemStatus(request)` - PATCH /order-item/batch/status
+  - `getKitchenView()` - GET /order-item/kitchen/view
+
+- `src/services/api/tables.ts` - Table queries:
+  - `getTables(params?)` - GET /table
+  - `getTable(id)` - GET /table/:id
+
+- `src/services/api/zones.ts` - Zone queries:
+  - `getZones(params?)` - GET /zone
+  - `getZone(id)` - GET /zone/:id
+
+- `src/services/api/menu.ts` - Menu categories and items:
+  - `getMenuCategories(params?)` - GET /menu-category
+  - `getMenuCategory(id)` - GET /menu-category/:id
+  - `getMenuItems(params?)` - GET /menu-item
+  - `getMenuItem(id)` - GET /menu-item/:id
+
+- `src/services/api/waiterCalls.ts` - Waiter call management:
+  - `createWaiterCall(request)` - POST /waiter-call
+  - `getWaiterCalls(params?)` - GET /waiter-call
+  - `getWaiterCall(id)` - GET /waiter-call/:id
+  - `acknowledgeWaiterCall(id)` - PUT /waiter-call/:id/acknowledge
+  - `completeWaiterCall(id)` - PUT /waiter-call/:id/complete
+  - `cancelWaiterCall(id)` - PUT /waiter-call/:id/cancel
+
+- `src/services/api/bills.ts` - Billing operations:
+  - `createBill(request)` - POST /bill
+  - `getBills(params?)` - GET /bill
+  - `getBill(id)` - GET /bill/:id
+  - `updateBill(id, request)` - PUT /bill/:id
+  - `updateBillDiscounts(id, request)` - PUT /bill/:id/discounts
+  - `calculateBill(request)` - POST /bill/calculate
+
+- `src/services/api/payments.ts` - Payment processing:
+  - `createPayment(request)` - POST /payment
+  - `getPayments(params?)` - GET /payment
+
+- `src/services/api/customers.ts` - Customer lookup:
+  - `getCustomers(params?)` - GET /customer
+  - `getCustomer(id)` - GET /customer/:id
+
+- `src/services/api/discounts.ts` - Discount queries:
+  - `getDiscounts(params?)` - GET /discount
+  - `getDiscount(id)` - GET /discount/:id
+  - `calculateDiscounts(request)` - POST /discount/calculate
+
+- `src/services/api/extras.ts` - Extras queries:
+  - `getExtras(params?)` - GET /extra
+  - `getExtra(id)` - GET /extra/:id
+
+- `src/services/api/index.ts` - Updated to export all endpoint modules
+
+**Tests Created:**
+- `src/__tests__/api-endpoints.test.ts` - 55 tests covering:
+  - Auth API (3 tests): login, checkSession, logout
+  - Orders API (5 tests): createOrder, getOrders with/without params, getOrder, updateOrder
+  - Order Items API (7 tests): createOrderItem, batchCreateOrderItems, getOrderItems, getOrderItem, updateOrderItem, batchUpdateOrderItemStatus, getKitchenView
+  - Tables API (3 tests): getTables with/without params, getTable
+  - Zones API (3 tests): getZones with/without params, getZone
+  - Menu API (6 tests): getMenuCategories with/without params, getMenuCategory, getMenuItems with/without params, getMenuItem
+  - Waiter Calls API (7 tests): createWaiterCall, getWaiterCalls with/without params, getWaiterCall, acknowledgeWaiterCall, completeWaiterCall, cancelWaiterCall
+  - Bills API (7 tests): createBill, getBills with/without params, getBill, updateBill, updateBillDiscounts, calculateBill
+  - Payments API (3 tests): createPayment, getPayments with/without params
+  - Customers API (3 tests): getCustomers with/without params, getCustomer
+  - Discounts API (4 tests): getDiscounts with/without params, getDiscount, calculateDiscounts
+  - Extras API (3 tests): getExtras with/without params, getExtra
+  - API exports test (1 test): verifies all functions are exported from index
+
+**Test Results:**
+- 170 tests passing (12 dependency + 70 types + 33 API client + 55 API endpoints tests)
+
+**Linting:**
+- All files pass Biome linting checks

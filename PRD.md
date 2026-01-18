@@ -138,7 +138,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Handle 403 (forbidden) responses - show appropriate error
   - Implement retry logic for network failures
 
-- [ ] **1.4** Create API endpoint modules:
+- [x] **1.4** Create API endpoint modules:
   - `services/api/auth.ts` - login, logout, checkSession
   - `services/api/orders.ts` - CRUD operations
   - `services/api/orderItems.ts` - order item operations
