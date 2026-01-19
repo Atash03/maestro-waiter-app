@@ -337,7 +337,7 @@ interface Translation { en: string; ru: string; tm: string; }
 - Handle order modifications
 
 ### Tasks
-- [ ] **4.1** Create Orders List Screen (`app/(main)/(tabs)/orders/index.tsx`):
+- [x] **4.1** Create Orders List Screen (`app/(main)/(tabs)/orders/index.tsx`):
   - List all active orders (Pending, InProgress)
   - Filter by: status, order type, table
   - Sort by: time created, table number

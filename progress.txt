@@ -1891,3 +1891,79 @@
 
 **Linting:**
 - All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)
+
+---
+
+### Task 4.1: Create Orders List Screen (COMPLETED)
+
+**Files Created:**
+- `src/hooks/useOrderQueries.ts` - React Query hooks for orders data fetching with:
+  - `orderQueryKeys` - Query key factory for targeted cache invalidation
+  - `useOrders(options?)` - Fetch all orders with optional filtering/pagination
+  - `useOrder({ id })` - Fetch a single order by ID
+  - `filterOrdersByStatus(orders, status)` - Filter orders by status from cached data
+  - `filterOrdersByType(orders, orderType)` - Filter orders by type from cached data
+  - `filterOrdersByTable(orders, tableId)` - Filter orders by table from cached data
+  - `getActiveOrders(orders)` - Get Pending or InProgress orders
+  - `countOrdersWithReadyItems(orders)` - Count orders with ready items
+  - `sortOrdersByDate(orders, ascending)` - Sort orders by creation date
+  - `useOrderCacheActions()` - Cache management utilities:
+    - `invalidateOrders(params?)`, `invalidateOrder(id)`, `invalidateAll()`
+    - `prefetchOrders(params?)`, `prefetchOrder(id)`
+  - Default stale time: 2 minutes (orders change more frequently)
+  - Default cache time: 15 minutes
+
+- `components/orders/OrderCard.tsx` - Order card component with:
+  - Order code display with ready items badge
+  - Status badge (Pending, In Progress, Completed, Cancelled)
+  - Order type badge (Dine-in, Delivery, To Go)
+  - Table number or customer name display
+  - Item count and total amount
+  - Time since creation (e.g., "5m ago", "1h 30m ago")
+  - Press animation using react-native-reanimated
+  - Helper functions:
+    - `getTranslatedText`, `getOrderStatusBadgeVariant`, `getOrderStatusLabel`
+    - `getOrderTypeBadgeVariant`, `getOrderTypeLabel`, `formatTimeSince`
+    - `formatPrice`, `countItemsByStatus`, `getItemCount`
+
+- `app/(tabs)/orders/index.tsx` - Full-featured Orders List Screen with:
+  - Header with title and orders count badge
+  - Ready items indicator badge
+  - Status filter tabs (All, Pending, In Progress, Completed, Cancelled)
+  - Order type filter chips (All Types, Dine-in, Delivery, To Go)
+  - Counts displayed on each status filter tab
+  - FlatList with order cards
+  - Pull-to-refresh functionality
+  - Loading skeleton state
+  - Error state with retry button
+  - Empty state with contextual message
+  - Loading overlay indicator for background fetches
+  - Real-time updates via SSE (prepared, implementation in Phase 5)
+  - Full TypeScript types and testIDs
+
+**Files Modified:**
+- `app/(tabs)/_layout.tsx` - Added Orders tab with `list.clipboard.fill` icon
+- `components/orders/index.ts` - Added exports for OrderCard component and helper functions
+- `src/hooks/index.ts` - Added exports for order query hooks and utility functions
+
+**Features Implemented:**
+- List all orders with filtering by status and type
+- Filter tabs: All, Pending, In Progress, Completed, Cancelled
+- Type filter chips: All Types, Dine-in, Delivery, To Go
+- Sort by time created (newest first)
+- Pull-to-refresh with RefreshControl
+- Loading skeleton on initial load
+- Error state with retry functionality
+- Empty state with status-specific message
+- Order cards with status badges, type badges, ready count
+- Press animation on order cards
+- Navigate to order detail on press (route prepared)
+- Theme-aware styling (light/dark mode support)
+
+**Types Exported:**
+- `UseOrdersOptions` - Options for useOrders hook
+- `UseOrderOptions` - Options for useOrder hook
+- `OrderCardProps` - OrderCard component props
+
+**Linting:**
+- All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)

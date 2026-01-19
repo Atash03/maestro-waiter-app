@@ -32,6 +32,23 @@ export {
   useMenuItemsByCategory,
 } from './useMenuQueries';
 export {
+  // Utility functions
+  countOrdersWithReadyItems,
+  filterOrdersByStatus,
+  filterOrdersByTable,
+  filterOrdersByType,
+  getActiveOrders,
+  // Query keys
+  orderQueryKeys,
+  sortOrdersByDate,
+  type UseOrderOptions,
+  type UseOrdersOptions,
+  useOrder,
+  useOrderCacheActions,
+  // Hooks
+  useOrders,
+} from './useOrderQueries';
+export {
   type ProtectedRouteState,
   useAuthCallbacks,
   useIsRouteProtected,

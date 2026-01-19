@@ -4,6 +4,20 @@
  * Reusable components for order management in the Maestro Waiter App.
  */
 
+// OrderCard - Order card component for orders list
+export {
+  countItemsByStatus,
+  formatPrice as formatOrderPrice,
+  formatTimeSince,
+  getItemCount,
+  getOrderStatusBadgeVariant,
+  getOrderStatusLabel,
+  getOrderTypeBadgeVariant,
+  getOrderTypeLabel,
+  getTranslatedText as getOrderTranslatedText,
+  OrderCard,
+  type OrderCardProps,
+} from './OrderCard';
 // OrderSummary - Live order summary component
 // Default export
 export {
@@ -25,7 +39,6 @@ export {
   parsePrice,
   type ServiceFeeInfo,
 } from './OrderSummary';
-
 // SendToKitchenModal - Confirmation modal for sending orders to kitchen
 export {
   SendToKitchenModal,
