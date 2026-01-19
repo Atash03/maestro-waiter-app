@@ -585,7 +585,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Offline mode indicator
   - Retry mechanisms
 
-- [ ] **8.4** Add loading states everywhere:
+- [x] **8.4** Add loading states everywhere:
   - Skeleton loaders for lists
   - Shimmer effects
   - Progress indicators

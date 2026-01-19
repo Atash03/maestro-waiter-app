@@ -3430,3 +3430,74 @@ The analysis confirmed these areas are already well-optimized:
 - All new files pass Biome linting checks
 - Only pre-existing warning in Skeleton.tsx (array index key)
 
+
+---
+
+### Task 8.4: Add loading states everywhere (COMPLETED)
+
+**Date:** 2026-01-19
+
+**Summary:**
+Task 8.4 focused on ensuring loading states are implemented throughout the application. After thorough analysis, the following was confirmed/implemented:
+
+**Already Implemented (Confirmed):**
+1. **Skeleton Component** (`components/ui/Skeleton.tsx`):
+   - Full-featured skeleton component with shimmer animation using react-native-reanimated
+   - Variants: text, circular, rectangular, rounded
+   - SkeletonGroup for rendering multiple skeletons in rows/columns
+   - Theme-aware colors (light/dark mode support)
+
+2. **Spinner Component** (`components/ui/Spinner.tsx`):
+   - ActivityIndicator wrapper with consistent styling
+   - Sizes: sm, md, lg
+   - Theme-aware color support
+
+3. **Loading Skeletons in Screens:**
+   - Tables Screen (`app/(tabs)/tables/index.tsx`): FloorPlanSkeleton with zone tabs and floor plan placeholder
+   - Profile Screen (`app/(tabs)/profile/index.tsx`): ProfileSkeleton with avatar, stats, and buttons skeletons
+   - Calls Screen (`app/(tabs)/calls/index.tsx`): CallsListSkeleton with filter tabs and call cards
+   - Orders Screen (`app/(tabs)/orders/index.tsx`): OrdersListSkeleton with status/type filters and order cards
+   - Order Detail Screen (`app/(main)/order/[id].tsx`): OrderDetailSkeleton with header card and items
+   - Bill Screen (`app/(main)/bill/[orderId].tsx`): BillSkeleton with bill info and items
+
+**Newly Created:**
+1. **Progress Component** (`components/ui/Progress.tsx`):
+   - `ProgressBar`: Linear progress indicator
+     - Determinate mode (with value 0-100) and indeterminate mode (animated)
+     - Smooth animations using react-native-reanimated
+     - Sizes: sm, md, lg
+     - Variants: default, success, warning, error
+     - Optional percentage label
+   - `CircularProgress`: Circular progress indicator
+     - Determinate and indeterminate modes
+     - View-based implementation (no react-native-svg dependency)
+     - Rotating arc animation for indeterminate state
+     - Quadrant-based visual for determinate state
+     - Center label support
+   - `LoadingOverlay`: Full-screen loading overlay
+     - Shows progress bar or circular progress
+     - Optional loading message
+     - Animated backdrop
+
+2. **Updated exports** (`components/ui/index.ts`):
+   - Added exports for ProgressBar, CircularProgress, LoadingOverlay
+   - Added type exports for ProgressBarProps, CircularProgressProps, LoadingOverlayProps, ProgressSize, ProgressVariant
+
+**Files Created:**
+- `components/ui/Progress.tsx` (522 lines)
+
+**Files Modified:**
+- `components/ui/index.ts` - Added Progress component exports
+- `PRD.md` - Marked task 8.4 as complete
+
+**Testing:**
+- Biome linting passes
+- TypeScript compilation passes (no errors in Progress.tsx)
+
+**Implementation Details:**
+- All loading states use react-native-reanimated for smooth 60fps animations
+- Skeleton shimmer uses opacity oscillation (0.6 to 1.0) with 1500ms duration
+- Progress bar indeterminate uses left position animation (0% to 70%)
+- Circular progress indeterminate uses continuous rotation animation
+- All components support light/dark theme modes
+- Components are accessible with testID props for testing
