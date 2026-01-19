@@ -3106,3 +3106,61 @@ The Activity Summary functionality was already implemented in the Profile screen
 - All new files pass Biome linting checks
 
 ---
+
+---
+
+### Task 7.4: Implement Logout Flow (COMPLETED)
+
+**Files Modified:**
+- `app/(tabs)/profile/index.tsx` - Enhanced logout flow with open orders check
+
+**Features Implemented:**
+
+1. **Open Orders Detection:**
+   - Added `waiterOpenOrders` memoized value that filters active orders (Pending/InProgress) by the current waiter's ID
+   - Uses the existing `getActiveOrders` utility from hooks
+
+2. **Enhanced Logout Flow:**
+   - When user taps "Logout" button, the app first checks for open orders
+   - If no open orders exist, shows simple confirmation dialog
+   - If open orders exist, shows a modal with the list of open orders
+
+3. **Open Orders Warning Modal:**
+   - Shows count of open orders
+   - Lists each order with:
+     - Order code
+     - Table name
+     - Status badge (Pending = warning color, InProgress = info color)
+   - Each order is tappable to navigate to that order's detail screen
+   - Two action buttons:
+     - "Cancel" - Closes the modal
+     - "Logout Anyway" - Shows additional confirmation before logout
+
+4. **Confirm Logout with Warning:**
+   - If user chooses "Logout Anyway", a second Alert confirms they understand orders will remain unattended
+   - Options: "Cancel" and "Logout Anyway" (destructive)
+
+5. **Logout Execution:**
+   - Calls `logout()` from auth store which:
+     - Calls `POST /auth/logout` API to invalidate session
+     - Clears session ID from secure storage
+     - Clears API client session info
+     - Updates auth state to unauthenticated
+   - Navigates to login screen
+
+**New Styles Added:**
+- `modalContent` - Modal container padding
+- `modalDescription` - Description text styling
+- `openOrdersList` - Orders list container with max height
+- `openOrderItem` - Individual order item row
+- `openOrderInfo` - Order info column
+- `openOrderCode` - Order code text styling
+- `openOrderTable` - Table info text styling
+- `openOrderStatus` - Status badge and arrow column
+- `openOrderArrow` - Navigation arrow styling
+- `modalActions` - Action buttons container
+- `modalButton` - Button flex styling
+
+**Linting:**
+- All files pass Biome linting checks
+

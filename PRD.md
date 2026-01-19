@@ -542,7 +542,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Default floor plan zoom level
   - About/version info
 
-- [ ] **7.4** Implement Logout Flow:
+- [x] **7.4** Implement Logout Flow:
   - Confirm logout dialog
   - Check for open orders assigned to waiter
   - Warning if open orders exist:

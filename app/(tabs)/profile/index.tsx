@@ -7,7 +7,7 @@
  * - Current session info
  * - Today's activity summary (orders taken, total sales, calls handled)
  * - Settings link
- * - Logout button
+ * - Logout button with open order checking
  */
 
 import { useRouter } from 'expo-router';
@@ -27,11 +27,12 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { Modal } from '@/components/ui/Modal';
 import { Skeleton, SkeletonGroup } from '@/components/ui/Skeleton';
 import { Spinner } from '@/components/ui/Spinner';
 import { BorderRadius, BrandColors, Colors, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useOrders, useWaiterCalls } from '@/src/hooks';
+import { getActiveOrders, useOrders, useWaiterCalls } from '@/src/hooks';
 import { useAccount, useAuthLoading, useAuthStore } from '@/src/stores/authStore';
 import { OrderStatus } from '@/src/types/enums';
 import type { Order, WaiterCall } from '@/src/types/models';
@@ -228,6 +229,14 @@ export default function ProfileScreen() {
 
   // Local state
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showOpenOrdersModal, setShowOpenOrdersModal] = useState(false);
+
+  // Get waiter's open orders
+  const waiterOpenOrders = useMemo(() => {
+    if (!ordersData?.data || !account?.id) return [];
+    const activeOrders = getActiveOrders(ordersData.data);
+    return activeOrders.filter((order) => order.waiterId === account.id);
+  }, [ordersData?.data, account?.id]);
 
   // Calculate activity stats
   const activityStats = useMemo(
@@ -246,23 +255,56 @@ export default function ProfileScreen() {
     router.push('/(main)/settings');
   }, [router]);
 
+  const performLogout = useCallback(async () => {
+    try {
+      await logout();
+      router.replace('/(auth)/login');
+    } catch {
+      Alert.alert('Error', 'Failed to logout. Please try again.');
+    }
+  }, [logout, router]);
+
   const handleLogout = useCallback(() => {
+    // Check for open orders first
+    if (waiterOpenOrders.length > 0) {
+      setShowOpenOrdersModal(true);
+      return;
+    }
+
+    // No open orders, show simple confirm dialog
     Alert.alert('Logout', 'Are you sure you want to logout?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Logout',
         style: 'destructive',
-        onPress: async () => {
-          try {
-            await logout();
-            router.replace('/(auth)/login');
-          } catch {
-            Alert.alert('Error', 'Failed to logout. Please try again.');
-          }
-        },
+        onPress: performLogout,
       },
     ]);
-  }, [logout, router]);
+  }, [waiterOpenOrders.length, performLogout]);
+
+  const handleGoToOrder = useCallback(
+    (orderId: string) => {
+      setShowOpenOrdersModal(false);
+      router.push(`/(main)/order/${orderId}`);
+    },
+    [router]
+  );
+
+  const handleContinueLogout = useCallback(() => {
+    setShowOpenOrdersModal(false);
+    Alert.alert(
+      'Confirm Logout',
+      'You have open orders that will remain unattended. Are you sure you want to continue?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Logout Anyway',
+          style: 'destructive',
+          onPress: performLogout,
+        },
+      ]
+    );
+  }, [performLogout]);
 
   const isLoading = isLoadingOrders || isLoadingCalls;
 
@@ -412,6 +454,73 @@ export default function ProfileScreen() {
           <ThemedText style={styles.loadingText}>Logging out...</ThemedText>
         </Animated.View>
       )}
+
+      {/* Open Orders Warning Modal */}
+      <Modal
+        visible={showOpenOrdersModal}
+        onClose={() => setShowOpenOrdersModal(false)}
+        title="Open Orders"
+        testID="open-orders-modal"
+      >
+        <View style={styles.modalContent}>
+          <ThemedText style={[styles.modalDescription, { color: colors.textSecondary }]}>
+            You have {waiterOpenOrders.length} open order
+            {waiterOpenOrders.length !== 1 ? 's' : ''} that need attention before logging out.
+          </ThemedText>
+
+          <View style={styles.openOrdersList}>
+            {waiterOpenOrders.map((order) => (
+              <TouchableOpacity
+                key={order.id}
+                style={[styles.openOrderItem, { backgroundColor: colors.backgroundSecondary }]}
+                onPress={() => handleGoToOrder(order.id)}
+                testID={`open-order-${order.id}`}
+              >
+                <View style={styles.openOrderInfo}>
+                  <ThemedText style={[styles.openOrderCode, { color: colors.text }]}>
+                    {order.orderCode}
+                  </ThemedText>
+                  <ThemedText style={[styles.openOrderTable, { color: colors.textSecondary }]}>
+                    Table: {order.table?.title ?? 'N/A'}
+                  </ThemedText>
+                </View>
+                <View style={styles.openOrderStatus}>
+                  <Badge
+                    variant={order.orderStatus === OrderStatus.PENDING ? 'warning' : 'info'}
+                    size="sm"
+                  >
+                    {order.orderStatus}
+                  </Badge>
+                  <ThemedText style={[styles.openOrderArrow, { color: colors.textSecondary }]}>
+                    ›
+                  </ThemedText>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <View style={styles.modalActions}>
+            <Button
+              variant="outline"
+              size="md"
+              onPress={() => setShowOpenOrdersModal(false)}
+              style={styles.modalButton}
+              testID="cancel-logout-button"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="md"
+              onPress={handleContinueLogout}
+              style={styles.modalButton}
+              testID="continue-logout-button"
+            >
+              Logout Anyway
+            </Button>
+          </View>
+        </View>
+      </Modal>
     </ThemedView>
   );
 }
@@ -575,5 +684,54 @@ const styles = StyleSheet.create({
   buttonsSkeleton: {
     marginTop: Spacing.xl,
     gap: Spacing.md,
+  },
+  modalContent: {
+    paddingHorizontal: Spacing.md,
+    paddingBottom: Spacing.md,
+  },
+  modalDescription: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: Spacing.lg,
+    textAlign: 'center',
+  },
+  openOrdersList: {
+    gap: Spacing.sm,
+    marginBottom: Spacing.lg,
+    maxHeight: 250,
+  },
+  openOrderItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+  },
+  openOrderInfo: {
+    flex: 1,
+  },
+  openOrderCode: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  openOrderTable: {
+    fontSize: 13,
+  },
+  openOrderStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  openOrderArrow: {
+    fontSize: 20,
+    fontWeight: '300',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
+  modalButton: {
+    flex: 1,
   },
 });
