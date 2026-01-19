@@ -406,7 +406,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Store last event ID for replay
   - Parse and dispatch events to stores
 
-- [ ] **5.2** Create notifications store (`stores/notificationStore.ts`):
+- [x] **5.2** Create notifications store (`stores/notificationStore.ts`):
   - Store active waiter calls
   - Track acknowledged vs pending
   - Badge count for unread

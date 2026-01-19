@@ -29,6 +29,24 @@ export {
   useSelectedCategoryId,
 } from './menuStore';
 export {
+  type NotificationCall,
+  type NotificationPreferences,
+  type NotificationState,
+  useAcknowledgedCalls,
+  useActiveCalls,
+  useBadgeCount,
+  useCallById,
+  useCalls,
+  useNotificationActions,
+  useNotificationInitialized,
+  useNotificationPreferences,
+  useNotificationStore,
+  usePendingCalls,
+  useSoundEnabled,
+  useUnreadCount,
+  useVibrationEnabled,
+} from './notificationStore';
+export {
   // Helper functions
   calculateExtrasTotal,
   calculateItemSubtotal,

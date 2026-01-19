@@ -2301,3 +2301,48 @@ Implemented comprehensive order modification features including changing table, 
 **Linting:**
 - All files pass Biome linting checks
 
+
+### Task 5.2: Create notifications store (COMPLETED)
+
+**Files Created:**
+- `src/stores/notificationStore.ts` - Notification store with:
+  - `NotificationCall` interface for normalized waiter call data
+  - `NotificationPreferences` interface for sound/vibration settings
+  - `NotificationState` interface with all state and actions
+  - State management for active waiter calls list
+  - `getPendingCalls()`, `getAcknowledgedCalls()`, `getCompletedCalls()`, `getActiveCalls()` computed getters
+  - `getUnreadCount()` and `getBadgeCount()` for badge display
+  - `getCallById()` for looking up specific calls
+  - `addCall()` handler for `waiter:call` SSE events
+  - `acknowledgeCall()` handler for `waiter:call-acknowledged` SSE events
+  - `completeCall()` handler for `waiter:call-completed` SSE events
+  - `cancelCall()` handler for `waiter:call-cancelled` SSE events
+  - `markCallAsRead()`, `markAllAsRead()` for read status management
+  - `removeCall()`, `clearCompletedCalls()`, `clearAllCalls()` for cleanup
+  - `setSoundEnabled()`, `setVibrationEnabled()` for preferences with AsyncStorage persistence
+  - `initialize()` to load preferences from storage on app start
+
+**Files Modified:**
+- `src/stores/index.ts` - Added exports for notification store types and hooks:
+  - Types: `NotificationCall`, `NotificationPreferences`, `NotificationState`
+  - Hooks: `useCalls`, `usePendingCalls`, `useAcknowledgedCalls`, `useActiveCalls`
+  - Hooks: `useUnreadCount`, `useBadgeCount`, `useCallById`
+  - Hooks: `useNotificationPreferences`, `useSoundEnabled`, `useVibrationEnabled`
+  - Hooks: `useNotificationActions`, `useNotificationInitialized`, `useNotificationStore`
+
+**Features Implemented:**
+1. **Store active waiter calls** - Maintains a list of `NotificationCall` objects with full call data
+2. **Track acknowledged vs pending** - Status-based filtering with `getPendingCalls()` and `getAcknowledgedCalls()`
+3. **Badge count for unread** - `getBadgeCount()` returns count of pending (unacknowledged) calls
+4. **Sound/vibration preferences** - Persisted to AsyncStorage, default to enabled
+
+**Integration Points:**
+- Ready to receive SSE events via `addCall`, `acknowledgeCall`, `completeCall`, `cancelCall` actions
+- Preferences can be used to control sound/haptic feedback in notification components
+- Badge count hooks can be used in tab bar icons
+- Call list hooks ready for use in the Calls screen
+
+**Linting:**
+- All files pass Biome linting checks
+
+---
