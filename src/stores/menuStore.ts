@@ -40,6 +40,9 @@ export interface MenuState {
   fetchItems: () => Promise<void>;
   fetchExtras: () => Promise<void>;
   fetchAll: () => Promise<void>;
+  setCategories: (categories: MenuCategory[]) => void;
+  setItems: (items: MenuItem[]) => void;
+  setExtras: (extras: Extra[]) => void;
   selectCategory: (categoryId: string | null) => void;
   setSearchQuery: (query: string) => void;
   getCategoryById: (categoryId: string) => MenuCategory | undefined;
@@ -180,6 +183,27 @@ export const useMenuStore = create<MenuState>((set, get) => ({
 
     // Fetch all in parallel
     await Promise.all([fetchCategories(), fetchItems(), fetchExtras()]);
+  },
+
+  /**
+   * Set categories directly (used for syncing from React Query)
+   */
+  setCategories: (categories: MenuCategory[]) => {
+    set({ categories });
+  },
+
+  /**
+   * Set items directly (used for syncing from React Query)
+   */
+  setItems: (items: MenuItem[]) => {
+    set({ items });
+  },
+
+  /**
+   * Set extras directly (used for syncing from React Query)
+   */
+  setExtras: (extras: Extra[]) => {
+    set({ extras });
   },
 
   /**

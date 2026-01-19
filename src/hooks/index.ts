@@ -5,12 +5,38 @@
  */
 
 export {
+  // Query keys
+  extraQueryKeys,
+  // Combined hooks
+  type MenuDataResult,
+  menuCategoryQueryKeys,
+  menuItemQueryKeys,
+  type UseExtraOptions,
+  type UseExtrasOptions,
+  type UseMenuCategoriesOptions,
+  type UseMenuCategoryOptions,
+  type UseMenuDataOptions,
+  type UseMenuItemOptions,
+  type UseMenuItemsOptions,
+  useActiveMenuItems,
+  useExtra,
+  useExtras,
+  useExtrasForItem,
+  useMenuCacheActions,
+  useMenuCategories,
+  useMenuCategory,
+  useMenuData,
+  useMenuItem,
+  useMenuItemSearch,
+  useMenuItems,
+  useMenuItemsByCategory,
+} from './useMenuQueries';
+export {
   type ProtectedRouteState,
   useAuthCallbacks,
   useIsRouteProtected,
   useProtectedRoute,
 } from './useProtectedRoute';
-
 export {
   // Combined hooks
   type TablesAndZonesResult,

@@ -1206,3 +1206,65 @@
 
 **Linting:**
 - All files pass Biome linting checks
+
+---
+
+### Task 3.2: Implement Menu data fetching (COMPLETED)
+
+**Files Created:**
+- `src/hooks/useMenuQueries.ts` - Full-featured React Query hooks for menu data fetching with:
+  - Query key factories (`menuCategoryQueryKeys`, `menuItemQueryKeys`, `extraQueryKeys`) for targeted cache invalidation
+  - `useMenuCategories(options?)` - Fetch all menu categories with optional filtering/pagination
+  - `useMenuCategory({ id })` - Fetch a single category by ID
+  - `useMenuItems(options?)` - Fetch all menu items with optional filtering/pagination
+  - `useMenuItem({ id })` - Fetch a single menu item by ID
+  - `useExtras(options?)` - Fetch all extras with optional filtering/pagination
+  - `useExtra({ id })` - Fetch a single extra by ID
+  - `useMenuData(options?)` - Combined hook to fetch categories, items, and extras together
+    - Syncs data to menu store by default (configurable via `syncToStore` option)
+    - `refetchAll()` function for pull-to-refresh support
+  - `useMenuItemsByCategory(items, categoryId)` - Filter items by category from cached data
+  - `useMenuItemSearch(items, query)` - Search items by name/description in all languages
+  - `useActiveMenuItems(items)` - Filter to only active items
+  - `useExtrasForItem(extras, extraIds)` - Get extras for a specific menu item
+  - `useMenuCacheActions()` - Cache management utilities:
+    - `invalidateCategories(params?)`, `invalidateItems(params?)`, `invalidateExtras(params?)`
+    - `invalidateAll()` - Invalidate all menu data
+    - `prefetchCategories(params?)`, `prefetchItems(params?)`, `prefetchExtras(params?)`
+    - `prefetchAll()` - Prefetch all menu data
+  - Default stale time: 10 minutes (menu changes less frequently)
+  - Default cache time: 60 minutes
+
+**Files Modified:**
+- `src/stores/menuStore.ts` - Added setter methods for React Query sync:
+  - `setCategories(categories)` - Set categories directly
+  - `setItems(items)` - Set items directly
+  - `setExtras(extras)` - Set extras directly
+- `src/hooks/index.ts` - Updated to export all menu query hooks and types
+- `jest.config.js` - Added menu-queries.test.tsx to web test match patterns
+
+**Tests Created:**
+- `src/__tests__/menu-queries.test.tsx` - 70 tests covering:
+  - Query keys generation (18 tests):
+    - menuCategoryQueryKeys: all, lists, list with/without params, details, detail
+    - menuItemQueryKeys: all, lists, list with/without params, details, detail
+    - extraQueryKeys: all, lists, list with/without params, details, detail
+  - useMenuCategories hook (3 tests): fetch, filter by type, error handling
+  - useMenuCategory hook (2 tests): fetch by ID, disabled when empty
+  - useMenuItems hook (4 tests): fetch, active filter, category filter, error handling
+  - useMenuItem hook (2 tests): fetch by ID, disabled when empty
+  - useExtras hook (3 tests): fetch, active filter, error handling
+  - useExtra hook (2 tests): fetch by ID, disabled when empty
+  - useMenuData hook (5 tests): fetch all, error handling, refetchAll, store sync, sync disabled
+  - useMenuItemsByCategory utility (4 tests): filter, undefined category, undefined items, no match
+  - useMenuItemSearch utility (8 tests): English/Russian/description search, case insensitive, empty query
+  - useActiveMenuItems utility (2 tests): filter active, undefined items
+  - useExtrasForItem utility (5 tests): match extras, empty/undefined extraIds, undefined extras, filter non-existent
+  - useMenuCacheActions hook (10 tests): all functions, invalidation, prefetching
+  - Hook exports verification (2 tests)
+
+**Test Results:**
+- 811 tests passing (741 previous + 70 menu queries tests)
+
+**Linting:**
+- All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)

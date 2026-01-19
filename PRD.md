@@ -259,7 +259,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Search/filter functionality
   - Recently used items tracking
 
-- [ ] **3.2** Implement Menu data fetching:
+- [x] **3.2** Implement Menu data fetching:
   - `GET /menu-category` - Categories with hierarchy
   - `GET /menu-item` - All active menu items
   - `GET /extra` - Available extras/add-ons
