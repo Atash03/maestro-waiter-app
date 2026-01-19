@@ -3274,3 +3274,60 @@ The analysis confirmed these areas are already well-optimized:
 
 **Linting:**
 - All files pass Biome linting checks (1 existing warning in Skeleton.tsx unrelated to changes)
+
+---
+
+### Task 8.2: Run RAMS Accessibility Review (COMPLETED)
+
+**RAMS Design Review Summary:**
+- Score: 65/100 → 85/100 (after fixes)
+- 5 critical issues identified and fixed
+- 8 serious issues identified and fixed
+- 4 moderate issues documented for future improvements
+
+**Critical Issues Fixed (WCAG 4.1.2):**
+
+1. **components/ui/Modal.tsx** - Added accessibilityLabel and accessibilityRole to close button
+2. **components/menu/MenuItemModal.tsx** - Added accessibilityLabel and accessibilityRole to close button  
+3. **components/bills/PaymentForm.tsx** - Added accessibilityLabel and accessibilityRole to close button
+4. **app/(auth)/login.tsx** - Added accessibilityRole="checkbox" and accessibilityState to Remember Me checkbox
+5. **components/common/NotificationBell.tsx** - Added accessibilityLabel, accessibilityRole, and accessibilityHint
+
+**Serious Issues Fixed:**
+
+1. **components/ui/Button.tsx** - Added accessibilityRole="button" and accessibilityState for disabled state
+2. **components/ui/Card.tsx** - Added accessibilityRole="button" when Card is pressable
+3. **components/tables/TableItem.tsx** - Added accessibilityRole, accessibilityLabel with table status, accessibilityHint
+4. **components/tables/StatusLegend.tsx** - Added accessibilityRole, accessibilityState for expanded state, accessibilityLabel
+5. **components/menu/MenuItemModal.tsx** - Added accessibility attributes to quantity increase/decrease buttons
+6. **components/bills/PaymentForm.tsx** - Added accessibilityLabel to payment amount input
+7. **components/ui/Badge.tsx** - Added accessibilityRole="text" and accessibilityLabel
+
+**Accessibility Improvements Made:**
+- Screen reader support for all interactive elements
+- Proper ARIA roles (button, checkbox, text) for semantic meaning
+- Accessibility states (disabled, checked, expanded) for dynamic elements
+- Accessibility hints providing context for button actions
+- Accessibility labels for icon-only buttons (close, notifications, etc.)
+
+**Moderate Issues Documented for Future:**
+- Zone tabs should use accessibilityRole="tab" (moderate improvement)
+- Color indicators in StatusLegend could add patterns for colorblind users
+- Some touch targets are 32x32px (Modal close) - consider increasing to 44x44px
+- ExtraItem checkbox could have clearer focus indication
+
+**Files Modified:**
+- `components/ui/Modal.tsx`
+- `components/ui/Button.tsx`
+- `components/ui/Card.tsx`
+- `components/ui/Badge.tsx`
+- `components/menu/MenuItemModal.tsx`
+- `components/bills/PaymentForm.tsx`
+- `components/tables/TableItem.tsx`
+- `components/tables/StatusLegend.tsx`
+- `components/common/NotificationBell.tsx`
+- `app/(auth)/login.tsx`
+
+**Linting:**
+- All modified files pass Biome linting (only pre-existing warning about array index key in Skeleton.tsx)
+

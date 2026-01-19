@@ -235,6 +235,9 @@ export default function LoginScreen() {
             onPress={() => setRememberMe(!rememberMe)}
             disabled={isLoggingIn}
             testID="remember-me-checkbox"
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: rememberMe }}
+            accessibilityLabel="Remember me"
           >
             <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
               {rememberMe && <Text style={styles.checkmark}>✓</Text>}

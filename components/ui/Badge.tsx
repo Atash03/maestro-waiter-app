@@ -103,6 +103,8 @@ export function Badge({
         style,
       ]}
       testID={testID}
+      accessibilityRole="text"
+      accessibilityLabel={children}
     >
       <Text
         style={[

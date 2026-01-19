@@ -324,6 +324,8 @@ export function PaymentForm({
                   hitSlop={8}
                   disabled={isSubmitting}
                   testID="close-payment-modal-btn"
+                  accessibilityLabel="Close payment form"
+                  accessibilityRole="button"
                 >
                   <ThemedText style={[styles.closeButton, { color: colors.textMuted }]}>
                     ✕
@@ -421,6 +423,7 @@ export function PaymentForm({
                       keyboardType="decimal-pad"
                       editable={!isSubmitting}
                       testID="payment-amount-input"
+                      accessibilityLabel="Payment amount in dollars"
                     />
                   </View>
                 </View>

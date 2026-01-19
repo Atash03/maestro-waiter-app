@@ -110,6 +110,9 @@ export function StatusLegend({
         style={styles.toggleButton}
         onPress={handleToggle}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: isExpanded }}
+        accessibilityLabel={isExpanded ? 'Hide table status legend' : 'Show table status legend'}
       >
         <ThemedText style={styles.toggleText}>{isExpanded ? 'Hide Legend' : 'Legend'}</ThemedText>
         <Animated.View style={chevronAnimatedStyle}>

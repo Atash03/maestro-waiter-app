@@ -573,7 +573,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Reduce unnecessary re-renders
   - Optimize images and assets
 
-- [ ] **8.2** Run `/rams` skill for accessibility review:
+- [x] **8.2** Run `/rams` skill for accessibility review:
   - Screen reader support
   - Touch target sizes
   - Color contrast

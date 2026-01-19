@@ -280,6 +280,9 @@ export function TableItem({
         activeOpacity={1}
         delayLongPress={300}
         testID={`table-touchable-${table.id}`}
+        accessibilityRole="button"
+        accessibilityLabel={`Table ${table.title}, ${table.status}${table.guestCount ? `, ${table.guestCount} guests` : ''}`}
+        accessibilityHint="Tap to select, long press for options"
       >
         {/* Table title */}
         <ThemedText style={styles.tableTitle} numberOfLines={1}>

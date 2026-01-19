@@ -87,7 +87,13 @@ export function Modal({
           {title && (
             <View style={[styles.header, { borderBottomColor: borderColor }]}>
               <Text style={[styles.title, { color: textColor }]}>{title}</Text>
-              <Pressable onPress={onClose} hitSlop={8} testID="modal-close">
+              <Pressable
+                onPress={onClose}
+                hitSlop={8}
+                testID="modal-close"
+                accessibilityLabel="Close modal"
+                accessibilityRole="button"
+              >
                 <Text style={[styles.closeButton, { color: textColor }]}>✕</Text>
               </Pressable>
             </View>

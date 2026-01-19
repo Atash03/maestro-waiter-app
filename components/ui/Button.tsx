@@ -184,6 +184,8 @@ export function Button({
       disabled={isDisabled}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: isDisabled }}
       {...props}
     >
       {loading ? (

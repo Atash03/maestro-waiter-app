@@ -445,6 +445,8 @@ export function MenuItemModal({
             style={styles.closeButton}
             onPress={onClose}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessibilityLabel="Close menu item details"
+            accessibilityRole="button"
           >
             <ThemedText style={styles.closeButtonText}>✕</ThemedText>
           </TouchableOpacity>
@@ -513,11 +515,19 @@ export function MenuItemModal({
                   ]}
                   onPress={handleDecreaseQuantity}
                   disabled={quantity <= MIN_QUANTITY}
+                  accessibilityRole="button"
+                  accessibilityLabel="Decrease quantity"
+                  accessibilityState={{ disabled: quantity <= MIN_QUANTITY }}
                 >
                   <ThemedText style={styles.quantityButtonText}>−</ThemedText>
                 </TouchableOpacity>
 
-                <ThemedText testID="quantity-value" style={styles.quantityValue}>
+                <ThemedText
+                  testID="quantity-value"
+                  style={styles.quantityValue}
+                  accessibilityLabel={`Quantity: ${quantity}`}
+                  accessibilityRole="text"
+                >
                   {quantity}
                 </ThemedText>
 
@@ -530,6 +540,9 @@ export function MenuItemModal({
                   ]}
                   onPress={handleIncreaseQuantity}
                   disabled={quantity >= MAX_QUANTITY}
+                  accessibilityRole="button"
+                  accessibilityLabel="Increase quantity"
+                  accessibilityState={{ disabled: quantity >= MAX_QUANTITY }}
                 >
                   <ThemedText style={styles.quantityButtonText}>+</ThemedText>
                 </TouchableOpacity>

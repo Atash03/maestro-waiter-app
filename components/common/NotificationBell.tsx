@@ -133,6 +133,11 @@ export function NotificationBell({ onPress, size = 24, testID }: NotificationBel
       onPressOut={handlePressOut}
       hitSlop={8}
       testID={testID}
+      accessibilityLabel={
+        pendingCount > 0 ? `Notifications, ${pendingCount} pending calls` : 'Notifications'
+      }
+      accessibilityRole="button"
+      accessibilityHint="Opens the calls screen"
     >
       <Animated.View style={bellAnimatedStyle}>
         <MaterialIcons
