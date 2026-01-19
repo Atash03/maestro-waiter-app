@@ -2916,3 +2916,59 @@ Task 6.6 enhances the payment processing flow with a success confirmation modal 
 
 **Linting:**
 - All files pass Biome linting checks
+
+---
+
+### Task 6.7: Create Bill Summary Component (COMPLETED)
+
+**Implementation:**
+Created a reusable BillSummary component that displays a complete breakdown of a bill with all financial details.
+
+1. **BillSummary Component** (`components/bills/BillSummary.tsx`):
+   - Complete breakdown display:
+     - Subtotal
+     - Discounts applied (with itemized breakdown)
+     - Service fee (with title if available)
+     - Total amount (highlighted in brand color)
+     - Paid amount
+     - Remaining balance (highlighted in attention color)
+   - "Fully Paid" badge when bill is completely paid
+   - Payment history section showing all payments with:
+     - Payment method
+     - Date/time
+     - Transaction ID (if available)
+     - Amount
+   - Action buttons for Print and Share receipt (placeholder for future)
+   - Configurable props:
+     - `showDiscountDetails` - Toggle itemized discount breakdown
+     - `showPayments` - Toggle payment history section
+     - `showActions` - Toggle action buttons
+     - `compact` - Reduced padding mode
+     - `onPrintReceipt` / `onShareReceipt` - Custom callbacks
+
+2. **Helper Functions**:
+   - `getTranslatedText()` - Get translated text from Translation object
+   - `formatPrice()` - Format price for display
+   - `formatDateTime()` - Format date/time for display
+   - `calculateRemainingBalance()` - Calculate remaining bill balance
+   - `getPaymentMethodLabel()` - Human-readable payment method labels
+
+3. **Subcomponents**:
+   - `SummaryRow` - Reusable row for displaying label/value pairs
+   - `DiscountItem` - Individual discount line with animation
+   - `PaymentItem` - Individual payment line with details
+
+4. **Animations**:
+   - FadeIn animation for the card
+   - SlideInRight animations for discount and payment items
+
+5. **Index Export** (`components/bills/index.ts`):
+   - Created index file to export all bill components
+   - Exports: BillSummary, DiscountSelector, PaymentForm, PaymentSuccessModal
+
+**Files Created:**
+- `components/bills/BillSummary.tsx` - Bill summary component with complete breakdown
+- `components/bills/index.ts` - Central export file for bill components
+
+**Linting:**
+- All files pass Biome linting checks

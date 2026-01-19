@@ -500,7 +500,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Show remaining balance
   - Success confirmation with receipt option
 
-- [ ] **6.7** Create Bill Summary (`components/bills/BillSummary.tsx`):
+- [x] **6.7** Create Bill Summary (`components/bills/BillSummary.tsx`):
   - Complete breakdown:
     - Subtotal
     - Discounts applied (itemized)
