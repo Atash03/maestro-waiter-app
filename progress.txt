@@ -2226,3 +2226,40 @@ Implemented comprehensive order modification features including changing table, 
 - Fixed unused import issues
 - Only pre-existing warning remains (Skeleton.tsx array index key)
 
+
+---
+
+### Task 4.7: Implement item status updates (COMPLETED)
+
+**Implementation:**
+- Created `CancelItemModal` component for cancelling order items with a reason
+- Integrated `batchUpdateOrderItemStatus` API in Order Detail Screen
+- Mark items as Served functionality with API call
+- Cancel items with reason selection (preset reasons or custom)
+- Toast notifications for success/error feedback
+- Full integration with reason templates from API
+
+**Files Created:**
+- `components/orders/CancelItemModal.tsx` - Modal for cancelling order items with reason selection
+  - Preset reason templates from API
+  - Custom reason input option
+  - Loading state during API call
+  - Error display with retry option
+
+**Files Modified:**
+- `app/(main)/order/[id].tsx` - Order Detail Screen
+  - Added `CancelItemModal` import and integration
+  - Updated `handleMarkServed` to call `batchUpdateOrderItemStatus` API
+  - Replaced simple Alert with `CancelItemModal` for item cancellation
+  - Added `handleConfirmCancelItem` callback for API call
+  - Added state management for cancel item modal
+
+**API Integration:**
+- `PATCH /order-item/batch/status` for marking items as Served
+- `PATCH /order-item/batch/status` for cancelling items with reason
+- `GET /reason-template` for cancellation reasons (via `useCancellationReasons` hook)
+
+**Linting:**
+- All files pass Biome linting checks
+- Pre-existing TypeScript type issues in Card component style prop (not introduced by this task)
+

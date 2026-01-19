@@ -383,7 +383,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Add/edit notes
   - Cancel order (with reason required)
 
-- [ ] **4.7** Implement item status updates:
+- [x] **4.7** Implement item status updates:
   - `PATCH /order-item/batch/status`
   - Mark items as Served
   - Cancel items with reason

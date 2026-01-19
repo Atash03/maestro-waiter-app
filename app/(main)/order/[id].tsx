@@ -30,6 +30,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
 
+import { CancelItemModal } from '@/components/orders/CancelItemModal';
 import { CancelOrderModal } from '@/components/orders/CancelOrderModal';
 import { ChangeTableModal } from '@/components/orders/ChangeTableModal';
 import { EditNotesModal } from '@/components/orders/EditNotesModal';
@@ -41,6 +42,7 @@ import { Skeleton, SkeletonGroup } from '@/components/ui/Skeleton';
 import { BorderRadius, BrandColors, Colors, Spacing, StatusColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useOrder, useOrderCacheActions } from '@/src/hooks/useOrderQueries';
+import { batchUpdateOrderItemStatus } from '@/src/services/api/orderItems';
 import { updateOrder } from '@/src/services/api/orders';
 import { OrderItemStatus, OrderStatus, OrderType } from '@/src/types/enums';
 import type { OrderItem, Translation } from '@/src/types/models';
@@ -473,6 +475,8 @@ export default function OrderDetailScreen() {
   const [showChangeTableModal, setShowChangeTableModal] = useState(false);
   const [showEditNotesModal, setShowEditNotesModal] = useState(false);
   const [showCancelOrderModal, setShowCancelOrderModal] = useState(false);
+  const [showCancelItemModal, setShowCancelItemModal] = useState(false);
+  const [itemToCancel, setItemToCancel] = useState<OrderItem | null>(null);
 
   // Pull to refresh
   const handleRefresh = useCallback(async () => {
@@ -492,10 +496,25 @@ export default function OrderDetailScreen() {
           {
             text: 'Mark Served',
             onPress: async () => {
-              // TODO: Implement API call to mark as served
-              // await batchUpdateOrderItemStatus({ ids: [item.id], status: OrderItemStatus.SERVED });
-              invalidateOrder(id ?? '');
-              refetch();
+              try {
+                await batchUpdateOrderItemStatus({
+                  ids: [item.id],
+                  status: OrderItemStatus.SERVED,
+                });
+                Toast.show({
+                  type: 'success',
+                  text1: 'Item Served',
+                  text2: `${getTranslatedText(item.itemTitle, 'Item')} marked as served`,
+                });
+                invalidateOrder(id ?? '');
+                refetch();
+              } catch (err) {
+                Toast.show({
+                  type: 'error',
+                  text1: 'Error',
+                  text2: err instanceof Error ? err.message : 'Failed to update item status',
+                });
+              }
             },
           },
         ]
@@ -504,25 +523,45 @@ export default function OrderDetailScreen() {
     [id, invalidateOrder, refetch]
   );
 
-  // Cancel item
-  const handleCancelItem = useCallback(
-    (item: OrderItem) => {
-      Alert.alert('Cancel Item', `Cancel "${getTranslatedText(item.itemTitle, 'Item')}"?`, [
-        { text: 'Keep Item', style: 'cancel' },
-        {
-          text: 'Cancel Item',
-          style: 'destructive',
-          onPress: async () => {
-            // TODO: Implement API call to cancel with reason
-            // Navigate to reason selection or show reason input
-            invalidateOrder(id ?? '');
-            refetch();
-          },
-        },
-      ]);
+  // Open cancel item modal
+  const handleCancelItem = useCallback((item: OrderItem) => {
+    setItemToCancel(item);
+    setShowCancelItemModal(true);
+  }, []);
+
+  // Confirm cancel item with reason
+  const handleConfirmCancelItem = useCallback(
+    async (reason: string, reasonId?: string) => {
+      if (!itemToCancel) return;
+
+      try {
+        await batchUpdateOrderItemStatus({
+          ids: [itemToCancel.id],
+          status: OrderItemStatus.CANCELED,
+          cancelReason: reason,
+          cancelReasonId: reasonId,
+        });
+        Toast.show({
+          type: 'success',
+          text1: 'Item Cancelled',
+          text2: `${getTranslatedText(itemToCancel.itemTitle, 'Item')} has been cancelled`,
+        });
+        setShowCancelItemModal(false);
+        setItemToCancel(null);
+        invalidateOrder(id ?? '');
+        refetch();
+      } catch (err) {
+        throw new Error(err instanceof Error ? err.message : 'Failed to cancel item');
+      }
     },
-    [id, invalidateOrder, refetch]
+    [itemToCancel, id, invalidateOrder, refetch]
   );
+
+  // Close cancel item modal
+  const handleCloseCancelItemModal = useCallback(() => {
+    setShowCancelItemModal(false);
+    setItemToCancel(null);
+  }, []);
 
   // Navigate to add more items
   const handleAddItems = useCallback(() => {
@@ -917,6 +956,15 @@ export default function OrderDetailScreen() {
         onConfirm={handleCancelOrder}
         onCancel={() => setShowCancelOrderModal(false)}
         testID="order-detail-cancel-order-modal"
+      />
+
+      <CancelItemModal
+        visible={showCancelItemModal}
+        itemName={itemToCancel?.itemTitle ?? 'Item'}
+        quantity={Number.parseInt(itemToCancel?.quantity ?? '1', 10)}
+        onConfirm={handleConfirmCancelItem}
+        onCancel={handleCloseCancelItemModal}
+        testID="order-detail-cancel-item-modal"
       />
     </View>
   );
