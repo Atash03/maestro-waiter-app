@@ -552,7 +552,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Clear local storage
   - Navigate to login
 
-- [ ] **7.5** Create language store and i18n setup:
+- [x] **7.5** Create language store and i18n setup:
   - Store selected language preference
   - Utility to get translated text from Translation objects
   - Fallback to 'en' if translation missing

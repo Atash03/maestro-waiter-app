@@ -98,6 +98,11 @@ export {
   zoneQueryKeys,
 } from './useTableQueries';
 export {
+  // Translation hooks
+  useT,
+  useTranslation,
+} from './useTranslation';
+export {
   // Utility functions
   filterCallsByStatus,
   formatCallElapsedTime,

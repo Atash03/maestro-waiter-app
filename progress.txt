@@ -3164,3 +3164,58 @@ The Activity Summary functionality was already implemented in the Profile screen
 **Linting:**
 - All files pass Biome linting checks
 
+
+---
+
+### Task 7.5: Create language store and i18n setup (COMPLETED)
+
+**Files Created:**
+- `src/utils/translations.ts` - Centralized translation utilities including:
+  - `getTranslatedText()` - Get translated text with fallback chain (preferredLang -> en -> ru -> tm -> fallback)
+  - `matchesTranslation()` - Search within Translation objects across all languages
+  - `createTranslation()` - Create Translation object from single string
+  - `createPartialTranslation()` - Create Translation with partial values
+  - `hasAnyTranslation()` - Check if Translation has any content
+  - `getAvailableTranslations()` - Get all non-empty translations as array
+  - `SupportedLanguage` type ('en' | 'ru' | 'tm')
+  - `DEFAULT_LANGUAGE` constant ('en')
+  - `SUPPORTED_LANGUAGES` mapping for UI display names
+
+- `src/utils/index.ts` - Utils index file exporting all translation utilities
+
+- `src/hooks/useTranslation.ts` - React hook for translations with current language:
+  - `useTranslation()` - Full hook with t(), matches(), hasContent(), getAvailable()
+  - `useT()` - Simple hook returning only the translation function
+
+**Files Modified:**
+- `app/_layout.tsx` - Added settings store initialization on app startup
+  - Imports `useSettingsStore` from settings store
+  - Calls `initializeSettings()` in parallel with auth initialization
+  - Ensures language preference is loaded from AsyncStorage before app renders
+
+- `src/hooks/index.ts` - Added exports for useTranslation and useT hooks
+
+**Integration with Existing Code:**
+- Language preference is stored via existing `settingsStore.ts` (already had `useLanguage()` hook)
+- Settings store uses AsyncStorage for persistence
+- Settings store initialization now runs at app startup
+
+**Usage Examples:**
+```typescript
+// In components
+const { t, language, matches } = useTranslation();
+const title = t(menuItem.title, 'Unknown Item');
+const found = matches(menuItem.description, searchQuery);
+
+// Simple usage
+const t = useT();
+const name = t(category.title);
+
+// Direct utility usage
+import { getTranslatedText } from '@/src/utils/translations';
+const text = getTranslatedText(item.title, 'Fallback', 'ru');
+```
+
+**Linting:**
+- All new files pass Biome linting checks
+

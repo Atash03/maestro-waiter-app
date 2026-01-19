@@ -11,6 +11,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuthCallbacks, useProtectedRoute } from '@/src/hooks/useProtectedRoute';
 import { initializeApiClient } from '@/src/services/api/client';
 import { useAuthStore } from '@/src/stores/authStore';
+import { useSettingsStore } from '@/src/stores/settingsStore';
 
 // Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -32,18 +33,20 @@ initializeApiClient({
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
-  const { isInitializing, initialize } = useAuthStore();
+  const { isInitializing, initialize: initializeAuth } = useAuthStore();
+  const { initialize: initializeSettings } = useSettingsStore();
   const [isReady, setIsReady] = useState(false);
 
-  // Initialize auth store on app start
+  // Initialize stores on app start
   useEffect(() => {
-    async function initAuth() {
-      await initialize();
+    async function initApp() {
+      // Initialize settings and auth in parallel
+      await Promise.all([initializeAuth(), initializeSettings()]);
       setIsReady(true);
       await SplashScreen.hideAsync();
     }
-    initAuth();
-  }, [initialize]);
+    initApp();
+  }, [initializeAuth, initializeSettings]);
 
   // Set up API client callbacks for auth errors (401/403)
   useAuthCallbacks();
