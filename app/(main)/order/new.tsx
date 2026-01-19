@@ -27,18 +27,19 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
+import { CategoryList } from '@/components/menu';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Skeleton, SkeletonGroup } from '@/components/ui/Skeleton';
 import { Spinner } from '@/components/ui/Spinner';
-import { BorderRadius, BrandColors, CategoryColors, Colors, Spacing } from '@/constants/theme';
+import { BorderRadius, BrandColors, Colors, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useMenuData } from '@/src/hooks/useMenuQueries';
 import { useTable } from '@/src/hooks/useTableQueries';
 import { getTranslatedText, useMenuStore } from '@/src/stores/menuStore';
-import type { Extra, MenuCategory, MenuItem, OrderItemExtra } from '@/src/types/models';
+import type { Extra, MenuItem, OrderItemExtra } from '@/src/types/models';
 
 // ============================================================================
 // Types
@@ -128,101 +129,6 @@ export function calculateItemSubtotal(item: LocalOrderItem, availableExtras: Ext
  */
 export function calculateOrderTotal(items: LocalOrderItem[]): number {
   return items.reduce((total, item) => total + item.subtotal, 0);
-}
-
-// ============================================================================
-// Menu Category Chip Component
-// ============================================================================
-
-interface CategoryChipProps {
-  category: MenuCategory;
-  isSelected: boolean;
-  onPress: (categoryId: string) => void;
-}
-
-function CategoryChip({ category, isSelected, onPress }: CategoryChipProps) {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
-
-  const categoryColor = category.type === 'Kitchen' ? CategoryColors.kitchen : CategoryColors.bar;
-
-  return (
-    <TouchableOpacity
-      testID={`category-chip-${category.id}`}
-      style={[
-        styles.categoryChip,
-        {
-          backgroundColor: isSelected ? categoryColor : colors.backgroundSecondary,
-          borderColor: isSelected ? categoryColor : colors.border,
-        },
-      ]}
-      onPress={() => onPress(category.id)}
-      activeOpacity={0.7}
-    >
-      <ThemedText
-        style={[styles.categoryChipText, { color: isSelected ? '#FFFFFF' : colors.text }]}
-      >
-        {getTranslatedText(category.title)}
-      </ThemedText>
-    </TouchableOpacity>
-  );
-}
-
-// ============================================================================
-// Category List Component
-// ============================================================================
-
-interface CategoryListProps {
-  categories: MenuCategory[];
-  selectedCategoryId: string | null;
-  onSelectCategory: (categoryId: string | null) => void;
-}
-
-function CategoryList({ categories, selectedCategoryId, onSelectCategory }: CategoryListProps) {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
-
-  return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.categoryListContent}
-      testID="category-list"
-    >
-      {/* All Categories */}
-      <TouchableOpacity
-        testID="category-chip-all"
-        style={[
-          styles.categoryChip,
-          {
-            backgroundColor: selectedCategoryId === null ? colors.tint : colors.backgroundSecondary,
-            borderColor: selectedCategoryId === null ? colors.tint : colors.border,
-          },
-        ]}
-        onPress={() => onSelectCategory(null)}
-        activeOpacity={0.7}
-      >
-        <ThemedText
-          style={[
-            styles.categoryChipText,
-            { color: selectedCategoryId === null ? '#FFFFFF' : colors.text },
-          ]}
-        >
-          All
-        </ThemedText>
-      </TouchableOpacity>
-
-      {/* Category chips */}
-      {categories.map((category) => (
-        <CategoryChip
-          key={category.id}
-          category={category}
-          isSelected={selectedCategoryId === category.id}
-          onPress={onSelectCategory}
-        />
-      ))}
-    </ScrollView>
-  );
 }
 
 // ============================================================================
@@ -966,23 +872,6 @@ const styles = StyleSheet.create({
   },
   searchClearText: {
     fontSize: 16,
-  },
-  categoryListContent: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    gap: Spacing.sm,
-    flexDirection: 'row',
-  },
-  categoryChip: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.full,
-    borderWidth: 1,
-    marginRight: Spacing.sm,
-  },
-  categoryChipText: {
-    fontSize: 14,
-    fontWeight: '500',
   },
   menuScrollView: {
     flex: 1,

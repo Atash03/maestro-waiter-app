@@ -270,7 +270,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Split-screen layout: Menu (left/top) + Order Summary (right/bottom)
   - Responsive to screen orientation
 
-- [ ] **3.4** Create Menu Categories Component (`components/menu/CategoryList.tsx`):
+- [x] **3.4** Create Menu Categories Component (`components/menu/CategoryList.tsx`):
   - Horizontal scrollable category chips OR
   - Vertical list with collapsible subcategories
   - Color-coded by type (kitchen: orange, bar: blue)

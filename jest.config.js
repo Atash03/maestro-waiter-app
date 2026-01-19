@@ -43,6 +43,7 @@ module.exports = {
         '<rootDir>/src/__tests__/table-detail-modal.test.tsx',
         '<rootDir>/src/__tests__/status-legend.test.tsx',
         '<rootDir>/src/__tests__/menu-queries.test.tsx',
+        '<rootDir>/src/__tests__/category-list.test.tsx',
       ],
       setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
       transformIgnorePatterns: [

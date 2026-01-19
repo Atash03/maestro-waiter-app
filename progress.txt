@@ -1347,3 +1347,85 @@
 
 **Linting:**
 - All files pass Biome linting checks
+
+---
+
+### Task 3.4: Create Menu Categories Component (COMPLETED)
+
+**Files Created:**
+- `components/menu/CategoryList.tsx` - Full-featured menu categories component with:
+  - Two display variants:
+    - `horizontal`: Scrollable category chips (default)
+    - `vertical`: Collapsible list with subcategories
+  - `CategoryChip` component - Individual category chip with:
+    - Kitchen/Bar color coding (orange/blue from CategoryColors)
+    - Active category highlighting
+    - Press animation using react-native-reanimated
+    - Size variants (sm, md, lg)
+  - `CollapsibleCategory` component - Vertical list row with:
+    - Category type color indicator (dot)
+    - Expandable/collapsible subcategories
+    - Chevron rotation animation
+    - Depth-based indentation for nested categories
+    - Selected state highlighting with border accent
+  - `CategoryList` main component with:
+    - "All" category option (configurable)
+    - Custom "All" label support
+    - Subcategory visibility toggle
+    - Smooth scroll animation
+    - Theme-aware colors (light/dark mode)
+  - Helper functions exported:
+    - `getTranslatedText(translation, fallback, preferredLang)` - Get translated text
+    - `getCategoryColor(type)` - Get Kitchen (orange) or Bar (blue) color
+    - `flattenCategories(categories)` - Flatten nested categories for filtering
+
+- `components/menu/index.ts` - Central export file for menu components:
+  - Named exports: CategoryList, CategoryChip, CollapsibleCategory, helper functions
+  - Default export: CategoryList
+  - Type exports: CategoryListProps, CategoryListVariant, CategoryChipProps, CollapsibleCategoryProps
+
+**Files Modified:**
+- `app/(main)/order/new.tsx` - Refactored to use new CategoryList component:
+  - Removed inline CategoryChip and CategoryList implementations
+  - Imports CategoryList from `@/components/menu`
+  - Removed unused `getCategoryTranslatedText` import
+
+- `jest.config.js` - Added category-list.test.tsx to web test match patterns
+
+**Tests Created:**
+- `src/__tests__/category-list.test.tsx` - 64 tests covering:
+  - Helper functions (17 tests):
+    - getTranslatedText: English, Russian, Turkmen, fallbacks, empty handling
+    - getCategoryColor: Kitchen, Bar, undefined, unknown types
+    - flattenCategories: empty, no children, with children, mixed, deeply nested
+  - CategoryChip component (5 tests): export, render, title, selected, bar category
+  - CollapsibleCategory component (4 tests): export, render, title, bar category
+  - CategoryList component (7 tests): export, render, All option, hide All, custom label, horizontal mode, empty categories
+  - Horizontal Variant (2 tests): default variant, explicit variant
+  - Vertical Variant (3 tests): render, collapsible rows, All row
+  - Category Selection (2 tests): selected styling, vertical selected
+  - Type Exports (4 tests): CategoryListProps, CategoryChipProps, CollapsibleCategoryProps, CategoryListVariant
+  - Module Exports (7 tests): all named and default exports from CategoryList.tsx
+  - Index File Exports (7 tests): all exports from components/menu/index.ts
+  - Category Color Coding (2 tests): Kitchen orange, Bar blue color values
+  - Size Variants (4 tests): sm, md, lg, default md
+
+**Features Implemented:**
+- Horizontal scrollable category chips (default variant)
+- Vertical list with collapsible subcategories
+- Color-coded by type (Kitchen: orange #F97316, Bar: blue #3B82F6)
+- Active category highlighting with colored background/border
+- Smooth animations using react-native-reanimated
+- Press scale animation on chips
+- Chevron rotation on expand/collapse
+- "All" category option with primary color
+- Configurable "All" label
+- Nested subcategory support with depth indentation
+- Theme-aware colors (light/dark mode)
+- Full TypeScript types and testIDs
+
+**Test Results:**
+- 923 tests passing (859 previous + 64 category list tests)
+
+**Linting:**
+- All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)
