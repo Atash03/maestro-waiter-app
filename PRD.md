@@ -607,7 +607,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Lazy load screens
   - Optimize images
 
-- [ ] **8.8** End-to-end testing:
+- [x] **8.8** End-to-end testing:
   - Login flow
   - Order creation flow
   - Payment flow

@@ -16,6 +16,7 @@ module.exports = {
         '<rootDir>/src/__tests__/menu-store.test.ts',
         '<rootDir>/src/__tests__/order-store.test.ts',
         '<rootDir>/src/__tests__/send-to-kitchen.test.ts',
+        '<rootDir>/src/__tests__/e2e-flows.test.ts',
       ],
       setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
       transform: {

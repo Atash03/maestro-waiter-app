@@ -10,7 +10,11 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import EventSource, { type EventSourceEvent, type EventSourceOptions } from 'react-native-sse';
+import EventSource, {
+  type CustomEvent,
+  type ErrorEvent,
+  type EventSourceOptions,
+} from 'react-native-sse';
 import type {
   OrderCreatedEvent,
   OrderItemCreatedEvent,
@@ -234,8 +238,9 @@ export class SSEClient {
     });
 
     // Error handling
-    this.eventSource.addEventListener('error', (event: EventSourceEvent) => {
-      const error = new Error(event.message || 'SSE connection error');
+    this.eventSource.addEventListener('error', (event) => {
+      const errorEvent = event as ErrorEvent;
+      const error = new Error(errorEvent.message || 'SSE connection error');
       this.config.onError?.(error);
 
       if (!this.isManualDisconnect) {
@@ -243,20 +248,23 @@ export class SSEClient {
       }
     });
 
-    // Connected event (custom server event)
-    this.eventSource.addEventListener('connected', (event: EventSourceEvent) => {
-      // Server sends this event on successful connection
-      if (event.data) {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.clientId) {
-            // Store client ID if needed for debugging
+    // Connected event (custom server event) - cast eventSource to any for custom events
+    (this.eventSource as EventSource<'connected'>).addEventListener(
+      'connected',
+      (event: CustomEvent<'connected'>) => {
+        // Server sends this event on successful connection
+        if (event.data) {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.clientId) {
+              // Store client ID if needed for debugging
+            }
+          } catch {
+            // Ignore parse errors for connected event
           }
-        } catch {
-          // Ignore parse errors for connected event
         }
       }
-    });
+    );
 
     // Register handlers for all SSE event types
     const eventTypes: SSEEventType[] = [
@@ -271,16 +279,20 @@ export class SSEClient {
     ];
 
     for (const eventType of eventTypes) {
-      this.eventSource.addEventListener(eventType, (event: EventSourceEvent) => {
-        this.handleEvent(eventType, event);
-      });
+      // Cast to handle custom event types
+      (this.eventSource as EventSource<SSEEventType>).addEventListener(
+        eventType,
+        (event: CustomEvent<SSEEventType>) => {
+          this.handleEvent(eventType, event);
+        }
+      );
     }
   }
 
   /**
    * Handle incoming SSE event
    */
-  private handleEvent(eventType: SSEEventType, event: EventSourceEvent): void {
+  private handleEvent(eventType: SSEEventType, event: CustomEvent<SSEEventType>): void {
     // Store last event ID for reconnection replay
     if (event.lastEventId) {
       this.lastEventId = event.lastEventId;

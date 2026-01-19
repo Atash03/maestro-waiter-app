@@ -3703,3 +3703,105 @@ Bundle size optimization to reduce app size and improve load times through tree-
 - All new files pass Biome linting checks
 - No errors, only pre-existing warning in Skeleton.tsx (acceptable for static lists)
 
+
+---
+
+### Task 8.8: End-to-end testing (COMPLETED)
+
+**Files Created:**
+- `src/__tests__/e2e-flows.test.ts` - Comprehensive end-to-end test file with 24 tests covering all 4 required flows
+
+**Files Modified:**
+- `jest.config.js` - Added e2e-flows.test.ts to node environment test patterns
+- `src/services/sse/sseClient.ts` - Fixed TypeScript type errors with react-native-sse EventSourceEvent types
+- `PRD.md` - Marked task 8.8 as complete
+
+**Dependencies Installed:**
+- `@types/invariant` (dev) - TypeScript types for invariant module
+
+**Test Coverage:**
+
+**1. Login Flow Tests (6 tests):**
+- Initialize app, login user, and establish session
+- Handle failed login with invalid credentials
+- Handle login with remember me option
+- Restore session on app restart
+- Logout and clear session
+- Clear local session even if logout API fails
+
+**2. Order Creation Flow Tests (4 tests):**
+- Create order, add items, and send to kitchen (full flow with API call verification)
+- Add items to existing order (skip order creation)
+- Handle network error during order creation
+- Allow retry after failure
+
+**3. Payment Flow Tests (4 tests):**
+- Create bill, calculate totals, and process payment
+- Handle partial payment with multiple payment methods (cash + card)
+- Apply discounts and recalculate bill
+- Handle payment failure gracefully
+
+**4. Call Handling Flow Tests (6 tests):**
+- Receive, acknowledge, and complete a waiter call (full lifecycle)
+- Handle cancelling a waiter call
+- Filter calls by status
+- Get single call details
+- Handle error when acknowledging already acknowledged call
+- Handle error when completing non-acknowledged call
+
+**5. Integration Scenarios (3 tests):**
+- Full service flow: Login -> Order -> Payment -> Logout (complete waiter session)
+- Recover from session expiration
+- Handle order creation failure and retry
+
+**6. Export Verification (1 test):**
+- Verify all test factory functions export correctly
+
+**Test Infrastructure:**
+- Mock factories for: Account, LoginResponse, Order, OrderItem, Bill, Payment, WaiterCall
+- Comprehensive API mocking for all services (auth, orders, orderItems, bills, payments, waiterCalls)
+- Uses renderHook from @testing-library/react-native for hook testing
+- Follows existing project test patterns and conventions
+
+**Bug Fix (SSE Client):**
+- Fixed TypeScript errors in sseClient.ts due to react-native-sse type changes
+- Updated EventSourceEvent usage to use proper CustomEvent<T> and ErrorEvent types
+- Added proper type casting for custom event listeners
+
+**Test Results:**
+- 24 e2e tests passing
+- 565 total tests passing in node environment (12 test suites)
+- All new files pass Biome linting checks
+
+**Linting:**
+- All files pass Biome linting checks
+
+---
+
+## ALL PRD TASKS COMPLETED
+
+All 8 phases of the Maestro Waiter App have been successfully implemented:
+
+**Phase 1: Foundation & Authentication** ✅
+- Tasks 1.1-1.8: Dependencies, types, API client, auth store, login screen, UI components
+
+**Phase 2: Table Management & Floor Plan** ✅
+- Tasks 2.1-2.8: Table store, floor plan, table components, my section view
+
+**Phase 3: Menu & Order Creation** ✅
+- Tasks 3.1-3.10: Menu store, categories, items, search, modals, order summary, send to kitchen
+
+**Phase 4: Active Order Management** ✅
+- Tasks 4.1-4.7: Orders list, order cards, order detail, item status, modifications
+
+**Phase 5: Waiter Calls & Notifications** ✅
+- Tasks 5.1-5.8: SSE client, notifications store, call handling, notification bell
+
+**Phase 6: Billing & Payments** ✅
+- Tasks 6.1-6.7: Bill screen, discount selector, payment form, bill summary
+
+**Phase 7: Profile & Settings** ✅
+- Tasks 7.1-7.5: Profile screen, activity summary, settings, logout flow, i18n
+
+**Phase 8: Polish & Optimization** ✅
+- Tasks 8.1-8.8: Performance optimization, accessibility, error handling, loading states, offline support, haptic feedback, bundle optimization, e2e testing
