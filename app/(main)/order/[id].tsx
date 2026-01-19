@@ -918,7 +918,10 @@ export default function OrderDetailScreen() {
 
         {/* Cancelled Order Message */}
         {order.orderStatus === OrderStatus.CANCELLED && order.cancelReason && (
-          <Card padding="md" style={[styles.cancelledCard, { backgroundColor: '#FEE2E2' }]}>
+          <Card
+            padding="md"
+            style={[styles.cancelledCard, { backgroundColor: '#FEE2E2' as const }]}
+          >
             <ThemedText style={styles.cancelledLabel}>Order Cancelled</ThemedText>
             <ThemedText style={styles.cancelledReason}>{order.cancelReason}</ThemedText>
           </Card>

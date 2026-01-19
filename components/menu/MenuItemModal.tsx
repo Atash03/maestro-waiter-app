@@ -36,6 +36,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { BorderRadius, BrandColors, CategoryColors, Colors, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { MenuCategoryType } from '@/src/types/enums';
 import type { Extra, MenuItem, OrderItemExtra, Translation } from '@/src/types/models';
 
 // ============================================================================
@@ -470,7 +471,7 @@ export function MenuItemModal({
               {item.category && (
                 <Badge
                   testID="menu-item-modal-category"
-                  variant={item.category.type === 'Bar' ? 'info' : 'warning'}
+                  variant={item.category.type === MenuCategoryType.BAR ? 'info' : 'warning'}
                   size="sm"
                   style={styles.categoryBadge}
                 >

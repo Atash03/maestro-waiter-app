@@ -32,6 +32,7 @@ import {
   useHapticRefresh,
   useWaiterCalls,
 } from '@/src/hooks';
+import type { GetWaiterCallsResponse } from '@/src/types/api';
 import { WaiterCallStatus } from '@/src/types/enums';
 import type { WaiterCall } from '@/src/types/models';
 
@@ -207,7 +208,19 @@ export default function CallsScreen() {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   // Data fetching
-  const { data, isLoading, error, refetch, isFetching } = useWaiterCalls();
+  const {
+    data,
+    isLoading,
+    error,
+    refetch,
+    isFetching,
+  }: {
+    data: GetWaiterCallsResponse | undefined;
+    isLoading: boolean;
+    error: Error | null;
+    refetch: () => Promise<unknown>;
+    isFetching: boolean;
+  } = useWaiterCalls();
 
   // Haptic refresh
   const { isRefreshing, handleRefresh } = useHapticRefresh({

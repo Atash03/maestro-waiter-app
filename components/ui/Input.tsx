@@ -81,8 +81,8 @@ export function Input({
           style={[
             styles.input,
             { color: disabled ? textMuted : textColor },
-            leftIcon && styles.inputWithLeftIcon,
-            rightIcon && styles.inputWithRightIcon,
+            leftIcon ? styles.inputWithLeftIcon : undefined,
+            rightIcon ? styles.inputWithRightIcon : undefined,
             inputStyle,
           ]}
           placeholderTextColor={textMuted}

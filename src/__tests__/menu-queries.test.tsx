@@ -12,6 +12,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '@testing-library/react-native';
 import type React from 'react';
 import { initializeApiClient, resetApiClient } from '../services/api/client';
+import { MenuCategoryType } from '../types/enums';
 import type { Extra, MenuCategory, MenuItem } from '../types/models';
 
 // Mock axios
@@ -57,30 +58,30 @@ const mockCategories: MenuCategory[] = [
   {
     id: 'cat-1',
     title: { en: 'Appetizers', ru: 'Закуски', tm: 'Işdäaçarlar' },
-    type: 'Kitchen',
-    isActive: true,
-    sortOrder: 1,
+    type: MenuCategoryType.KITCHEN,
+    imagePath: null,
+    parentId: null,
   },
   {
     id: 'cat-2',
     title: { en: 'Main Courses', ru: 'Основные блюда', tm: 'Esasy tagamlar' },
-    type: 'Kitchen',
-    isActive: true,
-    sortOrder: 2,
+    type: MenuCategoryType.KITCHEN,
+    imagePath: null,
+    parentId: null,
   },
   {
     id: 'cat-3',
     title: { en: 'Drinks', ru: 'Напитки', tm: 'Içgiler' },
-    type: 'Bar',
-    isActive: true,
-    sortOrder: 3,
+    type: MenuCategoryType.BAR,
+    imagePath: null,
+    parentId: null,
     children: [
       {
         id: 'cat-3-1',
         title: { en: 'Soft Drinks', ru: 'Безалкогольные', tm: 'Alkogolsyz' },
-        type: 'Bar',
-        isActive: true,
-        sortOrder: 1,
+        type: MenuCategoryType.BAR,
+        imagePath: null,
+        parentId: 'cat-3',
       },
     ],
   },
@@ -91,21 +92,21 @@ const mockItems: MenuItem[] = [
     id: 'item-1',
     title: { en: 'Caesar Salad', ru: 'Салат Цезарь', tm: 'Sezar salat' },
     description: { en: 'Fresh romaine lettuce', ru: 'Свежий салат романо', tm: 'Täze romaine' },
-    price: 12.99,
+    price: '12.99',
     categoryId: 'cat-1',
+    imagePath: null,
     isActive: true,
     isGroup: false,
-    extraIds: ['extra-1'],
   },
   {
     id: 'item-2',
     title: { en: 'Grilled Salmon', ru: 'Лосось на гриле', tm: 'Gril balyk' },
     description: { en: 'Wild-caught salmon', ru: 'Дикий лосось', tm: 'Ýabany balyk' },
-    price: 24.99,
+    price: '24.99',
     categoryId: 'cat-2',
+    imagePath: null,
     isActive: true,
     isGroup: false,
-    extraIds: ['extra-1', 'extra-2'],
   },
   {
     id: 'item-3',
@@ -115,20 +116,20 @@ const mockItems: MenuItem[] = [
       ru: 'Классическая итальянская пицца',
       tm: 'Italýan pizza',
     },
-    price: 18.99,
+    price: '18.99',
     categoryId: 'cat-2',
+    imagePath: null,
     isActive: true,
     isGroup: false,
-    extraIds: [],
   },
   {
     id: 'item-4',
     title: { en: 'Inactive Item', ru: 'Неактивный', tm: 'Işjeň däl' },
-    price: 9.99,
+    price: '9.99',
     categoryId: 'cat-1',
+    imagePath: null,
     isActive: false,
     isGroup: false,
-    extraIds: [],
   },
 ];
 
@@ -136,19 +137,19 @@ const mockExtras: Extra[] = [
   {
     id: 'extra-1',
     title: { en: 'Extra Cheese', ru: 'Доп. сыр', tm: 'Goşmaça peýnir' },
-    price: 2.5,
+    actualPrice: '2.50',
     isActive: true,
   },
   {
     id: 'extra-2',
     title: { en: 'Bacon', ru: 'Бекон', tm: 'Bekon' },
-    price: 3.0,
+    actualPrice: '3.00',
     isActive: true,
   },
   {
     id: 'extra-3',
     title: { en: 'Mushrooms', ru: 'Грибы', tm: 'Kömelek' },
-    price: 1.5,
+    actualPrice: '1.50',
     isActive: false,
   },
 ];
@@ -318,13 +319,16 @@ describe('Menu Query Hooks', () => {
     });
 
     it('should fetch categories with type filter', async () => {
-      const kitchenCategories = mockCategories.filter((c) => c.type === 'Kitchen');
+      const kitchenCategories = mockCategories.filter((c) => c.type === MenuCategoryType.KITCHEN);
       const mockResponse = { data: kitchenCategories, total: kitchenCategories.length };
       mockAxiosInstance.get.mockResolvedValueOnce({ data: mockResponse });
 
-      const { result } = renderHook(() => useMenuCategories({ params: { type: 'Kitchen' } }), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHook(
+        () => useMenuCategories({ params: { type: MenuCategoryType.KITCHEN } }),
+        {
+          wrapper: createWrapper(),
+        }
+      );
 
       await waitFor(() => {
         expect(result.current.isSuccess).toBe(true);

@@ -206,7 +206,7 @@ interface RecentSearchItemProps {
   item: RecentSearchItem;
   onSelect: (query: string) => void;
   onRemove: (query: string) => void;
-  colors: typeof Colors.light;
+  colors: (typeof Colors)['light'] | (typeof Colors)['dark'];
   testID?: string;
 }
 
@@ -243,7 +243,7 @@ interface RecentSearchesDropdownProps {
   onSelect: (query: string) => void;
   onRemove: (query: string) => void;
   onClearAll: () => void;
-  colors: typeof Colors.light;
+  colors: (typeof Colors)['light'] | (typeof Colors)['dark'];
   testID?: string;
 }
 

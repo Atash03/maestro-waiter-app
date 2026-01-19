@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { StyleSheet, Text, type TextStyle, View, type ViewStyle } from 'react-native';
 import { BorderRadius, BrandColors, Spacing, StatusColors } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
@@ -20,7 +21,7 @@ export type BadgeVariant =
 export type BadgeSize = 'sm' | 'md' | 'lg';
 
 export interface BadgeProps {
-  children: string;
+  children: ReactNode;
   variant?: BadgeVariant;
   size?: BadgeSize;
   style?: ViewStyle;
@@ -104,7 +105,7 @@ export function Badge({
       ]}
       testID={testID}
       accessibilityRole="text"
-      accessibilityLabel={children}
+      accessibilityLabel={typeof children === 'string' ? children : undefined}
     >
       <Text
         style={[

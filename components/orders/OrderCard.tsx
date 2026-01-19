@@ -6,7 +6,6 @@
  */
 
 import { StyleSheet, View } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
 import { Badge, type BadgeVariant } from '@/components/ui/Badge';
@@ -176,21 +175,6 @@ export function OrderCard({ order, onPress, testID }: OrderCardProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
-  // Animation
-  const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  const handlePressIn = () => {
-    scale.value = withSpring(0.98, { damping: 15, stiffness: 400 });
-  };
-
-  const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 15, stiffness: 400 });
-  };
-
   const handlePress = () => {
     onPress?.(order);
   };
@@ -212,58 +196,47 @@ export function OrderCard({ order, onPress, testID }: OrderCardProps) {
       : customerName || (order.orderType === OrderType.DELIVERY ? 'Delivery' : 'To Go');
 
   return (
-    <Animated.View style={animatedStyle}>
-      <Card
-        pressable
-        onPress={handlePress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        padding="md"
-        elevated
-        style={styles.card}
-        testID={testID}
-      >
-        {/* Header Row: Order Code + Status */}
-        <View style={styles.headerRow}>
-          <View style={styles.orderCodeContainer}>
-            <ThemedText style={styles.orderCode}>{order.orderCode}</ThemedText>
-            {readyCount > 0 && (
-              <View style={[styles.readyBadge, { backgroundColor: StatusColors.ready }]}>
-                <ThemedText style={styles.readyBadgeText}>{readyCount} ready</ThemedText>
-              </View>
-            )}
-          </View>
-          <Badge variant={getOrderStatusBadgeVariant(order.orderStatus)} size="sm">
-            {getOrderStatusLabel(order.orderStatus)}
-          </Badge>
+    <Card pressable onPress={handlePress} padding="md" elevated style={styles.card} testID={testID}>
+      {/* Header Row: Order Code + Status */}
+      <View style={styles.headerRow}>
+        <View style={styles.orderCodeContainer}>
+          <ThemedText style={styles.orderCode}>{order.orderCode}</ThemedText>
+          {readyCount > 0 && (
+            <View style={[styles.readyBadge, { backgroundColor: StatusColors.ready }]}>
+              <ThemedText style={styles.readyBadgeText}>{readyCount} ready</ThemedText>
+            </View>
+          )}
         </View>
+        <Badge variant={getOrderStatusBadgeVariant(order.orderStatus)} size="sm">
+          {getOrderStatusLabel(order.orderStatus)}
+        </Badge>
+      </View>
 
-        {/* Info Row: Location/Customer + Order Type */}
-        <View style={styles.infoRow}>
-          <View style={styles.locationContainer}>
-            <ThemedText style={[styles.locationText, { color: colors.text }]}>
-              {locationDisplay}
-            </ThemedText>
-          </View>
-          <Badge variant={getOrderTypeBadgeVariant(order.orderType)} size="sm">
-            {getOrderTypeLabel(order.orderType)}
-          </Badge>
+      {/* Info Row: Location/Customer + Order Type */}
+      <View style={styles.infoRow}>
+        <View style={styles.locationContainer}>
+          <ThemedText style={[styles.locationText, { color: colors.text }]}>
+            {locationDisplay}
+          </ThemedText>
         </View>
+        <Badge variant={getOrderTypeBadgeVariant(order.orderType)} size="sm">
+          {getOrderTypeLabel(order.orderType)}
+        </Badge>
+      </View>
 
-        {/* Footer Row: Item Count, Total, Time */}
-        <View style={styles.footerRow}>
-          <ThemedText style={[styles.itemCount, { color: colors.textSecondary }]}>
-            {itemCount} {itemCount === 1 ? 'item' : 'items'}
-          </ThemedText>
-          <ThemedText style={[styles.totalAmount, { color: colors.text }]}>
-            {formatPrice(order.totalAmount)}
-          </ThemedText>
-          <ThemedText style={[styles.timeAgo, { color: colors.textMuted }]}>
-            {formatTimeSince(order.createdAt)}
-          </ThemedText>
-        </View>
-      </Card>
-    </Animated.View>
+      {/* Footer Row: Item Count, Total, Time */}
+      <View style={styles.footerRow}>
+        <ThemedText style={[styles.itemCount, { color: colors.textSecondary }]}>
+          {itemCount} {itemCount === 1 ? 'item' : 'items'}
+        </ThemedText>
+        <ThemedText style={[styles.totalAmount, { color: colors.text }]}>
+          {formatPrice(order.totalAmount)}
+        </ThemedText>
+        <ThemedText style={[styles.timeAgo, { color: colors.textMuted }]}>
+          {formatTimeSince(order.createdAt)}
+        </ThemedText>
+      </View>
+    </Card>
   );
 }
 

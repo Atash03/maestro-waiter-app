@@ -101,7 +101,7 @@ function calculateActivityStats(
   // Calculate total sales from completed orders
   const totalSales = waiterOrders
     .filter((order) => order.orderStatus === OrderStatus.COMPLETED)
-    .reduce((sum, order) => sum + (order.finalTotal ?? order.total ?? 0), 0);
+    .reduce((sum, order) => sum + Number.parseFloat(order.totalAmount || '0'), 0);
 
   // Count active orders
   const activeOrders = waiterOrders.filter(
@@ -188,11 +188,11 @@ function ProfileSkeleton() {
 
       {/* Stats skeleton */}
       <View style={styles.statsSection}>
-        <SkeletonGroup count={2} direction="row" spacing={Spacing.md}>
+        <SkeletonGroup count={2} direction="horizontal" spacing={Spacing.md}>
           <Skeleton variant="rounded" width="48%" height={100} />
         </SkeletonGroup>
         <View style={styles.statsRowSpacer} />
-        <SkeletonGroup count={2} direction="row" spacing={Spacing.md}>
+        <SkeletonGroup count={2} direction="horizontal" spacing={Spacing.md}>
           <Skeleton variant="rounded" width="48%" height={100} />
         </SkeletonGroup>
       </View>

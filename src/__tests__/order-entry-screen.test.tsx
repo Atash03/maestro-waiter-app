@@ -11,8 +11,20 @@
  */
 
 import type React from 'react';
-import type { LocalOrderItem } from '@/app/(main)/order/new';
+import { MenuCategoryType } from '@/src/types/enums';
 import type { Extra, MenuCategory, MenuItem, Table } from '@/src/types/models';
+
+// Define LocalOrderItem type locally since it's not exported from the component
+interface LocalOrderItem {
+  id: string;
+  menuItemId: string;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+  notes: string;
+  extras: Array<{ extraId: string; quantity: number }>;
+  menuItem: MenuItem;
+}
 
 // Mock expo-router
 const mockRouterBack = jest.fn();
@@ -59,21 +71,21 @@ const mockCategories: MenuCategory[] = [
   {
     id: 'cat-1',
     title: { en: 'Appetizers', ru: 'Закуски', tm: 'Ishda' },
-    type: 'Kitchen',
+    type: MenuCategoryType.KITCHEN,
     imagePath: null,
     parentId: null,
   },
   {
     id: 'cat-2',
     title: { en: 'Main Course', ru: 'Основные блюда', tm: 'Esasy nahar' },
-    type: 'Kitchen',
+    type: MenuCategoryType.KITCHEN,
     imagePath: null,
     parentId: null,
   },
   {
     id: 'cat-3',
     title: { en: 'Drinks', ru: 'Напитки', tm: 'Icgiler' },
-    type: 'Bar',
+    type: MenuCategoryType.BAR,
     imagePath: null,
     parentId: null,
   },

@@ -38,6 +38,7 @@ import {
   useHapticRefresh,
   useOrders,
 } from '@/src/hooks';
+import type { GetOrdersResponse } from '@/src/types/api';
 import { OrderStatus, OrderType } from '@/src/types/enums';
 import type { Order } from '@/src/types/models';
 
@@ -131,21 +132,21 @@ function OrdersListSkeleton() {
     <View style={styles.skeletonContainer}>
       {/* Filter tabs skeleton */}
       <View style={styles.filterRow}>
-        <SkeletonGroup count={4} direction="row" spacing={Spacing.sm}>
+        <SkeletonGroup count={4} direction="horizontal" spacing={Spacing.sm}>
           <Skeleton variant="rounded" width={80} height={36} />
         </SkeletonGroup>
       </View>
 
       {/* Type filter skeleton */}
       <View style={[styles.typeFilterRow, { borderBottomColor: colors.border }]}>
-        <SkeletonGroup count={3} direction="row" spacing={Spacing.sm}>
+        <SkeletonGroup count={3} direction="horizontal" spacing={Spacing.sm}>
           <Skeleton variant="rounded" width={70} height={28} />
         </SkeletonGroup>
       </View>
 
       {/* Order cards skeleton */}
       <View style={styles.listContent}>
-        <SkeletonGroup count={5} direction="column" spacing={Spacing.sm}>
+        <SkeletonGroup count={5} direction="vertical" spacing={Spacing.sm}>
           <Skeleton variant="rounded" width="100%" height={100} />
         </SkeletonGroup>
       </View>
@@ -214,7 +215,19 @@ export default function OrdersListScreen() {
   const [sortBy] = useState<SortOption>('time');
 
   // Data fetching - get active orders by default
-  const { data, isLoading, error, refetch, isFetching } = useOrders();
+  const {
+    data,
+    isLoading,
+    error,
+    refetch,
+    isFetching,
+  }: {
+    data: GetOrdersResponse | undefined;
+    isLoading: boolean;
+    error: Error | null;
+    refetch: () => Promise<unknown>;
+    isFetching: boolean;
+  } = useOrders();
 
   // Haptic refresh
   const { isRefreshing, handleRefresh } = useHapticRefresh({

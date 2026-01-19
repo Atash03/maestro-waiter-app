@@ -31,13 +31,13 @@ export function LazyLoadFallback() {
  * @example
  * const LazySettings = createLazyComponent(() => import('./Settings'));
  */
-export function createLazyComponent<T extends React.ComponentType<unknown>>(
-  importFn: () => Promise<{ default: T }>,
+export function createLazyComponent<P extends Record<string, unknown>>(
+  importFn: () => Promise<{ default: React.ComponentType<P> }>,
   fallback: React.ReactNode = <LazyLoadFallback />
 ) {
   const LazyComponent = lazy(importFn);
 
-  return function LazyWrapper(props: React.ComponentProps<T>) {
+  return function LazyWrapper(props: P) {
     return (
       <Suspense fallback={fallback}>
         <LazyComponent {...props} />

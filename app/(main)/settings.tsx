@@ -58,8 +58,9 @@ interface SettingsSectionProps {
 // ============================================================================
 
 const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0';
-const BUILD_NUMBER =
-  Constants.expoConfig?.ios?.buildNumber ?? Constants.expoConfig?.android?.versionCode ?? '1';
+const BUILD_NUMBER = String(
+  Constants.expoConfig?.ios?.buildNumber ?? Constants.expoConfig?.android?.versionCode ?? '1'
+);
 
 // ============================================================================
 // Sub-Components

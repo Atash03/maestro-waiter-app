@@ -103,10 +103,10 @@ export function ChangeTableModal({
   // Fetch tables
   const { data: tablesData, isLoading } = useTables();
 
-  // Filter to only show tables that can be selected
+  // Get all tables
   const availableTables = useMemo(() => {
     if (!tablesData?.data) return [];
-    return tablesData.data.filter((table) => table.isActive !== false);
+    return tablesData.data;
   }, [tablesData]);
 
   // Reset state when modal opens

@@ -1,5 +1,12 @@
 import type { ReactNode } from 'react';
-import { Pressable, type PressableProps, StyleSheet, View, type ViewStyle } from 'react-native';
+import {
+  Pressable,
+  type PressableProps,
+  type StyleProp,
+  StyleSheet,
+  View,
+  type ViewStyle,
+} from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { BorderRadius, Spacing } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
@@ -8,7 +15,7 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export interface CardProps {
   children: ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   padding?: 'none' | 'sm' | 'md' | 'lg';
   onPress?: PressableProps['onPress'];
   pressable?: boolean;

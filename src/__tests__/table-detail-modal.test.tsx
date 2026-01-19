@@ -26,7 +26,7 @@ import {
   type TableDetailModalProps,
 } from '../../components/tables';
 import { OrderItemStatus, OrderStatus, OrderType } from '../types/enums';
-import type { Order, Translation } from '../types/models';
+import type { Order, OrderItem, Translation } from '../types/models';
 
 // Note: Uses global jest.setup.js mock for react-native-reanimated
 
@@ -61,7 +61,7 @@ const createMockTable = (overrides: Partial<TableItemData> = {}): TableItemData 
   ...overrides,
 });
 
-const createMockOrderItem = (overrides: Partial<Order['orderItems']>[number] = {}) => ({
+const createMockOrderItem = (overrides: Partial<OrderItem> = {}): OrderItem => ({
   id: 'item-1',
   orderId: 'order-1',
   menuItemId: 'menu-1',

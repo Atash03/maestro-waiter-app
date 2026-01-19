@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Pressable,
   type PressableProps,
+  type StyleProp,
   StyleSheet,
   Text,
   type TextStyle,
@@ -27,8 +28,8 @@ export interface ButtonProps extends Omit<PressableProps, 'style'> {
   children: ReactNode;
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
-  style?: ViewStyle;
-  textStyle?: TextStyle;
+  style?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
   fullWidth?: boolean;
   /** Enable haptic feedback on press (default: true) */
   hapticFeedback?: boolean;
@@ -160,40 +161,24 @@ export function Button({
     onPressOut?.(e);
   };
 
-  const combinedContainerStyles: ViewStyle[] = [
-    styles.base,
-    {
-      height: sizeStyles[size].height,
-      paddingHorizontal: sizeStyles[size].paddingHorizontal,
-    },
-    variantStyles.container,
-  ];
+  const baseContainerStyle: ViewStyle = {
+    ...styles.base,
+    height: sizeStyles[size].height,
+    paddingHorizontal: sizeStyles[size].paddingHorizontal,
+    ...variantStyles.container,
+    ...(fullWidth ? styles.fullWidth : {}),
+  };
 
-  if (fullWidth) {
-    combinedContainerStyles.push(styles.fullWidth);
-  }
-
-  if (style) {
-    combinedContainerStyles.push(style);
-  }
-
-  const combinedTextStyles: TextStyle[] = [styles.text, variantStyles.text];
-
-  if (leftIcon) {
-    combinedTextStyles.push(styles.textWithLeftIcon);
-  }
-
-  if (rightIcon) {
-    combinedTextStyles.push(styles.textWithRightIcon);
-  }
-
-  if (textStyle) {
-    combinedTextStyles.push(textStyle);
-  }
+  const baseTextStyle: TextStyle = {
+    ...styles.text,
+    ...variantStyles.text,
+    ...(leftIcon ? styles.textWithLeftIcon : {}),
+    ...(rightIcon ? styles.textWithRightIcon : {}),
+  };
 
   return (
     <AnimatedPressable
-      style={[combinedContainerStyles, animatedStyle]}
+      style={[baseContainerStyle, style, animatedStyle]}
       disabled={isDisabled}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
@@ -210,7 +195,7 @@ export function Button({
       ) : (
         <View style={styles.content}>
           {leftIcon}
-          <Text style={combinedTextStyles}>{children}</Text>
+          <Text style={[baseTextStyle, textStyle]}>{children}</Text>
           {rightIcon}
         </View>
       )}

@@ -12,6 +12,7 @@
  */
 
 import { render } from '@testing-library/react-native';
+import { MenuCategoryType } from '@/src/types/enums';
 import type { Extra, MenuItem } from '@/src/types/models';
 
 // ============================================================================
@@ -196,8 +197,19 @@ describe('MenuItemModal Component', () => {
     isActive: true,
     isGroup: false,
     timeForPreparation: '15 min',
-    category: { id: 'cat-1', title: { en: 'Food', ru: 'Еда', tm: 'Food' }, type: 'Kitchen' },
-    extras: [{ id: 'extra-1' }],
+    category: {
+      id: 'cat-1',
+      title: { en: 'Food', ru: 'Еда', tm: 'Food' },
+      type: MenuCategoryType.KITCHEN,
+    },
+    extras: [
+      {
+        id: 'extra-1',
+        title: { en: 'Cheese', ru: 'Сыр', tm: 'Cheese' },
+        actualPrice: '1.50',
+        isActive: true,
+      },
+    ],
   };
 
   const mockExtras: Extra[] = [
@@ -326,7 +338,7 @@ describe('MenuItemModal Component', () => {
     });
 
     it('returns all available extras when item has no extras specified', () => {
-      const itemWithoutExtras = { ...mockMenuItem, extras: [] };
+      const itemWithoutExtras = { ...mockMenuItem, extras: [] as Extra[] };
       const itemExtraIds = new Set(itemWithoutExtras.extras?.map((e) => e.id) || []);
       // When item.extras is empty, component uses all availableExtras
       const filteredExtras =
