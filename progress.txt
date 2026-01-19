@@ -3026,3 +3026,43 @@ Created the Profile Screen at `app/(tabs)/profile/index.tsx` with user info disp
 
 **Linting:**
 - All files pass Biome linting checks
+
+---
+
+### Task 7.2: Implement Activity Summary (COMPLETED)
+
+**Status:** Already implemented as part of Task 7.1
+
+**Implementation Details:**
+The Activity Summary functionality was already implemented in the Profile screen (`app/(tabs)/profile/index.tsx`) during Task 7.1. The implementation includes:
+
+1. **Data Fetching**:
+   - Uses `useOrders()` hook to fetch orders
+   - Uses `useWaiterCalls()` hook to fetch waiter calls
+   - Both queries support pull-to-refresh
+
+2. **Filtering Logic** (`calculateActivityStats` function):
+   - Filters orders and calls by today's date using `isToday()` helper
+   - Filters by `waiterId` to show only the current waiter's activity
+   - Calculates metrics locally from the filtered data
+
+3. **Metrics Displayed**:
+   - **Orders Taken**: Count of all orders taken today by the waiter
+   - **Total Sales**: Sum of `finalTotal` from completed orders
+   - **Calls Handled**: Count of completed waiter calls
+   - **Active Orders**: Count of pending and in-progress orders
+
+4. **UI Components**:
+   - `StatCard` component displays each metric with icon, value, and subtitle
+   - Stats displayed in 2x2 grid layout
+   - Loading skeleton shown during initial data fetch
+
+**Helper Functions Created**:
+- `getTodayDateRange()` - Returns start and end of today
+- `isToday()` - Checks if a date is within today
+- `calculateActivityStats()` - Calculates all metrics from orders and calls
+- `formatCurrency()` - Formats amounts with TMT currency
+
+**Linting:**
+- All files pass Biome linting checks (1 pre-existing warning in Skeleton.tsx)
+

@@ -530,7 +530,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Settings link
   - Logout button
 
-- [ ] **7.2** Implement Activity Summary:
+- [x] **7.2** Implement Activity Summary:
   - Fetch orders filtered by `waiterId` and today's date
   - Calculate totals locally
   - Display key metrics
