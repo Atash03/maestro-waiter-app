@@ -55,6 +55,15 @@ export {
   useProtectedRoute,
 } from './useProtectedRoute';
 export {
+  // Query keys
+  reasonTemplateQueryKeys,
+  // Hooks
+  type UseReasonTemplatesOptions,
+  useCancellationReasons,
+  useReasonTemplateCacheActions,
+  useReasonTemplates,
+} from './useReasonTemplateQueries';
+export {
   // Helper functions
   convertExtrasToApiFormat,
   getErrorMessage,

@@ -2154,3 +2154,75 @@ The OrderCard component was already created as part of Task 4.1. All features sp
 
 **Linting:**
 - All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)
+
+---
+
+### Task 4.6: Implement Order Modifications (COMPLETED)
+
+**Implementation Date:** 2026-01-19
+
+**Summary:**
+Implemented comprehensive order modification features including changing table, editing notes, and cancelling orders with reason selection.
+
+**Files Created:**
+- `src/services/api/reasonTemplates.ts` - API service for fetching reason templates
+- `src/hooks/useReasonTemplateQueries.ts` - React Query hooks for reason templates with caching
+- `components/orders/ChangeTableModal.tsx` - Modal for changing order table (dine-in orders)
+- `components/orders/EditNotesModal.tsx` - Modal for adding/editing order notes
+- `components/orders/CancelOrderModal.tsx` - Modal for cancelling orders with reason selection
+
+**Files Modified:**
+- `src/services/api/index.ts` - Added export for reasonTemplates service
+- `src/hooks/index.ts` - Added exports for reason template hooks
+- `app/(main)/order/[id].tsx` - Integrated order modification modals and handlers
+
+**Features Implemented:**
+
+1. **Reason Templates API Service:**
+   - `getReasonTemplates(params?)` - Fetch reason templates with filtering by type
+
+2. **React Query Hooks:**
+   - `useReasonTemplates()` - Fetch all reason templates
+   - `useCancellationReasons()` - Convenience hook for cancellation reasons
+   - `useReasonTemplateCacheActions()` - Cache invalidation utilities
+
+3. **Change Table Modal:**
+   - Lists all available tables
+   - Highlights current table
+   - Visual selection with animations
+   - Loading and error states
+   - Only shown for dine-in orders
+
+4. **Edit Notes Modal:**
+   - Text input with character counter (500 chars max)
+   - Shows current notes for editing
+   - Keyboard-avoiding behavior
+   - Loading and error states
+
+5. **Cancel Order Modal:**
+   - Fetches cancellation reasons from API
+   - Allows selecting preset reason or entering custom reason
+   - Warning icon and confirmation UI
+   - Destructive button styling
+
+6. **Order Detail Screen Updates:**
+   - Added "Order Actions" section with modification buttons
+   - Change Table button (only for dine-in orders)
+   - Edit Notes / Add Notes button
+   - Cancel Order button (destructive styling)
+   - All actions use `updateOrder()` API
+   - Toast notifications for success/error feedback
+   - Cache invalidation after modifications
+
+**API Integration:**
+- `PUT /order/:id` with `tableId` for changing table
+- `PUT /order/:id` with `notes` for updating notes
+- `PUT /order/:id` with `orderStatus: 'Cancelled'` and `cancelReason` for cancellation
+- `GET /reason-template?type=cancellation` for fetching cancellation reasons
+
+**Linting:**
+- All new files pass Biome linting checks
+- Fixed template literal issues
+- Fixed unused import issues
+- Only pre-existing warning remains (Skeleton.tsx array index key)
+

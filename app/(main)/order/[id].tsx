@@ -6,6 +6,7 @@
  * - List of order items with status badges and swipe actions
  * - Action buttons: Add Items, Mark Served, Create Bill
  * - Item-level actions: Mark as Served, Cancel item
+ * - Order modification actions: Change Table, Edit Notes, Cancel Order
  */
 
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -27,7 +28,11 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
+import Toast from 'react-native-toast-message';
 
+import { CancelOrderModal } from '@/components/orders/CancelOrderModal';
+import { ChangeTableModal } from '@/components/orders/ChangeTableModal';
+import { EditNotesModal } from '@/components/orders/EditNotesModal';
 import { ThemedText } from '@/components/themed-text';
 import { Badge, type BadgeVariant } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -36,6 +41,7 @@ import { Skeleton, SkeletonGroup } from '@/components/ui/Skeleton';
 import { BorderRadius, BrandColors, Colors, Spacing, StatusColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useOrder, useOrderCacheActions } from '@/src/hooks/useOrderQueries';
+import { updateOrder } from '@/src/services/api/orders';
 import { OrderItemStatus, OrderStatus, OrderType } from '@/src/types/enums';
 import type { OrderItem, Translation } from '@/src/types/models';
 
@@ -458,10 +464,15 @@ export default function OrderDetailScreen() {
 
   // Data fetching
   const { data: order, isLoading, error, refetch, isRefetching } = useOrder({ id: id ?? '' });
-  const { invalidateOrder } = useOrderCacheActions();
+  const { invalidateOrder, invalidateOrders } = useOrderCacheActions();
 
   // State for refreshing
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Modal states
+  const [showChangeTableModal, setShowChangeTableModal] = useState(false);
+  const [showEditNotesModal, setShowEditNotesModal] = useState(false);
+  const [showCancelOrderModal, setShowCancelOrderModal] = useState(false);
 
   // Pull to refresh
   const handleRefresh = useCallback(async () => {
@@ -532,6 +543,77 @@ export default function OrderDetailScreen() {
     }
   }, [order]);
 
+  // Change table handler
+  const handleChangeTable = useCallback(
+    async (newTableId: string) => {
+      if (!order?.id) return;
+
+      try {
+        await updateOrder(order.id, { tableId: newTableId });
+        invalidateOrder(order.id);
+        invalidateOrders();
+        await refetch();
+        setShowChangeTableModal(false);
+        Toast.show({
+          type: 'success',
+          text1: 'Table Changed',
+          text2: 'Order has been moved to the new table',
+        });
+      } catch (err) {
+        throw new Error(err instanceof Error ? err.message : 'Failed to change table');
+      }
+    },
+    [order?.id, invalidateOrder, invalidateOrders, refetch]
+  );
+
+  // Edit notes handler
+  const handleEditNotes = useCallback(
+    async (notes: string) => {
+      if (!order?.id) return;
+
+      try {
+        await updateOrder(order.id, { notes });
+        invalidateOrder(order.id);
+        await refetch();
+        setShowEditNotesModal(false);
+        Toast.show({
+          type: 'success',
+          text1: 'Notes Updated',
+          text2: notes ? 'Order notes have been saved' : 'Order notes have been cleared',
+        });
+      } catch (err) {
+        throw new Error(err instanceof Error ? err.message : 'Failed to update notes');
+      }
+    },
+    [order?.id, invalidateOrder, refetch]
+  );
+
+  // Cancel order handler
+  const handleCancelOrder = useCallback(
+    async (reason: string) => {
+      if (!order?.id) return;
+
+      try {
+        await updateOrder(order.id, {
+          orderStatus: OrderStatus.CANCELLED,
+          cancelReason: reason,
+        });
+        invalidateOrder(order.id);
+        invalidateOrders();
+        await refetch();
+        setShowCancelOrderModal(false);
+        Toast.show({
+          type: 'success',
+          text1: 'Order Cancelled',
+          text2: `Order ${order.orderCode} has been cancelled`,
+        });
+      } catch (err) {
+        throw new Error(err instanceof Error ? err.message : 'Failed to cancel order');
+      }
+    },
+    [order?.id, order?.orderCode, invalidateOrder, invalidateOrders, refetch]
+  );
+
   // Computed values
   const readyCount = useMemo(
     () => countItemsByStatus(order?.orderItems, OrderItemStatus.READY),
@@ -557,6 +639,8 @@ export default function OrderDetailScreen() {
       order.orderStatus === OrderStatus.PENDING || order.orderStatus === OrderStatus.IN_PROGRESS
     );
   }, [order]);
+
+  const isDineIn = order?.orderType === OrderType.DINE_IN;
 
   // Error state
   if (error && !isLoading) {
@@ -754,6 +838,46 @@ export default function OrderDetailScreen() {
           </View>
         )}
 
+        {/* Order Modification Actions */}
+        {isOrderActive && (
+          <View style={styles.modificationSection}>
+            <ThemedText style={[styles.sectionTitle, { marginBottom: Spacing.sm }]}>
+              Order Actions
+            </ThemedText>
+            <View style={styles.modificationButtons}>
+              {isDineIn && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onPress={() => setShowChangeTableModal(true)}
+                  style={styles.modButton}
+                  testID="order-detail-change-table-btn"
+                >
+                  Change Table
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onPress={() => setShowEditNotesModal(true)}
+                style={styles.modButton}
+                testID="order-detail-edit-notes-btn"
+              >
+                {order?.notes ? 'Edit Notes' : 'Add Notes'}
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onPress={() => setShowCancelOrderModal(true)}
+                style={styles.modButton}
+                testID="order-detail-cancel-order-btn"
+              >
+                Cancel Order
+              </Button>
+            </View>
+          </View>
+        )}
+
         {/* Cancelled Order Message */}
         {order.orderStatus === OrderStatus.CANCELLED && order.cancelReason && (
           <Card padding="md" style={[styles.cancelledCard, { backgroundColor: '#FEE2E2' }]}>
@@ -769,6 +893,31 @@ export default function OrderDetailScreen() {
           <ActivityIndicator size="small" color={BrandColors.primary} />
         </View>
       )}
+
+      {/* Modals */}
+      <ChangeTableModal
+        visible={showChangeTableModal}
+        currentTableId={order?.tableId ?? null}
+        onConfirm={handleChangeTable}
+        onCancel={() => setShowChangeTableModal(false)}
+        testID="order-detail-change-table-modal"
+      />
+
+      <EditNotesModal
+        visible={showEditNotesModal}
+        currentNotes={order?.notes}
+        onConfirm={handleEditNotes}
+        onCancel={() => setShowEditNotesModal(false)}
+        testID="order-detail-edit-notes-modal"
+      />
+
+      <CancelOrderModal
+        visible={showCancelOrderModal}
+        orderCode={order?.orderCode ?? ''}
+        onConfirm={handleCancelOrder}
+        onCancel={() => setShowCancelOrderModal(false)}
+        testID="order-detail-cancel-order-modal"
+      />
     </View>
   );
 }
@@ -989,6 +1138,17 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
+  },
+  modificationSection: {
+    marginBottom: Spacing.md,
+  },
+  modificationButtons: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
+  modButton: {
+    minWidth: 100,
   },
   cancelledCard: {
     marginBottom: Spacing.md,

@@ -378,7 +378,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Add items to existing order
   - Send new items to kitchen
 
-- [ ] **4.6** Implement Order Modifications:
+- [x] **4.6** Implement Order Modifications:
   - Change table (`PUT /order/:id` with new tableId)
   - Add/edit notes
   - Cancel order (with reason required)

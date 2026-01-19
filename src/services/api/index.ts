@@ -58,6 +58,8 @@ export { createOrder, getOrder, getOrders, updateOrder } from './orders';
 
 // Payment exports
 export { createPayment, getPayments } from './payments';
+// Reason Template exports
+export { getReasonTemplates } from './reasonTemplates';
 // Table exports
 export { getTable, getTables } from './tables';
 // Waiter Call exports
