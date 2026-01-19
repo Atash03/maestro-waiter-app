@@ -366,7 +366,7 @@ interface Translation { en: string; ru: string; tm: string; }
     - Declined/Canceled (red strikethrough)
   - Actions: Add Items, Mark Served, Create Bill
 
-- [ ] **4.4** Create Order Item Status Component (`components/orders/OrderItemStatus.tsx`):
+- [x] **4.4** Create Order Item Status Component (`components/orders/OrderItemStatus.tsx`):
   - Visual status indicator
   - Swipe actions or buttons:
     - Mark as Served (when Ready)

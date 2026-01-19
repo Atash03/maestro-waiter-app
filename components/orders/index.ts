@@ -18,6 +18,20 @@ export {
   OrderCard,
   type OrderCardProps,
 } from './OrderCard';
+// OrderItemStatus - Order item status indicator with actions
+export {
+  canCancelItem,
+  canMarkAsServed,
+  getOrderItemBadgeVariant,
+  getOrderItemStatusColor,
+  getOrderItemStatusLabel,
+  isItemCancelled,
+  isTerminalStatus,
+  OrderItemStatus,
+  OrderItemStatusCompact,
+  type OrderItemStatusCompactProps,
+  type OrderItemStatusProps,
+} from './OrderItemStatus';
 // OrderSummary - Live order summary component
 // Default export
 export {

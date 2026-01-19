@@ -2057,3 +2057,57 @@ The OrderCard component was already created as part of Task 4.1. All features sp
 
 **Linting:**
 - All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)
+
+---
+
+### Task 4.4: Create Order Item Status Component (COMPLETED)
+
+**Files Created:**
+- `components/orders/OrderItemStatus.tsx` - Reusable order item status component with:
+  - `OrderItemStatus` - Main component with status indicator, badge, and action buttons
+  - `OrderItemStatusCompact` - Compact variant with just indicator and badge
+  - Visual status indicator with color-coded dot
+  - Status badge showing current state
+  - Mark as Served button (when item is Ready)
+  - Cancel item button (when item can be cancelled)
+  - Shows decline/cancel reason if applicable
+  - Three size variants: sm, md, lg
+  - Pulse effect for Ready status indicator
+  - Full animation support with react-native-reanimated
+
+**Files Modified:**
+- `components/orders/index.ts` - Added exports for OrderItemStatus component and helpers
+
+**Helper Functions Exported:**
+- `getOrderItemBadgeVariant(status)` - Map order item status to badge variant
+- `getOrderItemStatusLabel(status)` - Get human-readable order item status label
+- `getOrderItemStatusColor(status)` - Get color for order item status indicator
+- `canMarkAsServed(status)` - Check if item can be marked as served (Ready status)
+- `canCancelItem(status)` - Check if item can be cancelled (Pending/Sent/Preparing)
+- `isItemCancelled(status)` - Check if item is in cancelled/declined state
+- `isTerminalStatus(status)` - Check if item is in terminal state (Served/Declined/Canceled)
+
+**Types Exported:**
+- `OrderItemStatusProps` - Props for main OrderItemStatus component
+- `OrderItemStatusCompactProps` - Props for compact variant
+
+**Component Props:**
+- `status` - Current status of the order item (OrderItemStatus enum)
+- `declineReason` - Decline reason if the item was declined
+- `cancelReason` - Cancel reason if the item was cancelled
+- `showActions` - Whether to show action buttons (default: true)
+- `onMarkServed` - Callback when mark as served is pressed
+- `onCancel` - Callback when cancel is pressed
+- `size` - Size variant: 'sm' | 'md' | 'lg' (default: 'md')
+- `testID` - Test ID for testing
+
+**Status Color Coding:**
+- Pending: Gray (#6B7280)
+- Sent to Prepare: Yellow (#EAB308)
+- Preparing: Orange (#F97316)
+- Ready: Green (#10B981) with glow effect
+- Served: Muted Gray (#9CA3AF)
+- Declined/Canceled: Red (#EF4444)
+
+**Linting:**
+- All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)
