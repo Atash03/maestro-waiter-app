@@ -300,7 +300,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - "Add to Order" button with animation
   - "Duplicate" button for repeat orders
 
-- [ ] **3.8** Create Live Order Summary (`components/orders/OrderSummary.tsx`):
+- [x] **3.8** Create Live Order Summary (`components/orders/OrderSummary.tsx`):
   - Fixed sidebar (tablet) or bottom sheet (phone)
   - Real-time updates as items added
   - Each item shows: name, quantity, customizations, price

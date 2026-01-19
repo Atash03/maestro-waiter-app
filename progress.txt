@@ -1682,3 +1682,53 @@
 
 **Linting:**
 - All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)
+
+---
+
+### Task 3.8: Create Live Order Summary component (COMPLETED)
+
+**Files Created:**
+- components/orders/OrderSummary.tsx - Main Live Order Summary component
+- components/orders/index.ts - Central export file for orders components
+- src/__tests__/order-summary.test.tsx - Comprehensive test file (74 tests)
+
+**Files Modified:**
+- jest.config.js - Added order-summary.test.tsx to web test patterns
+- PRD.md - Marked task 3.8 as complete
+
+**Features Implemented:**
+- Fixed sidebar (tablet) or bottom sheet (phone) layout variants
+- Real-time updates as items are added with smooth animations
+- Each item shows: name, quantity, customizations (extras), price
+- Edit icon to modify item (optional callback)
+- Remove button with optional swipe-to-delete confirmation (Alert.alert)
+- Quantity controls (+/- buttons) inline
+- Running subtotal calculation
+- Service fee display (percentage or flat fee with description)
+- Total amount with formatted pricing
+- Empty state with customizable message
+- Send order button with loading state
+- Animated entrance/exit for items (FadeIn/FadeOut, SlideInRight/SlideOutRight)
+- Theme-aware colors (light/dark mode support)
+- Full TypeScript types (LocalOrderItem, ServiceFeeInfo, OrderSummaryProps, OrderSummaryItemProps)
+
+**Helper Functions Exported:**
+- getTranslatedText - Multi-language translation support (en/ru/tm)
+- parsePrice - Safely parse price strings
+- formatPrice - Format number to 2 decimal places
+- getFormattedPrice - Format price with dollar sign
+- calculateExtrasTotal - Calculate total price of extras
+- calculateItemSubtotal - Calculate item price including extras and quantity
+- calculateOrderTotal - Calculate total order amount
+- getExtrasText - Generate comma-separated extras text
+
+**Test Results:**
+- 74 tests passing covering:
+  - Helper functions (33 tests)
+  - OrderSummaryItem component (11 tests)
+  - OrderSummary component (12 tests)
+  - Export verification (12 tests)
+  - Type exports (6 tests)
+
+**Linting:**
+- All files pass Biome linting checks
