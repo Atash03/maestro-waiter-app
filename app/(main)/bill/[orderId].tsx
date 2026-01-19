@@ -23,6 +23,7 @@ import {
 import Animated, { FadeIn, FadeInDown, SlideInRight } from 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
 
+import { DiscountSelector } from '@/components/bills/DiscountSelector';
 import { ThemedText } from '@/components/themed-text';
 import { Badge, type BadgeVariant } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -36,7 +37,7 @@ import {
   useBillCalculation,
 } from '@/src/hooks/useBillQueries';
 import { useOrder } from '@/src/hooks/useOrderQueries';
-import { createBill } from '@/src/services/api/bills';
+import { createBill, updateBillDiscounts } from '@/src/services/api/bills';
 import type { CalculateBillResponse } from '@/src/types/api';
 import { BillStatus, OrderItemStatus, PaymentMethod } from '@/src/types/enums';
 import type { Bill, BillItem, OrderItem, Payment, Translation } from '@/src/types/models';
@@ -443,6 +444,8 @@ export default function BillScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isCreatingBill, setIsCreatingBill] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [showDiscountModal, setShowDiscountModal] = useState(false);
+  const [isApplyingDiscounts, setIsApplyingDiscounts] = useState(false);
 
   // Bill calculation for preview (enabled only when modal is open)
   const {
@@ -493,6 +496,52 @@ export default function BillScreen() {
   const handleClosePreviewModal = useCallback(() => {
     setShowPreviewModal(false);
   }, []);
+
+  // Open discount selector modal
+  const handleOpenDiscountModal = useCallback(() => {
+    if (!bill) return;
+    setShowDiscountModal(true);
+  }, [bill]);
+
+  // Close discount selector modal
+  const handleCloseDiscountModal = useCallback(() => {
+    setShowDiscountModal(false);
+  }, []);
+
+  // Apply discounts to bill
+  const handleApplyDiscounts = useCallback(
+    async (discountIds: string[], customAmount?: number) => {
+      if (!bill) return;
+
+      setIsApplyingDiscounts(true);
+
+      try {
+        await updateBillDiscounts(bill.id, {
+          discountIds,
+          customDiscountAmount: customAmount,
+        });
+
+        Toast.show({
+          type: 'success',
+          text1: 'Discounts Applied',
+          text2: 'Bill has been updated with selected discounts',
+        });
+
+        setShowDiscountModal(false);
+        invalidateBillByOrder(orderId ?? '');
+        await refetchBill();
+      } catch (err) {
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: err instanceof Error ? err.message : 'Failed to apply discounts',
+        });
+      } finally {
+        setIsApplyingDiscounts(false);
+      }
+    },
+    [bill, orderId, invalidateBillByOrder, refetchBill]
+  );
 
   // Confirm and create bill
   const handleConfirmCreateBill = useCallback(async () => {
@@ -552,6 +601,15 @@ export default function BillScreen() {
   const remainingBalance = useMemo(() => (bill ? calculateRemainingBalance(bill) : 0), [bill]);
   const isPaid = bill?.status === BillStatus.PAID;
   const hasPayments = bill?.payments && bill.payments.length > 0;
+
+  // Get currently applied discount IDs from bill
+  const currentDiscountIds = useMemo(
+    () => bill?.discounts?.map((d) => d.discountId) ?? [],
+    [bill?.discounts]
+  );
+
+  // Get current bill subtotal for discount calculation
+  const billSubtotal = useMemo(() => Number.parseFloat(bill?.subtotal ?? '0'), [bill?.subtotal]);
 
   // Error state
   if (error && !isLoading) {
@@ -802,18 +860,12 @@ export default function BillScreen() {
             <>
               <Button
                 variant="outline"
-                onPress={() => {
-                  // TODO: Implement discount selector in Task 6.3
-                  Toast.show({
-                    type: 'info',
-                    text1: 'Coming Soon',
-                    text2: 'Discount selection will be implemented in Task 6.3',
-                  });
-                }}
+                onPress={handleOpenDiscountModal}
+                disabled={isApplyingDiscounts}
                 style={styles.actionButton}
                 testID="add-discount-btn"
               >
-                Add Discount
+                {bill.discounts && bill.discounts.length > 0 ? 'Edit Discounts' : 'Add Discount'}
               </Button>
               <Button
                 variant="primary"
@@ -868,6 +920,17 @@ export default function BillScreen() {
         onConfirm={handleConfirmCreateBill}
         onCancel={handleClosePreviewModal}
         isCreating={isCreatingBill}
+      />
+
+      {/* Discount Selector Modal */}
+      <DiscountSelector
+        visible={showDiscountModal}
+        onClose={handleCloseDiscountModal}
+        onApply={handleApplyDiscounts}
+        billAmount={billSubtotal}
+        selectedDiscountIds={currentDiscountIds}
+        isApplying={isApplyingDiscounts}
+        testID="discount-selector-modal"
       />
     </View>
   );

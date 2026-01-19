@@ -2715,3 +2715,59 @@ Enhanced the bill screen to include a bill calculation preview before creating b
 **Linting:**
 - All files pass Biome linting checks
 
+
+---
+
+### Task 6.3: Create Discount Selector (COMPLETED)
+
+**Files Created:**
+- `src/hooks/useDiscountQueries.ts` - React Query hooks for discount data fetching:
+  - `discountQueryKeys` - Query key factory for targeted cache invalidation
+  - `useDiscounts(options?)` - Fetch all discounts with filtering/pagination
+  - `useActiveDiscounts(options?)` - Fetch only active discounts
+  - `useDiscount(options)` - Fetch single discount by ID
+  - `useDiscountCalculation(options)` - Calculate discounts for a bill
+  - `useDiscountCacheActions()` - Cache invalidation and prefetching utilities
+
+- `components/bills/DiscountSelector.tsx` - Modal component for selecting discounts:
+  - Lists available discounts from GET /discount API
+  - Shows discount type (percentage/fixed) with value
+  - Multi-select support for applicable discounts
+  - Custom discount amount input field
+  - Real-time total recalculation preview
+  - Discount preview card showing:
+    - Original amount
+    - Total discount
+    - Final amount after discounts
+  - Loading skeleton for better UX
+  - Error handling with retry button
+  - Clear all button to reset selections
+
+**Files Modified:**
+- `app/(main)/bill/[orderId].tsx` - Integrated DiscountSelector into Bill screen:
+  - Added import for DiscountSelector component
+  - Added import for updateBillDiscounts API function
+  - Added state for discount modal visibility and applying state
+  - Added handlers:
+    - `handleOpenDiscountModal` - Opens discount selector
+    - `handleCloseDiscountModal` - Closes discount selector
+    - `handleApplyDiscounts` - Applies selected discounts to bill via API
+  - Added computed values for current discount IDs and bill subtotal
+  - Updated "Add Discount" button to open discount modal
+  - Button text changes to "Edit Discounts" when discounts are already applied
+  - Added DiscountSelector modal at end of render
+
+**Features Implemented:**
+- List available discounts from `GET /discount` endpoint
+- Display discount type (percentage/fixed) with clear visual indicators
+- Multi-select checkboxes for selecting multiple discounts
+- Custom discount amount input with numeric validation
+- Real-time total recalculation using `POST /discount/calculate`
+- Apply discounts to bill using `PUT /bill/:id/discounts`
+- Optimistic UI updates with Toast notifications
+- Loading states and error handling
+
+**Linting:**
+- All files pass Biome linting checks
+- TypeScript compilation passes for modified files
+

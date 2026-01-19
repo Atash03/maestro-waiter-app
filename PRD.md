@@ -475,7 +475,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - `POST /bill/calculate` for preview
   - Handle service fees automatically
 
-- [ ] **6.3** Create Discount Selector (`components/bills/DiscountSelector.tsx`):
+- [x] **6.3** Create Discount Selector (`components/bills/DiscountSelector.tsx`):
   - List available discounts from `GET /discount`
   - Show discount type (percentage/fixed)
   - Multi-select for applicable discounts
