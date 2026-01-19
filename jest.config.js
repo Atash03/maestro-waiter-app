@@ -46,6 +46,7 @@ module.exports = {
         '<rootDir>/src/__tests__/category-list.test.tsx',
         '<rootDir>/src/__tests__/menu-item-list.test.tsx',
         '<rootDir>/src/__tests__/menu-search.test.tsx',
+        '<rootDir>/src/__tests__/menu-item-modal.test.tsx',
       ],
       setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
       transformIgnorePatterns: [

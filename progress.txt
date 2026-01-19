@@ -1593,3 +1593,92 @@
 
 **Linting:**
 - All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)
+---
+
+### Task 3.7: Create Menu Item Detail Modal (COMPLETED)
+
+**Files Created:**
+- `components/menu/MenuItemModal.tsx` - Full-featured menu item detail modal with:
+  - Bottom sheet modal with slide-up animation
+  - Large image display with expo-image (16:9 aspect ratio)
+  - Category badge overlay (Kitchen/Bar color-coded)
+  - Item title with translation support
+  - Item description with translation support
+  - Price display with formatting ($X.XX)
+  - Preparation time display (optional)
+  - Quantity selector with +/- buttons (min: 1, max: 99)
+  - Available extras section with:
+    - Checkbox toggle for each extra
+    - Extra name, description, and price
+    - Individual quantity controls for selected extras
+    - Visual feedback for selected state
+  - Notes field for special requests (max 500 characters with counter)
+  - Total price calculation (base + extras × quantity)
+  - "Add to Order" button with press animation
+  - "Update Order" text when editing existing item
+  - "Duplicate" button for repeat orders (hidden when editing)
+  - Close button with backdrop press support
+  - Theme-aware colors (light/dark mode)
+  - Full TypeScript types and testIDs
+
+**Utility Functions Exported:**
+- `getTranslatedText(translation, fallback, preferredLang)` - Get translated text with fallback
+- `parsePrice(price)` - Parse price string to number
+- `formatPrice(price)` - Format number to price string (2 decimal places)
+- `getFormattedPrice(price)` - Get formatted price with dollar sign
+- `calculateExtrasTotal(selectedExtras)` - Calculate total for selected extras
+- `calculateItemTotal(itemPrice, quantity, selectedExtras)` - Calculate total item price
+- `getCategoryColor(type)` - Get color for category type (Kitchen/Bar)
+
+**Types Exported:**
+- `MenuItemModalProps` - Component props interface
+- `SelectedExtra` - Selected extra item with quantity
+
+**Files Modified:**
+- `components/menu/index.ts` - Added exports for MenuItemModal component and all utility functions
+- `jest.config.js` - Added menu-item-modal.test.tsx to test match patterns
+
+**Tests Created:**
+- `src/__tests__/menu-item-modal.test.tsx` - 70 tests covering:
+  - Helper Functions (30 tests):
+    - getTranslatedText: English/Russian/Turkmen, fallback, empty language fallback
+    - parsePrice: valid, integer, undefined, empty, invalid, leading zeros
+    - formatPrice: two decimals, integer, zero, rounding
+    - getFormattedPrice: with dollar sign, empty, undefined
+    - calculateExtrasTotal: multiple extras, empty, single
+    - calculateItemTotal: without extras, with extras, zero quantity, undefined price
+    - getCategoryColor: Kitchen, Bar, undefined, unknown
+  - Component Tests (20 tests):
+    - Null Item Handling: returns null for null/undefined item
+    - Component Function Existence: valid function, correct name
+    - Props Validation: title, description, price, category color, calculations
+    - Edge Cases: no description, no category, empty price, Bar type
+    - Extra Items Filtering: filters by item.extras, all extras when empty
+    - Notes Validation: max length constant
+    - Quantity Bounds: min/max constants
+  - Export Verification (20 tests):
+    - Component exports from MenuItemModal.tsx
+    - Component exports from index.ts (with aliased names)
+    - Type exports (MenuItemModalProps, SelectedExtra)
+
+**Features Implemented:**
+- Large image with description
+- Price display
+- Quantity selector with +/- buttons (1-99 range)
+- Available extras with checkboxes and quantities
+- Notes field for special requests (max 500 chars)
+- "Add to Order" button with press animation
+- "Duplicate" button for repeat orders
+- Animated modal entrance/exit
+- Backdrop press to close
+- Category badge (Kitchen/Bar)
+- Preparation time display
+- Total price calculation with extras
+- Theme-aware colors (light/dark mode)
+- Full TypeScript types
+
+**Test Results:**
+- 1117 tests passing (1047 previous + 70 menu item modal tests)
+
+**Linting:**
+- All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)

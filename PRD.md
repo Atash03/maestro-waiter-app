@@ -291,7 +291,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Recent searches history
   - Voice search (optional enhancement)
 
-- [ ] **3.7** Create Menu Item Detail Modal (`components/menu/MenuItemModal.tsx`):
+- [x] **3.7** Create Menu Item Detail Modal (`components/menu/MenuItemModal.tsx`):
   - Large image with description
   - Price display
   - Quantity selector with +/- buttons

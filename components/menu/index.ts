@@ -37,10 +37,21 @@ export {
   MenuItemList,
   parsePrice,
 } from './MenuItemList';
-
+// Menu Item Modal Component Types
+export type { MenuItemModalProps, SelectedExtra } from './MenuItemModal';
+// Menu Item Modal Component
+export {
+  calculateExtrasTotal,
+  calculateItemTotal,
+  default as MenuItemModalDefault,
+  getCategoryColor as getMenuItemModalCategoryColor,
+  getFormattedPrice as getMenuItemModalFormattedPrice,
+  getTranslatedText as getMenuItemModalTranslatedText,
+  MenuItemModal,
+  parsePrice as parseMenuItemModalPrice,
+} from './MenuItemModal';
 // Menu Search Component Types
 export type { MenuSearchProps, RecentSearchItem } from './MenuSearch';
-
 // Menu Search Component
 export {
   addToRecentSearches,
