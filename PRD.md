@@ -223,7 +223,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Show guest count icon when occupied
   - Animated status transitions
 
-- [ ] **2.5** Implement Table Info Popup (`components/tables/TableInfoPopup.tsx`):
+- [x] **2.5** Implement Table Info Popup (`components/tables/TableInfoPopup.tsx`):
   - Triggered by long-press or tap-and-hold
   - Show: table name, capacity, current guests, time seated
   - Show active order summary if exists

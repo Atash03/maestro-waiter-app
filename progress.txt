@@ -795,3 +795,74 @@
 
 **Linting:**
 - All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)
+
+---
+
+### Task 2.5: Implement Table Info Popup (COMPLETED)
+
+**Files Created:**
+- `components/tables/TableInfoPopup.tsx` - Full-featured table info popup component with:
+  - Popup overlay displayed on table long-press
+  - Animated entrance/exit using react-native-reanimated
+  - Table information display:
+    - Table name with status indicator
+    - Status badge (Available, Occupied, Reserved, Needs Attention)
+    - Capacity display (X seats)
+    - Guest count (when occupied with guests > 0)
+    - Time seated duration (formatted as Xh Ym)
+    - Zone name (if available)
+  - Active order summary section (when order exists):
+    - Order code
+    - Item count
+    - Total amount
+  - Quick action buttons:
+    - "View Order" (when active order exists)
+    - "New Order" / "Add Items" (changes label based on order existence)
+    - "View Call" (when table has pending waiter call)
+  - Close button and backdrop press to dismiss
+  - Theme-aware colors (light/dark mode support)
+  - Helper functions:
+    - `formatDuration(dateString)` - Formats time duration from date to now
+    - `getStatusBadgeVariant(status)` - Maps table status to badge variant
+    - `getStatusLabel(status)` - Gets human-readable status label
+    - `calculateOrderSummary(order)` - Extracts order summary from Order object
+    - `getTranslatedText(translation, fallback)` - Gets text from Translation object
+
+**Files Modified:**
+- `components/tables/index.ts` - Updated to export TableInfoPopup component and related types
+- `jest.config.js` - Added table-info-popup.test.tsx to web test match patterns
+
+**Types Defined:**
+- `TableInfoPopupProps` - Component props interface:
+  - visible: boolean
+  - onClose: () => void
+  - table: TableItemData | null
+  - activeOrder?: Order | null
+  - onViewOrder?: (order: Order) => void
+  - onNewOrder?: (table: Table) => void
+  - onCallInfo?: (table: Table) => void
+  - seatedAt?: string | null
+  - testID?: string
+- `OrderSummary` - Order summary data interface:
+  - itemCount: number
+  - totalAmount: string
+  - orderCode: string
+  - status: string
+
+**Tests Created:**
+- `src/__tests__/table-info-popup.test.tsx` - 43 tests covering:
+  - Visibility (4 tests): render when visible, hide when not visible or no table
+  - Table info display (5 tests): title, capacity, guest count, zone name
+  - Status badge (4 tests): correct badge for all status types
+  - Time seated (3 tests): display for occupied with seatedAt, hide when null or available
+  - Order summary (5 tests): display when order exists, correct code/count/total
+  - Action buttons (9 tests): View Order, New Order, Call Info visibility and callbacks
+  - Close functionality (3 tests): close button, backdrop, callback provision
+  - Edge cases (6 tests): missing zone, missing orderItems, undefined guestCount, invalid date
+  - Export verification (3 tests): component and type exports
+
+**Test Results:**
+- 487 tests passing (444 previous + 43 table info popup tests)
+
+**Linting:**
+- All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)
