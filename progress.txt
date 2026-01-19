@@ -3066,3 +3066,43 @@ The Activity Summary functionality was already implemented in the Profile screen
 **Linting:**
 - All files pass Biome linting checks (1 pre-existing warning in Skeleton.tsx)
 
+
+### Task 7.3: Create Settings Screen (COMPLETED)
+
+**Files Created:**
+- `src/stores/settingsStore.ts` - Zustand store for app settings:
+  - Theme selection (light/dark/system)
+  - Language selection (en/ru/tm)
+  - Default floor plan zoom level (50%-200%)
+  - Persistence using AsyncStorage
+  - Exported types: ThemeMode, Language
+  - Exported hooks: useTheme, useLanguage, useFloorPlanZoom, useSettingsActions
+  - Constants: LANGUAGE_NAMES, THEME_NAMES, ZOOM_CONSTRAINTS
+
+- `app/(main)/settings.tsx` - Settings screen with:
+  - Notification preferences section (sound/vibration toggles)
+  - Appearance section (theme and language selection modals)
+  - Floor plan section (zoom level +/- controls)
+  - About section (version and build info)
+  - Clean iOS-style design with animated sections
+  - Back navigation to profile screen
+
+**Files Modified:**
+- `src/stores/index.ts` - Added exports for settings store
+- `app/(main)/_layout.tsx` - Added settings route configuration
+
+**Features Implemented:**
+- Sound notification toggle (integrates with existing notificationStore)
+- Vibration notification toggle (integrates with existing notificationStore)
+- Theme selection modal with light/dark/system options
+- Language selection modal with English/Russian/Turkmen options
+- Floor plan default zoom level with increment/decrement controls (50%-200%)
+- App version display from expo-constants
+- Build number display
+- Animated section transitions using react-native-reanimated
+- Full dark mode support
+
+**Linting:**
+- All new files pass Biome linting checks
+
+---

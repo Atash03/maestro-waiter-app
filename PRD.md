@@ -535,7 +535,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Calculate totals locally
   - Display key metrics
 
-- [ ] **7.3** Create Settings Screen (`app/(main)/settings.tsx`):
+- [x] **7.3** Create Settings Screen (`app/(main)/settings.tsx`):
   - Notification preferences (sound, vibration)
   - Theme selection (light/dark/system)
   - Language selection (en/ru/tm)

@@ -36,6 +36,13 @@ export default function MainLayout() {
           title: 'Bill',
         }}
       />
+      <Stack.Screen
+        name="settings"
+        options={{
+          headerShown: false,
+          title: 'Settings',
+        }}
+      />
     </Stack>
   );
 }
