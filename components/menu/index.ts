@@ -21,3 +21,19 @@ export {
   getCategoryColor,
   getTranslatedText,
 } from './CategoryList';
+export type {
+  MenuItemCardProps,
+  MenuItemListProps,
+  MenuItemListVariant,
+} from './MenuItemList';
+
+// Menu Item List Component
+export {
+  default as MenuItemListDefault,
+  formatPrice,
+  getFormattedPrice,
+  getTranslatedText as getMenuItemTranslatedText,
+  MenuItemCard,
+  MenuItemList,
+  parsePrice,
+} from './MenuItemList';

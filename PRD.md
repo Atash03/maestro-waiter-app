@@ -277,7 +277,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Active category highlighting
   - Smooth scroll animation
 
-- [ ] **3.5** Create Menu Item Grid/List (`components/menu/MenuItemList.tsx`):
+- [x] **3.5** Create Menu Item Grid/List (`components/menu/MenuItemList.tsx`):
   - Grid view for tablets, list for phones
   - High-quality images with fallback
   - Item name, price, brief description

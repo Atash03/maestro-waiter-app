@@ -84,6 +84,17 @@ jest.mock('expo-splash-screen', () => ({
   hideAsync: jest.fn(() => Promise.resolve()),
 }));
 
+// Mock expo-image
+jest.mock('expo-image', () => {
+  const { View } = require('react-native');
+  return {
+    Image: (props) => {
+      const { testID, ...rest } = props;
+      return <View testID={testID} {...rest} />;
+    },
+  };
+});
+
 // Mock react-native-reanimated
 jest.mock('react-native-reanimated', () => {
   // Use react-native-reanimated/mock for web environment

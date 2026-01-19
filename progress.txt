@@ -1429,3 +1429,94 @@
 
 **Linting:**
 - All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)
+
+---
+
+### Task 3.5: Create Menu Item Grid/List (COMPLETED)
+
+**Files Created:**
+- `components/menu/MenuItemList.tsx` - Full-featured menu item display component with:
+  - Two display variants:
+    - `grid`: Grid layout for tablets (2-3 columns based on screen width)
+    - `list`: Single-column list layout for phones
+    - `auto`: Automatically selects based on screen width (default)
+  - `MenuItemCard` component - Individual menu item card with:
+    - High-quality images using expo-image with fallback placeholder
+    - Item name with translation support (en/ru/tm)
+    - Brief description (optional, configurable)
+    - Price display with proper formatting
+    - "Unavailable" overlay for inactive items (isActive: false)
+    - Quantity badge showing items already in order
+    - Press animation using react-native-reanimated
+    - Long-press support for additional actions
+  - `MenuItemList` main component with:
+    - FlatList-based rendering for performance
+    - Dynamic column count (2 for phones, 3 for tablets)
+    - Configurable via numColumns prop
+    - Pull-to-refresh support via onRefresh/refreshing props
+    - Empty state display with customizable message
+    - Theme-aware colors (light/dark mode)
+  - Helper functions exported:
+    - `getTranslatedText(translation, fallback, preferredLang)` - Get translated text
+    - `parsePrice(price)` - Parse price string to number
+    - `formatPrice(price)` - Format number to 2 decimal places
+    - `getFormattedPrice(price)` - Combined parse and format with $ prefix
+
+- `components/menu/index.ts` - Updated to export MenuItemList components:
+  - Named exports: MenuItemList, MenuItemCard, helper functions
+  - Default export: MenuItemList
+  - Type exports: MenuItemListProps, MenuItemListVariant, MenuItemCardProps
+
+**Files Modified:**
+- `jest.config.js` - Added menu-item-list.test.tsx to web test match patterns
+- `jest.setup.js` - Added expo-image mock for testing
+
+**Tests Created:**
+- `src/__tests__/menu-item-list.test.tsx` - 76 tests covering:
+  - Helper functions (20 tests):
+    - getTranslatedText: English, Russian, Turkmen, fallbacks, empty handling, undefined
+    - parsePrice: valid prices, undefined/empty, invalid strings, zero
+    - formatPrice: decimal formatting, zero, whole numbers
+    - getFormattedPrice: formatted with dollar sign, empty price
+  - MenuItemCard component (13 tests):
+    - Render with title, price, description
+    - Image display with and without imagePath
+    - Unavailable overlay for inactive items
+    - Quantity badge display
+    - Press and long-press handlers
+    - Grid and list variants
+  - MenuItemList component (12 tests):
+    - Render with items
+    - Empty state with custom message
+    - Grid variant with columns
+    - List variant single column
+    - Auto variant selection
+    - Pull-to-refresh support
+    - Item quantities display
+  - Type Exports (4 tests): MenuItemListProps, MenuItemCardProps, MenuItemListVariant
+  - Module Exports (8 tests): all named exports from MenuItemList.tsx
+  - Index File Exports (19 tests): all exports from components/menu/index.ts
+
+**Features Implemented:**
+- Grid view for tablets (2-3 columns)
+- List view for phones (single column)
+- Auto-detect screen width for variant selection
+- High-quality images with expo-image
+- Fallback placeholder image
+- Item name with translation support
+- Price display with formatting ($X.XX)
+- Brief description (optional)
+- "Unavailable" overlay for inactive items
+- Quantity badges for items in order
+- Press animation using react-native-reanimated
+- Long-press callback support
+- Pull-to-refresh functionality
+- Empty state display
+- Theme-aware colors (light/dark mode)
+- Full TypeScript types and testIDs
+
+**Test Results:**
+- 999 tests passing (923 previous + 76 menu item list tests)
+
+**Linting:**
+- All files pass Biome linting checks
