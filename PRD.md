@@ -596,7 +596,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Sync when back online
   - Clear offline indicator
 
-- [ ] **8.6** Add haptic feedback:
+- [x] **8.6** Add haptic feedback:
   - Button presses
   - Success/error actions
   - Pull-to-refresh

@@ -3563,3 +3563,76 @@ Task 8.4 focused on ensuring loading states are implemented throughout the appli
 
 **Linting:**
 - All files pass Biome linting checks (1 pre-existing warning unrelated to this task)
+
+### Task 8.6: Add haptic feedback (COMPLETED)
+
+**Files Created:**
+- `src/utils/haptics.ts` - Centralized haptic feedback module with:
+  - Impact feedback functions (light, medium, heavy, soft, rigid)
+  - Notification feedback functions (success, warning, error)
+  - Selection feedback for picker/selection changes
+  - Convenience functions for common interactions:
+    - `buttonPress()` - Light impact for button presses
+    - `buttonPressSignificant()` - Medium impact for significant buttons
+    - `success()` / `warning()` / `error()` - Notification feedback
+    - `pullToRefresh()` - Light impact for pull-to-refresh
+    - `swipeThreshold()` / `swipeComplete()` - Swipe action feedback
+    - `tabSwitch()` - Tab navigation feedback
+    - `modalOpen()` / `modalClose()` - Modal feedback
+    - `toggle()` - Toggle switch feedback
+    - `longPress()` - Long press feedback
+  - Platform-aware (disabled on web, graceful error handling)
+
+- `src/hooks/useHapticRefresh.ts` - Custom hook for pull-to-refresh with haptic feedback:
+  - Automatic haptic feedback when refresh triggers
+  - Success/error haptic feedback on completion
+  - Configurable haptic options (hapticEnabled, successHaptic, errorHaptic)
+
+**Files Modified:**
+- `src/utils/index.ts` - Added haptics exports
+- `src/hooks/index.ts` - Added useHapticRefresh export
+- `components/ui/Button.tsx`:
+  - Added hapticFeedback prop (default: true)
+  - Added light haptic for secondary/outline/ghost variants
+  - Added medium haptic for primary/destructive variants
+- `components/ui/Modal.tsx`:
+  - Added haptic feedback on modal open/close
+- `src/hooks/useSendToKitchen.ts`:
+  - Added success haptic on successful order submission
+  - Added error haptic on failed order submission
+- `app/(tabs)/orders/index.tsx`:
+  - Replaced manual refresh state with useHapticRefresh hook
+- `app/(tabs)/tables/index.tsx`:
+  - Replaced manual refresh state with useHapticRefresh hook
+- `app/(tabs)/calls/index.tsx`:
+  - Replaced manual refresh state with useHapticRefresh hook
+- `app/(tabs)/profile/index.tsx`:
+  - Replaced manual refresh state with useHapticRefresh hook
+- `app/(main)/bill/[orderId].tsx`:
+  - Replaced manual refresh state with useHapticRefresh hook
+- `app/(main)/order/[id].tsx`:
+  - Replaced manual refresh state with useHapticRefresh hook
+
+**Haptic Feedback Coverage:**
+1. **Button presses**: All Button components now provide haptic feedback on press
+   - Light impact for secondary/outline/ghost variants
+   - Medium impact for primary/destructive variants
+2. **Success/error actions**: 
+   - Success haptic when "Send to Kitchen" completes successfully
+   - Error haptic when operations fail
+   - Existing error handling already had haptic feedback in useErrorHandler.ts
+3. **Pull-to-refresh**: All screens with RefreshControl now use useHapticRefresh hook
+   - Light impact when refresh triggers
+   - Success/error haptic when refresh completes
+4. **Modal interactions**: Modal open/close events trigger light haptic feedback
+5. **Tab navigation**: Already existed in haptic-tab.tsx for bottom tab navigation
+
+**Pre-existing haptic feedback (not modified):**
+- `components/haptic-tab.tsx` - Tab navigation haptics
+- `src/hooks/useErrorHandler.ts` - Error notification haptics
+- `src/services/notifications/notificationHandler.ts` - Notification haptics
+
+**Linting:**
+- All new files pass Biome linting checks
+
+---

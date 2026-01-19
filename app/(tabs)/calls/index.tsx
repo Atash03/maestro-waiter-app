@@ -29,6 +29,7 @@ import {
   useAcknowledgeCall,
   useCancelCall,
   useCompleteCall,
+  useHapticRefresh,
   useWaiterCalls,
 } from '@/src/hooks';
 import { WaiterCallStatus } from '@/src/types/enums';
@@ -201,13 +202,19 @@ export default function CallsScreen() {
 
   // State
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [acknowledgingId, setAcknowledgingId] = useState<string | null>(null);
   const [completingId, setCompletingId] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   // Data fetching
   const { data, isLoading, error, refetch, isFetching } = useWaiterCalls();
+
+  // Haptic refresh
+  const { isRefreshing, handleRefresh } = useHapticRefresh({
+    onRefresh: async () => {
+      await refetch();
+    },
+  });
 
   // Mutations
   const acknowledgeMutation = useAcknowledgeCall();
@@ -242,12 +249,6 @@ export default function CallsScreen() {
   }, [data?.data]);
 
   // Handlers
-  const handleRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    await refetch();
-    setIsRefreshing(false);
-  }, [refetch]);
-
   const handleAcknowledge = useCallback(
     (id: string) => {
       setAcknowledgingId(id);

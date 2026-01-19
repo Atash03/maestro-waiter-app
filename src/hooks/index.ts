@@ -10,6 +10,10 @@ export {
   useErrorHandler,
 } from './useErrorHandler';
 export {
+  // Haptic refresh hook
+  useHapticRefresh,
+} from './useHapticRefresh';
+export {
   // Query keys
   extraQueryKeys,
   // Combined hooks

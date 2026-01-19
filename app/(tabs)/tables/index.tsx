@@ -10,7 +10,7 @@
  * - Pull-to-refresh for data updates
  */
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import {
   Dimensions,
   RefreshControl,
@@ -31,6 +31,7 @@ import { Skeleton, SkeletonGroup } from '@/components/ui/Skeleton';
 import { Spinner } from '@/components/ui/Spinner';
 import { BorderRadius, BrandColors, Colors, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useHapticRefresh } from '@/src/hooks';
 import { useTablesAndZones, useTablesByZone } from '@/src/hooks/useTableQueries';
 import type { TableViewMode } from '@/src/stores/tableStore';
 import { useTableStore } from '@/src/stores/tableStore';
@@ -473,14 +474,12 @@ export default function FloorPlanScreen() {
 
   const totalCount = tablesFilteredByZone.length;
 
-  // Refresh state
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const handleRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    await refetchAll();
-    setIsRefreshing(false);
-  }, [refetchAll]);
+  // Haptic refresh
+  const { isRefreshing, handleRefresh } = useHapticRefresh({
+    onRefresh: async () => {
+      await refetchAll();
+    },
+  });
 
   // Table press handlers
   const handleTablePress = useCallback(

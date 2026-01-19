@@ -12,6 +12,7 @@ import {
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { BorderRadius, BrandColors, Spacing } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { haptics } from '@/src/utils/haptics';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -29,6 +30,8 @@ export interface ButtonProps extends Omit<PressableProps, 'style'> {
   style?: ViewStyle;
   textStyle?: TextStyle;
   fullWidth?: boolean;
+  /** Enable haptic feedback on press (default: true) */
+  hapticFeedback?: boolean;
 }
 
 const sizeStyles: Record<
@@ -51,6 +54,7 @@ export function Button({
   style,
   textStyle,
   fullWidth = false,
+  hapticFeedback = true,
   onPressIn,
   onPressOut,
   ...props
@@ -139,6 +143,15 @@ export function Button({
 
   const handlePressIn = (e: Parameters<NonNullable<PressableProps['onPressIn']>>[0]) => {
     scale.value = withSpring(0.97, { damping: 15, stiffness: 400 });
+    // Trigger haptic feedback on press
+    if (hapticFeedback && !isDisabled) {
+      // Use stronger haptic for primary/destructive variants
+      if (variant === 'primary' || variant === 'destructive') {
+        haptics.buttonPressSignificant();
+      } else {
+        haptics.buttonPress();
+      }
+    }
     onPressIn?.(e);
   };
 

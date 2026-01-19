@@ -20,6 +20,7 @@ import type {
 } from '../types/api';
 import { OrderItemStatus, OrderType } from '../types/enums';
 import type { Order, OrderItem } from '../types/models';
+import { haptics } from '../utils/haptics';
 
 // ============================================================================
 // Types
@@ -193,6 +194,9 @@ export function useSendToKitchen(): UseSendToKitchenReturn {
         setLastSentOrderId(orderId);
         setRetryContext(null);
 
+        // Haptic feedback for success
+        haptics.success();
+
         return {
           success: true,
           order,
@@ -201,6 +205,9 @@ export function useSendToKitchen(): UseSendToKitchenReturn {
       } catch (err) {
         const errorMessage = getErrorMessage(err);
         setError(errorMessage);
+
+        // Haptic feedback for error
+        haptics.error();
 
         return {
           success: false,

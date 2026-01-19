@@ -35,6 +35,7 @@ import {
   filterOrdersByStatus,
   filterOrdersByType,
   sortOrdersByDate,
+  useHapticRefresh,
   useOrders,
 } from '@/src/hooks';
 import { OrderStatus, OrderType } from '@/src/types/enums';
@@ -211,10 +212,16 @@ export default function OrdersListScreen() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const [sortBy] = useState<SortOption>('time');
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Data fetching - get active orders by default
   const { data, isLoading, error, refetch, isFetching } = useOrders();
+
+  // Haptic refresh
+  const { isRefreshing, handleRefresh } = useHapticRefresh({
+    onRefresh: async () => {
+      await refetch();
+    },
+  });
 
   // Compute filtered and sorted orders
   const filteredOrders = useMemo(() => {
@@ -262,12 +269,6 @@ export default function OrdersListScreen() {
   }, [data?.data]);
 
   // Handlers
-  const handleRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    await refetch();
-    setIsRefreshing(false);
-  }, [refetch]);
-
   const handleOrderPress = useCallback(
     (order: Order) => {
       router.push(`/(main)/order/${order.id}`);

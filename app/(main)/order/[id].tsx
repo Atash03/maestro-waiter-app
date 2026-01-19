@@ -41,6 +41,7 @@ import { Card } from '@/components/ui/Card';
 import { Skeleton, SkeletonGroup } from '@/components/ui/Skeleton';
 import { BorderRadius, BrandColors, Colors, Spacing, StatusColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useHapticRefresh } from '@/src/hooks';
 import { useOrder, useOrderCacheActions } from '@/src/hooks/useOrderQueries';
 import { batchUpdateOrderItemStatus } from '@/src/services/api/orderItems';
 import { updateOrder } from '@/src/services/api/orders';
@@ -468,9 +469,6 @@ export default function OrderDetailScreen() {
   const { data: order, isLoading, error, refetch, isRefetching } = useOrder({ id: id ?? '' });
   const { invalidateOrder, invalidateOrders } = useOrderCacheActions();
 
-  // State for refreshing
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
   // Modal states
   const [showChangeTableModal, setShowChangeTableModal] = useState(false);
   const [showEditNotesModal, setShowEditNotesModal] = useState(false);
@@ -478,12 +476,12 @@ export default function OrderDetailScreen() {
   const [showCancelItemModal, setShowCancelItemModal] = useState(false);
   const [itemToCancel, setItemToCancel] = useState<OrderItem | null>(null);
 
-  // Pull to refresh
-  const handleRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    await refetch();
-    setIsRefreshing(false);
-  }, [refetch]);
+  // Pull to refresh with haptic feedback
+  const { isRefreshing, handleRefresh } = useHapticRefresh({
+    onRefresh: async () => {
+      await refetch();
+    },
+  });
 
   // Mark item as served
   const handleMarkServed = useCallback(

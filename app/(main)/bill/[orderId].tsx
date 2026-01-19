@@ -33,6 +33,7 @@ import { Card } from '@/components/ui/Card';
 import { Skeleton, SkeletonGroup } from '@/components/ui/Skeleton';
 import { BorderRadius, BrandColors, Colors, Spacing, StatusColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useHapticRefresh } from '@/src/hooks';
 import {
   useBillByOrder,
   useBillCacheActions,
@@ -444,7 +445,6 @@ export default function BillScreen() {
   }, [billsResponse]);
 
   // State
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isCreatingBill, setIsCreatingBill] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [showDiscountModal, setShowDiscountModal] = useState(false);
@@ -480,12 +480,12 @@ export default function BillScreen() {
   const isLoading = isLoadingOrder || isLoadingBill;
   const error = orderError || billError;
 
-  // Pull to refresh
-  const handleRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    await Promise.all([refetchOrder(), refetchBill()]);
-    setIsRefreshing(false);
-  }, [refetchOrder, refetchBill]);
+  // Pull to refresh with haptic feedback
+  const { isRefreshing, handleRefresh } = useHapticRefresh({
+    onRefresh: async () => {
+      await Promise.all([refetchOrder(), refetchBill()]);
+    },
+  });
 
   // Open bill creation preview modal
   const handleOpenCreateBillPreview = useCallback(() => {

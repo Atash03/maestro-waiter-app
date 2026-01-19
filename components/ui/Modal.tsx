@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect } from 'react';
+import { type ReactNode, useEffect, useRef } from 'react';
 import { Pressable, Modal as RNModal, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -8,6 +8,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { BorderRadius, Spacing } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { haptics } from '@/src/utils/haptics';
 
 export interface ModalProps {
   visible: boolean;
@@ -36,6 +37,7 @@ export function Modal({
   const scale = useSharedValue(0.9);
   const opacity = useSharedValue(0);
   const backdropOpacity = useSharedValue(0);
+  const prevVisible = useRef(visible);
 
   // Theme colors
   const backgroundColor = useThemeColor({}, 'background');
@@ -48,11 +50,20 @@ export function Modal({
       scale.value = withSpring(1, { damping: 15, stiffness: 200 });
       opacity.value = withTiming(1, { duration: 200 });
       backdropOpacity.value = withTiming(1, { duration: 200 });
+      // Haptic feedback on modal open
+      if (!prevVisible.current) {
+        haptics.modalOpen();
+      }
     } else {
       scale.value = withTiming(0.9, { duration: 150 });
       opacity.value = withTiming(0, { duration: 150 });
       backdropOpacity.value = withTiming(0, { duration: 150 });
+      // Haptic feedback on modal close
+      if (prevVisible.current) {
+        haptics.modalClose();
+      }
     }
+    prevVisible.current = visible;
   }, [visible, scale, opacity, backdropOpacity]);
 
   const backdropAnimatedStyle = useAnimatedStyle(() => ({

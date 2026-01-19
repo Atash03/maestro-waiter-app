@@ -32,7 +32,7 @@ import { Skeleton, SkeletonGroup } from '@/components/ui/Skeleton';
 import { Spinner } from '@/components/ui/Spinner';
 import { BorderRadius, BrandColors, Colors, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { getActiveOrders, useOrders, useWaiterCalls } from '@/src/hooks';
+import { getActiveOrders, useHapticRefresh, useOrders, useWaiterCalls } from '@/src/hooks';
 import { useAccount, useAuthLoading, useAuthStore } from '@/src/stores/authStore';
 import { OrderStatus } from '@/src/types/enums';
 import type { Order, WaiterCall } from '@/src/types/models';
@@ -228,8 +228,14 @@ export default function ProfileScreen() {
   const { data: callsData, isLoading: isLoadingCalls, refetch: refetchCalls } = useWaiterCalls();
 
   // Local state
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [showOpenOrdersModal, setShowOpenOrdersModal] = useState(false);
+
+  // Haptic refresh
+  const { isRefreshing, handleRefresh } = useHapticRefresh({
+    onRefresh: async () => {
+      await Promise.all([refetchOrders(), refetchCalls()]);
+    },
+  });
 
   // Get waiter's open orders
   const waiterOpenOrders = useMemo(() => {
@@ -245,11 +251,6 @@ export default function ProfileScreen() {
   );
 
   // Handlers
-  const handleRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    await Promise.all([refetchOrders(), refetchCalls()]);
-    setIsRefreshing(false);
-  }, [refetchOrders, refetchCalls]);
 
   const handleSettingsPress = useCallback(() => {
     router.push('/(main)/settings');
