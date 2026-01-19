@@ -168,7 +168,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Animated logo/welcome greeting
   - Handle device limit exceeded (403) gracefully
 
-- [ ] **1.7** Implement protected route logic:
+- [x] **1.7** Implement protected route logic:
   - Check session validity on app launch
   - Redirect to login if no valid session
   - Auto-refresh session on each request (handled by backend)

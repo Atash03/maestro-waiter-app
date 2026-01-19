@@ -77,8 +77,8 @@ export class ApiClientError extends Error {
 export class ApiClient {
   private readonly client: AxiosInstance;
   private sessionInfo: SessionInfo | null = null;
-  private onUnauthorized: AuthErrorCallback | null = null;
-  private onForbidden: ((message: string) => void) | null = null;
+  private _onUnauthorized: AuthErrorCallback | null = null;
+  private _onForbidden: ((message: string) => void) | null = null;
   private readonly maxRetries: number;
   private readonly retryDelay: number;
 
@@ -112,17 +112,41 @@ export class ApiClient {
   }
 
   /**
+   * Get/Set callback for 401 (unauthorized) errors
+   */
+  public get onUnauthorized(): AuthErrorCallback | null {
+    return this._onUnauthorized;
+  }
+
+  public set onUnauthorized(callback: AuthErrorCallback | null) {
+    this._onUnauthorized = callback;
+  }
+
+  /**
+   * Get/Set callback for 403 (forbidden) errors
+   */
+  public get onForbidden(): ((message: string) => void) | null {
+    return this._onForbidden;
+  }
+
+  public set onForbidden(callback: ((message: string) => void) | null) {
+    this._onForbidden = callback;
+  }
+
+  /**
    * Set callback for 401 (unauthorized) errors
+   * @deprecated Use onUnauthorized property setter instead
    */
   public setOnUnauthorized(callback: AuthErrorCallback | null): void {
-    this.onUnauthorized = callback;
+    this._onUnauthorized = callback;
   }
 
   /**
    * Set callback for 403 (forbidden) errors
+   * @deprecated Use onForbidden property setter instead
    */
   public setOnForbidden(callback: ((message: string) => void) | null): void {
-    this.onForbidden = callback;
+    this._onForbidden = callback;
   }
 
   /**
@@ -164,16 +188,16 @@ export class ApiClient {
         // Handle 401 - Unauthorized
         if (status === 401) {
           this.sessionInfo = null;
-          if (this.onUnauthorized) {
-            this.onUnauthorized();
+          if (this._onUnauthorized) {
+            this._onUnauthorized();
           }
           return Promise.reject(new ApiClientError(message, 401, 'UNAUTHORIZED', false));
         }
 
         // Handle 403 - Forbidden
         if (status === 403) {
-          if (this.onForbidden) {
-            this.onForbidden(message);
+          if (this._onForbidden) {
+            this._onForbidden(message);
           }
           return Promise.reject(new ApiClientError(message, 403, 'FORBIDDEN', false));
         }

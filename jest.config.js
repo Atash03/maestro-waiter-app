@@ -1,24 +1,45 @@
 module.exports = {
-  preset: 'jest-expo/node',
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
-  testMatch: ['**/__tests__/**/*.(test|spec).(ts|tsx|js|jsx)'],
-  testPathIgnorePatterns: ['/node_modules/'],
-  transform: {
-    '^.+\\.(ts|tsx)$': [
-      'ts-jest',
-      {
-        tsconfig: 'tsconfig.json',
-        useESM: false,
+  projects: [
+    // Node environment for unit tests (non-component tests)
+    {
+      displayName: 'node',
+      preset: 'jest-expo/node',
+      testMatch: [
+        '<rootDir>/src/__tests__/dependencies.test.ts',
+        '<rootDir>/src/__tests__/types.test.ts',
+        '<rootDir>/src/__tests__/api-client.test.ts',
+        '<rootDir>/src/__tests__/api-endpoints.test.ts',
+        '<rootDir>/src/__tests__/auth-store.test.ts',
+        '<rootDir>/src/__tests__/protected-route.test.ts',
+      ],
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+      transform: {
+        '^.+\\.(ts|tsx)$': [
+          'ts-jest',
+          {
+            tsconfig: 'tsconfig.json',
+            useESM: false,
+          },
+        ],
+        '^.+\\.(js|jsx)$': 'babel-jest',
       },
-    ],
-    '^.+\\.(js|jsx)$': 'babel-jest',
-  },
-  transformIgnorePatterns: [
-    'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|react-native-sse|react-native-uuid|react-native-toast-message|@react-native-async-storage|zustand|@tanstack)',
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/$1',
+      },
+    },
+    // Web environment for component tests (better Jest compatibility)
+    {
+      displayName: 'web',
+      preset: 'jest-expo/web',
+      testMatch: ['<rootDir>/src/__tests__/*-screen.test.tsx'],
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+      transformIgnorePatterns: [
+        'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|react-native-sse|react-native-uuid|react-native-toast-message|@react-native-async-storage|zustand|@tanstack|react-native-reanimated)',
+      ],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/$1',
+      },
+    },
   ],
   collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/*.d.ts', '!**/node_modules/**'],
-  moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
-  },
 };

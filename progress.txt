@@ -323,3 +323,63 @@
 
 **Linting:**
 - All files pass Biome linting checks
+
+---
+
+### Task 1.7: Implement protected route logic (COMPLETED)
+
+**Files Created:**
+- `src/hooks/useProtectedRoute.ts` - Protected route hook with:
+  - `useProtectedRoute()` - Main hook for managing auth-based navigation
+    - Returns `isNavigationReady` and `isCheckingAuth` states
+    - Redirects unauthenticated users to login screen
+    - Redirects authenticated users away from auth screens to main app
+    - Handles navigation ready state checking
+  - `useIsRouteProtected()` - Simple hook to check if current route is protected
+    - Returns true when in `(tabs)` or `(main)` route groups
+  - `useAuthCallbacks()` - Hook to set up API client callbacks for auth errors
+    - Sets `onUnauthorized` callback (401) - logs out and redirects to login
+    - Sets `onForbidden` callback (403) - logs warning for debugging
+- `src/hooks/index.ts` - Central export file for custom hooks
+
+**Files Updated:**
+- `src/services/api/client.ts` - Added public getter/setter properties for callbacks:
+  - `onUnauthorized` - Property getter/setter for 401 callback
+  - `onForbidden` - Property getter/setter for 403 callback
+  - Deprecated `setOnUnauthorized()` and `setOnForbidden()` methods in favor of properties
+- `app/_layout.tsx` - Updated to use new hooks:
+  - Uses `useProtectedRoute()` for navigation management
+  - Uses `useAuthCallbacks()` to set up API error handlers
+  - Simplified navigation logic by delegating to hooks
+- `jest.config.js` - Added protected-route.test.ts to test match patterns
+
+**Tests Created:**
+- `src/__tests__/protected-route.test.ts` - 24 tests covering:
+  - useProtectedRoute hook:
+    - Navigation ready state detection
+    - Auth checking state during initialization
+    - Redirect to login when not authenticated
+    - Redirect to tabs when authenticated in auth group
+    - No redirect when authenticated in main group
+    - No redirect when not authenticated in auth group
+    - No navigation when navigation not ready
+    - (main) group handled as protected route
+  - useIsRouteProtected hook:
+    - Returns true for (tabs) group
+    - Returns true for (main) group
+    - Returns false for (auth) group
+    - Returns false at root
+  - useAuthCallbacks hook:
+    - Sets onUnauthorized callback on API client
+    - Sets onForbidden callback on API client
+    - Calls logout and redirects when onUnauthorized triggered
+    - Logs warning when onForbidden triggered
+  - Hook exports verification
+  - Hooks index exports verification
+  - API client callback properties
+
+**Test Results:**
+- 241 tests passing (12 dependency + 70 types + 33 API client + 55 API endpoints + 31 auth store + 16 login screen + 24 protected route tests)
+
+**Linting:**
+- All files pass Biome linting checks
