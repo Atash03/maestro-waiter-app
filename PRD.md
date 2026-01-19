@@ -427,7 +427,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Quick actions: Acknowledge, Dismiss
   - Slide-in animation
 
-- [ ] **5.5** Create Calls Screen (`app/(main)/(tabs)/calls/index.tsx`):
+- [x] **5.5** Create Calls Screen (`app/(main)/(tabs)/calls/index.tsx`):
   - List all pending and recent calls
   - Filter: Pending, Acknowledged, Completed
   - Sort by time (newest first)

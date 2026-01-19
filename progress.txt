@@ -2435,3 +2435,63 @@ Implemented comprehensive order modification features including changing table, 
 
 **Linting:**
 - All files pass Biome linting checks
+
+---
+
+### Task 5.5: Create Calls Screen (COMPLETED)
+
+**Files Created:**
+- `src/hooks/useWaiterCallQueries.ts` - React Query hooks for waiter calls:
+  - `useWaiterCalls` - Fetch all waiter calls with filtering and pagination
+  - `useWaiterCall` - Fetch a single waiter call by ID
+  - `useAcknowledgeCall` - Mutation hook for acknowledging calls
+  - `useCompleteCall` - Mutation hook for completing calls
+  - `useCancelCall` - Mutation hook for cancelling calls
+  - `useWaiterCallCacheActions` - Cache manipulation actions
+  - Utility functions: `filterCallsByStatus`, `getActiveCalls`, `sortCallsByDate`, `formatCallElapsedTime`, `getCallUrgency`
+  
+- `app/(tabs)/calls/index.tsx` - Calls list screen with:
+  - Filter tabs: All, Pending, Acknowledged, Completed
+  - Status counts for each filter
+  - Sort by time (newest first)
+  - Pull-to-refresh functionality
+  - Real-time updates via 30-second refetch interval
+  - CallCard component with:
+    - Table number and zone name
+    - Call reason display
+    - Running elapsed time timer (updates every second)
+    - Urgency color coding based on wait time
+    - Status badge (Pending/Acknowledged/Completed)
+    - Action buttons: Acknowledge, Complete, Go to Table
+  - Loading skeleton state
+  - Empty state with contextual messaging
+  - Error state with retry option
+  - Badge showing pending calls count
+
+**Files Modified:**
+- `src/hooks/index.ts` - Exported new waiter call hooks and utilities
+- `app/(tabs)/_layout.tsx` - Added Calls tab with bell icon
+- `components/ui/Badge.tsx` - Added 'needsAttention' variant for pending calls
+
+**Features Implemented:**
+1. Filter by status (All, Pending, Acknowledged, Completed)
+2. Sort by time (newest first by default)
+3. Real-time updates via polling (30-second interval)
+4. Pull-to-refresh
+5. Call card with:
+   - Table number with zone name
+   - Call reason (if provided)
+   - Time elapsed since call (live updating)
+   - Status badge with color coding
+   - Action buttons: Acknowledge (pending), Complete (acknowledged), Go to Table
+6. Urgency color coding based on wait time:
+   - < 2 min: Amber (low)
+   - 2-5 min: Orange (medium)
+   - 5-10 min: Red (high)
+   - > 10 min: Red (critical)
+
+**Linting:**
+- All files pass Biome linting checks
+
+**Note:** The project has pre-existing TypeScript errors (45 total) unrelated to this task. The same TS2339 error pattern exists in the orders screen and is not introduced by these changes.
+

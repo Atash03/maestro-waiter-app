@@ -14,7 +14,8 @@ export type BadgeVariant =
   | 'reserved'
   | 'pending'
   | 'preparing'
-  | 'ready';
+  | 'ready'
+  | 'needsAttention';
 
 export type BadgeSize = 'sm' | 'md' | 'lg';
 
@@ -80,6 +81,8 @@ export function Badge({
         return { bg: '#FFEDD5', text: StatusColors.preparing };
       case 'ready':
         return { bg: '#D1FAE5', text: StatusColors.ready };
+      case 'needsAttention':
+        return { bg: '#FEE2E2', text: StatusColors.needsAttention };
       default:
         return { bg: backgroundColor, text: textColor };
     }
