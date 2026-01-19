@@ -15,6 +15,7 @@ module.exports = {
         '<rootDir>/src/__tests__/my-section.test.tsx',
         '<rootDir>/src/__tests__/menu-store.test.ts',
         '<rootDir>/src/__tests__/order-store.test.ts',
+        '<rootDir>/src/__tests__/send-to-kitchen.test.ts',
       ],
       setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
       transform: {
@@ -49,6 +50,7 @@ module.exports = {
         '<rootDir>/src/__tests__/menu-search.test.tsx',
         '<rootDir>/src/__tests__/menu-item-modal.test.tsx',
         '<rootDir>/src/__tests__/order-summary.test.tsx',
+        '<rootDir>/src/__tests__/send-to-kitchen-modal.test.tsx',
       ],
       setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
       transformIgnorePatterns: [

@@ -8,6 +8,7 @@
  * - Live order summary with running totals
  * - Table information header
  * - Uses orderStore for state management (Task 3.9)
+ * - Send to Kitchen flow with confirmation modal (Task 3.10)
  */
 
 import { router, useLocalSearchParams } from 'expo-router';
@@ -29,6 +30,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { CategoryList } from '@/components/menu';
+import { SendToKitchenModal, type SendToKitchenModalState } from '@/components/orders';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Badge } from '@/components/ui/Badge';
@@ -38,6 +40,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { BorderRadius, BrandColors, Colors, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useMenuData } from '@/src/hooks/useMenuQueries';
+import { useSendToKitchen } from '@/src/hooks/useSendToKitchen';
 import { useTable } from '@/src/hooks/useTableQueries';
 import { getTranslatedText, useMenuStore } from '@/src/stores/menuStore';
 import {
@@ -46,6 +49,7 @@ import {
   parsePrice as parseOrderPrice,
   useOrderActions,
   useOrderItems,
+  useOrderNotes,
   useOrderTotals,
 } from '@/src/stores/orderStore';
 import type { Extra, MenuItem, OrderItemExtra } from '@/src/types/models';
@@ -542,7 +546,8 @@ export default function OrderEntryScreen() {
 
   // Order store - state management for order items (Task 3.9)
   const orderItems = useOrderItems();
-  const { total: orderTotal, itemCount, hasItems } = useOrderTotals();
+  const orderNotes = useOrderNotes();
+  const { total: orderTotal, itemCount, totalQuantity, hasItems } = useOrderTotals();
   const {
     initializeOrder,
     clearOrder,
@@ -553,9 +558,35 @@ export default function OrderEntryScreen() {
     setAvailableExtras,
   } = useOrderActions();
 
+  // Send to kitchen hook (Task 3.10)
+  const {
+    isSending,
+    isSuccess,
+    error: sendError,
+    sendToKitchen,
+    retry: retrySend,
+    reset: resetSendState,
+    clearError: clearSendError,
+  } = useSendToKitchen();
+
   // Local UI state
-  const [isSending, setIsSending] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showSendModal, setShowSendModal] = useState(false);
+  const [sendDisabledUntil, setSendDisabledUntil] = useState<number | null>(null);
+
+  // Calculate modal state based on hook state
+  const modalState: SendToKitchenModalState = useMemo(() => {
+    if (isSending) return 'sending';
+    if (isSuccess) return 'success';
+    if (sendError) return 'error';
+    return 'confirm';
+  }, [isSending, isSuccess, sendError]);
+
+  // Check if send button should be temporarily disabled
+  const isSendTemporarilyDisabled = useMemo(() => {
+    if (sendDisabledUntil === null) return false;
+    return Date.now() < sendDisabledUntil;
+  }, [sendDisabledUntil]);
 
   // Initialize order when screen mounts
   useEffect(() => {
@@ -653,25 +684,43 @@ export default function OrderEntryScreen() {
     [duplicateItem]
   );
 
-  // Handle send order
-  const handleSendOrder = useCallback(async () => {
+  // Handle send order button press - show confirmation modal
+  const handleSendOrderPress = useCallback(() => {
+    if (!hasItems || isSendTemporarilyDisabled) return;
+    setShowSendModal(true);
+  }, [hasItems, isSendTemporarilyDisabled]);
+
+  // Handle confirmed send to kitchen
+  const handleConfirmSend = useCallback(async () => {
     if (!hasItems) return;
 
-    setIsSending(true);
-    try {
-      // TODO: Task 3.10 will implement actual API call
-      // For now, just simulate success and navigate back
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    const result = await sendToKitchen(tableId, orderItems, orderNotes);
 
-      // Clear order and navigate back
-      clearOrder();
-      router.back();
-    } catch (_error) {
-      // Error handling will be implemented in Task 3.10
-    } finally {
-      setIsSending(false);
+    if (result.success) {
+      // Temporarily disable send button for 3 seconds to prevent double-sends
+      setSendDisabledUntil(Date.now() + 3000);
     }
-  }, [hasItems, clearOrder]);
+  }, [hasItems, tableId, orderItems, orderNotes, sendToKitchen]);
+
+  // Handle cancel send modal
+  const handleCancelSend = useCallback(() => {
+    setShowSendModal(false);
+    resetSendState();
+  }, [resetSendState]);
+
+  // Handle retry send
+  const handleRetrySend = useCallback(async () => {
+    clearSendError();
+    await retrySend();
+  }, [clearSendError, retrySend]);
+
+  // Handle dismiss success - clear order and navigate back
+  const handleDismissSuccess = useCallback(() => {
+    setShowSendModal(false);
+    clearOrder();
+    resetSendState();
+    router.back();
+  }, [clearOrder, resetSendState]);
 
   // Handle close
   const handleClose = useCallback(() => {
@@ -759,12 +808,26 @@ export default function OrderEntryScreen() {
             onEditItem={handleEditItem}
             onRemoveItem={handleRemoveItem}
             onUpdateQuantity={handleUpdateQuantity}
-            onSendOrder={handleSendOrder}
-            isSending={isSending}
+            onSendOrder={handleSendOrderPress}
+            isSending={isSending || isSendTemporarilyDisabled}
             isTablet={isTablet}
           />
         </View>
       </View>
+
+      {/* Send to Kitchen Modal (Task 3.10) */}
+      <SendToKitchenModal
+        visible={showSendModal}
+        state={modalState}
+        itemCount={itemCount}
+        totalQuantity={totalQuantity}
+        errorMessage={sendError}
+        onConfirm={handleConfirmSend}
+        onCancel={handleCancelSend}
+        onRetry={handleRetrySend}
+        onDismissSuccess={handleDismissSuccess}
+        testID="send-to-kitchen-modal"
+      />
 
       {/* Loading overlay */}
       {(categories.isFetching || items.isFetching) && !isRefreshing && (

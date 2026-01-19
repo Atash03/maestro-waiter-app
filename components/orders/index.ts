@@ -25,3 +25,10 @@ export {
   parsePrice,
   type ServiceFeeInfo,
 } from './OrderSummary';
+
+// SendToKitchenModal - Confirmation modal for sending orders to kitchen
+export {
+  SendToKitchenModal,
+  type SendToKitchenModalProps,
+  type SendToKitchenModalState,
+} from './SendToKitchenModal';

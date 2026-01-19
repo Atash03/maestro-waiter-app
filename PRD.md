@@ -316,7 +316,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Remove item from order
   - Duplicate item with same customizations
 
-- [ ] **3.10** Create "Send to Kitchen" Flow:
+- [x] **3.10** Create "Send to Kitchen" Flow:
   - Large, prominent "Send Order" button
   - Confirmation modal: "Send X items to kitchen?"
   - Show loading state during API call

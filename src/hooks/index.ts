@@ -38,6 +38,18 @@ export {
   useProtectedRoute,
 } from './useProtectedRoute';
 export {
+  // Helper functions
+  convertExtrasToApiFormat,
+  getErrorMessage,
+  prepareBatchItemsRequest,
+  // Types
+  type SendToKitchenResult,
+  type UseSendToKitchenReturn,
+  type UseSendToKitchenState,
+  // Hook
+  useSendToKitchen,
+} from './useSendToKitchen';
+export {
   // Combined hooks
   type TablesAndZonesResult,
   // Query keys
