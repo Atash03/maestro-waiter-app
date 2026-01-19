@@ -5,20 +5,22 @@
  * - Order items to be billed
  * - Subtotal, discounts, service fee, total
  * - Payment section
+ * - Bill calculation preview before creation
  * - Item selection for split billing (future)
  */
 
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Modal,
   Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
-import Animated, { FadeIn, SlideInRight } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown, SlideInRight } from 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
 
 import { ThemedText } from '@/components/themed-text';
@@ -28,9 +30,14 @@ import { Card } from '@/components/ui/Card';
 import { Skeleton, SkeletonGroup } from '@/components/ui/Skeleton';
 import { BorderRadius, BrandColors, Colors, Spacing, StatusColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useBillByOrder, useBillCacheActions } from '@/src/hooks/useBillQueries';
+import {
+  useBillByOrder,
+  useBillCacheActions,
+  useBillCalculation,
+} from '@/src/hooks/useBillQueries';
 import { useOrder } from '@/src/hooks/useOrderQueries';
 import { createBill } from '@/src/services/api/bills';
+import type { CalculateBillResponse } from '@/src/types/api';
 import { BillStatus, OrderItemStatus, PaymentMethod } from '@/src/types/enums';
 import type { Bill, BillItem, OrderItem, Payment, Translation } from '@/src/types/models';
 
@@ -248,6 +255,125 @@ function PaymentRow({ payment, testID }: PaymentRowProps) {
 }
 
 // ============================================================================
+// Bill Calculation Preview Modal
+// ============================================================================
+
+interface BillCalculationPreviewProps {
+  visible: boolean;
+  calculation: CalculateBillResponse | null;
+  isLoading: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+  isCreating: boolean;
+}
+
+function BillCalculationPreviewModal({
+  visible,
+  calculation,
+  isLoading,
+  onConfirm,
+  onCancel,
+  isCreating,
+}: BillCalculationPreviewProps) {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
+      <View style={styles.modalOverlay}>
+        <Animated.View
+          entering={FadeInDown.duration(300)}
+          style={[styles.modalContent, { backgroundColor: colors.background }]}
+        >
+          <ThemedText style={styles.modalTitle}>Create Bill</ThemedText>
+          <ThemedText style={[styles.modalSubtitle, { color: colors.textMuted }]}>
+            Review the bill summary before creating
+          </ThemedText>
+
+          {isLoading ? (
+            <View style={styles.modalLoadingContainer}>
+              <ActivityIndicator size="large" color={BrandColors.primary} />
+              <ThemedText style={[styles.modalLoadingText, { color: colors.textMuted }]}>
+                Calculating totals...
+              </ThemedText>
+            </View>
+          ) : calculation ? (
+            <View style={styles.calculationSummary}>
+              <View style={styles.calculationRow}>
+                <ThemedText style={[styles.calculationLabel, { color: colors.textSecondary }]}>
+                  Subtotal
+                </ThemedText>
+                <ThemedText style={styles.calculationValue}>
+                  {formatPrice(calculation.subtotal)}
+                </ThemedText>
+              </View>
+
+              {Number.parseFloat(calculation.discountAmount) > 0 && (
+                <View style={styles.calculationRow}>
+                  <ThemedText style={[styles.calculationLabel, { color: StatusColors.ready }]}>
+                    Discounts
+                  </ThemedText>
+                  <ThemedText style={[styles.calculationValue, { color: StatusColors.ready }]}>
+                    -{formatPrice(calculation.discountAmount)}
+                  </ThemedText>
+                </View>
+              )}
+
+              {Number.parseFloat(calculation.serviceFeeAmount) > 0 && (
+                <View style={styles.calculationRow}>
+                  <ThemedText style={[styles.calculationLabel, { color: colors.textSecondary }]}>
+                    Service Fee
+                  </ThemedText>
+                  <ThemedText style={styles.calculationValue}>
+                    {formatPrice(calculation.serviceFeeAmount)}
+                  </ThemedText>
+                </View>
+              )}
+
+              <View style={[styles.calculationDivider, { backgroundColor: colors.border }]} />
+
+              <View style={styles.calculationRow}>
+                <ThemedText style={styles.calculationTotalLabel}>Total</ThemedText>
+                <ThemedText style={styles.calculationTotalValue}>
+                  {formatPrice(calculation.totalAmount)}
+                </ThemedText>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.modalLoadingContainer}>
+              <ThemedText style={[styles.modalErrorText, { color: StatusColors.needsAttention }]}>
+                Failed to calculate bill totals
+              </ThemedText>
+            </View>
+          )}
+
+          <View style={styles.modalActions}>
+            <Button
+              variant="outline"
+              onPress={onCancel}
+              disabled={isCreating}
+              style={styles.modalButton}
+              testID="cancel-create-bill-btn"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onPress={onConfirm}
+              disabled={isLoading || !calculation || isCreating}
+              style={styles.modalButton}
+              testID="confirm-create-bill-btn"
+            >
+              {isCreating ? 'Creating...' : 'Create Bill'}
+            </Button>
+          </View>
+        </Animated.View>
+      </View>
+    </Modal>
+  );
+}
+
+// ============================================================================
 // Loading Skeleton
 // ============================================================================
 
@@ -316,6 +442,24 @@ export default function BillScreen() {
   // State
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isCreatingBill, setIsCreatingBill] = useState(false);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+
+  // Bill calculation for preview (enabled only when modal is open)
+  const {
+    data: billCalculation,
+    isLoading: isCalculating,
+    refetch: refetchCalculation,
+  } = useBillCalculation({
+    request: { orderId: orderId ?? '' },
+    enabled: showPreviewModal && Boolean(orderId) && !bill,
+  });
+
+  // Refetch calculation when modal opens
+  useEffect(() => {
+    if (showPreviewModal && orderId && !bill) {
+      refetchCalculation();
+    }
+  }, [showPreviewModal, orderId, bill, refetchCalculation]);
 
   // Loading state
   const isLoading = isLoadingOrder || isLoadingBill;
@@ -328,8 +472,30 @@ export default function BillScreen() {
     setIsRefreshing(false);
   }, [refetchOrder, refetchBill]);
 
-  // Create bill for order
-  const handleCreateBill = useCallback(async () => {
+  // Open bill creation preview modal
+  const handleOpenCreateBillPreview = useCallback(() => {
+    if (!order || !orderId) return;
+
+    const billableItems = getBillableItems(order.orderItems);
+    if (billableItems.length === 0) {
+      Toast.show({
+        type: 'error',
+        text1: 'Cannot Create Bill',
+        text2: 'No billable items in this order',
+      });
+      return;
+    }
+
+    setShowPreviewModal(true);
+  }, [order, orderId]);
+
+  // Close preview modal
+  const handleClosePreviewModal = useCallback(() => {
+    setShowPreviewModal(false);
+  }, []);
+
+  // Confirm and create bill
+  const handleConfirmCreateBill = useCallback(async () => {
     if (!order || !orderId) return;
 
     const billableItems = getBillableItems(order.orderItems);
@@ -363,6 +529,7 @@ export default function BillScreen() {
         text2: 'Bill has been created successfully',
       });
 
+      setShowPreviewModal(false);
       invalidateBillByOrder(orderId);
       await refetchBill();
     } catch (err) {
@@ -621,12 +788,12 @@ export default function BillScreen() {
           {canCreateBill && (
             <Button
               variant="primary"
-              onPress={handleCreateBill}
+              onPress={handleOpenCreateBillPreview}
               disabled={isCreatingBill}
               style={styles.actionButton}
               testID="create-bill-btn"
             >
-              {isCreatingBill ? 'Creating Bill...' : 'Create Bill'}
+              Create Bill
             </Button>
           )}
 
@@ -692,6 +859,16 @@ export default function BillScreen() {
           <ActivityIndicator size="small" color={BrandColors.primary} />
         </View>
       )}
+
+      {/* Bill Calculation Preview Modal */}
+      <BillCalculationPreviewModal
+        visible={showPreviewModal}
+        calculation={billCalculation ?? null}
+        isLoading={isCalculating}
+        onConfirm={handleConfirmCreateBill}
+        onCancel={handleClosePreviewModal}
+        isCreating={isCreatingBill}
+      />
     </View>
   );
 }
@@ -913,5 +1090,83 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.md,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 400,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: Spacing.xs,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: Spacing.lg,
+  },
+  modalLoadingContainer: {
+    paddingVertical: Spacing.xl,
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  modalLoadingText: {
+    fontSize: 14,
+  },
+  modalErrorText: {
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  calculationSummary: {
+    marginBottom: Spacing.lg,
+  },
+  calculationRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.xs,
+  },
+  calculationLabel: {
+    fontSize: 14,
+  },
+  calculationValue: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  calculationDivider: {
+    height: 1,
+    marginVertical: Spacing.sm,
+  },
+  calculationTotalLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  calculationTotalValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: BrandColors.primary,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  modalButton: {
+    flex: 1,
   },
 });

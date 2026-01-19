@@ -470,7 +470,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Subtotal, discounts, service fee, total
   - Payment section
 
-- [ ] **6.2** Implement Bill Creation:
+- [x] **6.2** Implement Bill Creation:
   - `POST /bill` with orderId and items
   - `POST /bill/calculate` for preview
   - Handle service fees automatically

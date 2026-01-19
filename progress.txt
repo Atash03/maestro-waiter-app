@@ -2670,3 +2670,48 @@ Each mutation follows this pattern:
 **Linting:**
 - All new files pass Biome linting checks
 
+
+---
+
+### Task 6.2: Implement Bill Creation (COMPLETED)
+
+**Date:** 2026-01-19
+
+**Implementation Summary:**
+Enhanced the bill screen to include a bill calculation preview before creating bills, ensuring service fees are handled automatically by the backend.
+
+**Changes Made:**
+
+1. **Updated Bill Screen (`app/(main)/bill/[orderId].tsx`)**:
+   - Added `useBillCalculation` hook integration to fetch bill preview before creation
+   - Created `BillCalculationPreviewModal` component for reviewing bill totals before confirmation
+   - Modal displays subtotal, discounts (if any), service fee, and total amount
+   - Service fees are automatically calculated by the backend via `/bill/calculate` endpoint
+   - Added loading state while calculation is in progress
+   - Added error handling for failed calculations
+   - Updated "Create Bill" button to open preview modal first
+   - Confirmation flow: User clicks "Create Bill" → Preview modal opens with calculation → User confirms → Bill is created
+
+2. **Features Implemented**:
+   - `POST /bill/calculate` integration for bill preview
+   - Service fee display in preview (handled automatically by backend)
+   - Discount amount display (if applicable)
+   - Total amount calculation with all fees
+   - Animated modal with proper styling
+   - Cancel and Confirm actions in modal
+   - Loading state during calculation and bill creation
+
+3. **UI/UX Improvements**:
+   - Smooth `FadeInDown` animation for modal appearance
+   - Clear visual hierarchy in calculation summary
+   - Primary color highlighting for total amount
+   - Disabled confirm button while loading or if calculation fails
+   - Proper accessibility with testIDs for all interactive elements
+
+**API Integration:**
+- `POST /bill/calculate` - Used for preview calculation
+- `POST /bill` - Used for actual bill creation (already implemented in 6.1)
+
+**Linting:**
+- All files pass Biome linting checks
+
