@@ -38,6 +38,7 @@ module.exports = {
         '<rootDir>/src/__tests__/table-queries.test.tsx',
         '<rootDir>/src/__tests__/table-item.test.tsx',
         '<rootDir>/src/__tests__/table-info-popup.test.tsx',
+        '<rootDir>/src/__tests__/table-detail-modal.test.tsx',
       ],
       setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
       transformIgnorePatterns: [

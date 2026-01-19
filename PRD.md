@@ -229,7 +229,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Show active order summary if exists
   - Quick actions: View Order, New Order, Call Info
 
-- [ ] **2.6** Create Table Detail Modal (`components/tables/TableDetailModal.tsx`):
+- [x] **2.6** Create Table Detail Modal (`components/tables/TableDetailModal.tsx`):
   - Full table information
   - Active order details with items
   - Action buttons: New Order, View Bill, Transfer Table

@@ -866,3 +866,92 @@
 
 **Linting:**
 - All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)
+
+---
+
+### Task 2.6: Create Table Detail Modal (COMPLETED)
+
+**Files Created:**
+- `components/tables/TableDetailModal.tsx` - Full-featured table detail modal component with:
+  - Full table information display (name, capacity, zone, guests, status)
+  - Status indicator with color-coded badge
+  - Tab-based interface with "Active Order" and "History" tabs
+  - Active order details with:
+    - Order header (code, status, item count, total)
+    - Order items list with status badges
+    - Item details (name, quantity, notes, subtotal)
+    - Decline reason display for declined items
+    - Strikethrough styling for declined/canceled items
+    - Ready items count indicator in tab
+  - Order history section with:
+    - Scrollable list of past orders (today)
+    - Order cards showing code, status, time, items, total
+    - Loading state with ActivityIndicator
+    - Empty state message
+  - Action buttons:
+    - "New Order" / "Add Items" (changes based on active order)
+    - "View Bill" (when active order exists)
+    - "Transfer" for table transfer
+  - Animated entrance/exit using react-native-reanimated
+  - Backdrop press to close
+  - Close button (✕)
+  - Theme-aware colors (light/dark mode support)
+  - Proper TypeScript types and testIDs for all interactive elements
+
+**Helper Functions Exported:**
+- `getTranslatedText(translation, fallback)` - Get translated text from Translation object
+- `getStatusBadgeVariant(status)` - Map table status to badge variant
+- `getTableStatusLabel(status)` - Get human-readable table status label
+- `getOrderItemStatusColor(status)` - Get color for order item status
+- `getOrderItemStatusLabel(status)` - Get human-readable order item status label
+- `getOrderItemBadgeVariant(status)` - Map order item status to badge variant
+- `getOrderStatusBadgeVariant(status)` - Map order status to badge variant
+- `formatTime(dateString)` - Format date string to time display
+
+**Files Modified:**
+- `components/tables/index.ts` - Updated to export TableDetailModal component and all helper functions/types
+- `jest.config.js` - Added table-detail-modal.test.tsx to web test match patterns
+
+**Types Defined:**
+- `TableDetailModalProps` - Component props interface:
+  - visible: boolean
+  - onClose: () => void
+  - table: TableItemData | null
+  - activeOrder?: Order | null
+  - orderHistory?: Order[]
+  - isLoadingHistory?: boolean
+  - onNewOrder?: (table: Table) => void
+  - onViewBill?: (order: Order) => void
+  - onTransferTable?: (table: Table) => void
+  - onSelectOrder?: (order: Order) => void
+  - onSelectOrderItem?: (item: OrderItem) => void
+  - testID?: string
+
+**Tests Created:**
+- `src/__tests__/table-detail-modal.test.tsx` - 94 tests covering:
+  - Helper functions (46 tests):
+    - getTranslatedText (5 tests): English, fallback, empty string, Russian fallback, Turkmen fallback
+    - getStatusBadgeVariant (5 tests): all status types and unknown fallback
+    - getTableStatusLabel (5 tests): all status types and unknown fallback
+    - getOrderItemStatusColor (7 tests): all order item status types
+    - getOrderItemStatusLabel (8 tests): all order item status types
+    - getOrderItemBadgeVariant (7 tests): all order item status types
+    - getOrderStatusBadgeVariant (5 tests): all order status types
+    - formatTime (3 tests): valid date, invalid date, empty string
+  - Visibility (4 tests): render when visible, hide when not visible or no table
+  - Table info display (5 tests): title, capacity, zone name, guest count
+  - Status badge (4 tests): correct badge for all status types
+  - Active order display (5 tests): order code, items, total, tab label, ready count
+  - Order item display (5 tests): name, quantity, notes, decline reason, subtotal
+  - Order history (3 tests): history count, loading state, empty message
+  - Action buttons (6 tests): New Order, Add Items, View Bill, Transfer visibility
+  - Close functionality (3 tests): close button, backdrop, callback
+  - Edge cases (4 tests): missing zone, missing orderItems, undefined guestCount, empty history
+  - Export verification (9 tests): component and all helper function exports
+  - Type export verification (1 test)
+
+**Test Results:**
+- 581 tests passing (487 previous + 94 table detail modal tests)
+
+**Linting:**
+- All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)
