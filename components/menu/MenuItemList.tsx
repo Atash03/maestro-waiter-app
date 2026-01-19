@@ -83,6 +83,13 @@ const DEFAULT_COLUMNS_PHONE = 2;
 const DEFAULT_COLUMNS_TABLET = 3;
 const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/150?text=No+Image';
 
+// Estimated heights for getItemLayout optimization (improves scroll performance)
+// Grid: image (60% aspect ratio) + content padding + text = ~180px
+// List: 80px image height + padding = ~96px
+const GRID_ITEM_HEIGHT = 180;
+const LIST_ITEM_HEIGHT = 96;
+const ITEM_SEPARATOR_HEIGHT = 12; // Spacing.md
+
 // ============================================================================
 // Helper Functions
 // ============================================================================
@@ -416,6 +423,21 @@ export function MenuItemList({
     [emptyMessage]
   );
 
+  // Optimized getItemLayout for better scroll performance
+  // This helps FlatList calculate scroll positions without rendering all items
+  const getItemLayout = useCallback(
+    (_data: ArrayLike<MenuItem> | null | undefined, index: number) => {
+      const itemHeight = displayVariant === 'grid' ? GRID_ITEM_HEIGHT : LIST_ITEM_HEIGHT;
+      const totalHeight = itemHeight + ITEM_SEPARATOR_HEIGHT;
+      return {
+        length: itemHeight,
+        offset: totalHeight * index,
+        index,
+      };
+    },
+    [displayVariant]
+  );
+
   if (items.length === 0) {
     return <EmptyState message={emptyMessage} testID={testID} />;
   }
@@ -438,6 +460,12 @@ export function MenuItemList({
         onRefresh={onRefresh}
         refreshing={refreshing}
         style={{ backgroundColor: colors.background }}
+        // Performance optimizations
+        getItemLayout={columns === 1 ? getItemLayout : undefined} // Only for single column (list variant)
+        removeClippedSubviews={true} // Unmount components outside viewport
+        maxToRenderPerBatch={10} // Render 10 items per batch
+        windowSize={5} // Render 5 screens worth of content
+        initialNumToRender={8} // Start with 8 items
       />
     </View>
   );

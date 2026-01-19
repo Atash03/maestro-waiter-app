@@ -3219,3 +3219,58 @@ const text = getTranslatedText(item.title, 'Fallback', 'ru');
 **Linting:**
 - All new files pass Biome linting checks
 
+
+
+---
+
+### Task 8.1: Run /react-native-best-practices skill (COMPLETED)
+
+**Performance Analysis and Optimizations Applied:**
+
+Based on the React Native Best Practices skill analysis, the following optimizations were implemented:
+
+**1. React Compiler Enabled (Automatic Memoization)**
+- Installed `babel-plugin-react-compiler@1.0.0` (required for Expo SDK 54)
+- React Compiler was already enabled in `app.json` (`experiments.reactCompiler: true`)
+- This provides automatic memoization, eliminating the need for manual `React.memo`, `useMemo`, and `useCallback` in most cases
+
+**2. Memory Leak Prevention - SSE Cleanup on Logout**
+- Modified `src/stores/authStore.ts`:
+  - Added imports for `resetNotificationHandler` and `resetSSEClient` from SSE/notification services
+  - Added cleanup calls in logout function to disconnect SSE and reset notification handler
+  - Prevents memory leaks from orphaned SSE connections and audio resources after logout
+
+**3. FlatList Performance Optimizations**
+- **MenuItemList** (`components/menu/MenuItemList.tsx`):
+  - Added `getItemLayout` callback for better scroll position calculation
+  - Added `removeClippedSubviews={true}` to unmount components outside viewport
+  - Added `maxToRenderPerBatch={10}` for controlled batch rendering
+  - Added `windowSize={5}` to render 5 screens worth of content
+  - Added `initialNumToRender={8}` for faster initial render
+  - Added item height constants: `GRID_ITEM_HEIGHT=180`, `LIST_ITEM_HEIGHT=96`
+
+- **OrdersListScreen** (`app/(tabs)/orders/index.tsx`):
+  - Added `getItemLayout` callback with `ORDER_CARD_HEIGHT=116` constant
+  - Added `removeClippedSubviews={true}`
+  - Added `maxToRenderPerBatch={10}`
+  - Added `windowSize={5}`
+  - Added `initialNumToRender={8}`
+
+**4. Positive Findings (No Changes Needed)**
+The analysis confirmed these areas are already well-optimized:
+- ✅ Reanimated animations properly implemented with shared values
+- ✅ Zustand store pattern with atomic selectors is excellent
+- ✅ React Query configuration with proper cache strategy
+- ✅ FlatList implementations with keyExtractor and proper props
+- ✅ SSE and Notification cleanup properly managed
+- ✅ No synchronous operations detected on main thread
+- ✅ Proper error boundaries for API calls
+
+**Files Modified:**
+- `package.json` - Added `babel-plugin-react-compiler@1.0.0` dependency
+- `src/stores/authStore.ts` - Added SSE/notification cleanup on logout
+- `components/menu/MenuItemList.tsx` - Added FlatList performance optimizations
+- `app/(tabs)/orders/index.tsx` - Added FlatList performance optimizations
+
+**Linting:**
+- All files pass Biome linting checks (1 existing warning in Skeleton.tsx unrelated to changes)

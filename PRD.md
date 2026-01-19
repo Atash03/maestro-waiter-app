@@ -567,7 +567,7 @@ interface Translation { en: string; ru: string; tm: string; }
 - Error handling & edge cases
 
 ### Tasks
-- [ ] **8.1** Run `/react-native-best-practices` skill:
+- [x] **8.1** Run `/react-native-best-practices` skill:
   - Optimize FPS and animations
   - Fix memory leaks
   - Reduce unnecessary re-renders

@@ -75,6 +75,10 @@ const TYPE_FILTERS: { label: string; value: TypeFilter }[] = [
   { label: 'To Go', value: OrderType.TO_GO },
 ];
 
+// Performance optimization constants for FlatList
+const ORDER_CARD_HEIGHT = 116; // Estimated height of OrderCard (padding + content)
+const ORDER_CARD_MARGIN = 8; // Spacing.sm margin bottom
+
 // ============================================================================
 // Sub-Components
 // ============================================================================
@@ -289,6 +293,16 @@ export default function OrdersListScreen() {
 
   const keyExtractor = useCallback((item: Order) => item.id, []);
 
+  // Optimized getItemLayout for better scroll performance
+  const getItemLayout = useCallback(
+    (_data: ArrayLike<Order> | null | undefined, index: number) => ({
+      length: ORDER_CARD_HEIGHT,
+      offset: (ORDER_CARD_HEIGHT + ORDER_CARD_MARGIN) * index,
+      index,
+    }),
+    []
+  );
+
   // Loading state
   if (isLoading && !data?.data?.length) {
     return (
@@ -405,6 +419,12 @@ export default function OrdersListScreen() {
             />
           }
           testID="orders-list"
+          // Performance optimizations
+          getItemLayout={getItemLayout}
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          initialNumToRender={8}
         />
       )}
 

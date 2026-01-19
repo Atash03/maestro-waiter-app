@@ -21,6 +21,8 @@ import {
   getDeviceType,
   type SessionInfo,
 } from '../services/api/client';
+import { resetNotificationHandler } from '../services/notifications';
+import { isSSEClientInitialized, resetSSEClient } from '../services/sse';
 import type { LoginRequest, LoginResponse } from '../types/api';
 import type { Account } from '../types/models';
 
@@ -312,6 +314,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (deviceId) {
         updateApiClientSession(null, deviceId);
       }
+
+      // Clean up SSE connection and notification handler to prevent memory leaks
+      if (isSSEClientInitialized()) {
+        resetSSEClient();
+      }
+      resetNotificationHandler();
 
       set({
         sessionId: null,
