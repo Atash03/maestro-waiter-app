@@ -2495,3 +2495,49 @@ Implemented comprehensive order modification features including changing table, 
 
 **Note:** The project has pre-existing TypeScript errors (45 total) unrelated to this task. The same TS2339 error pattern exists in the orders screen and is not introduced by these changes.
 
+
+---
+
+### Task 5.6: Create Call Card Component (COMPLETED)
+
+**Files Created:**
+- `components/calls/CallCard.tsx` - Reusable CallCard component with:
+  - Table number with zone name
+  - Call reason (if provided)
+  - Time elapsed since call (live updating every second)
+  - Status badge with color coding (Pending, Acknowledged, Completed, Cancelled)
+  - Action buttons:
+    - Acknowledge (if pending)
+    - Complete (if acknowledged)
+    - Go to Table
+  - Urgency color coding based on wait time
+  - Left accent strip indicating status/urgency
+  - Loading states for action buttons
+  - Full TypeScript types and props interface
+- `components/calls/index.ts` - Export file for calls components
+
+**Files Modified:**
+- `app/(tabs)/calls/index.tsx` - Refactored to use the new CallCard component:
+  - Removed inline CallCard implementation
+  - Removed unused imports (useEffect, LinearTransition, formatCallElapsedTime, getCallUrgency, StatusColors)
+  - Removed unused styles (callCard, accentStrip, cardContent, cardHeader, tableInfo, tableBadge, tableNumber, zoneName, statusInfo, timerContainer, timerDot, timerText, reasonText, actionsRow, actionButton, acknowledgeButton, acknowledgeText, completeButton, completeText, goToTableButton, goToTableText)
+  - Imported CallCard from new location
+
+**Component Features:**
+1. Table number badge with zone name
+2. Call reason display (if provided)
+3. Live elapsed time timer (updates every second)
+4. Status badge with semantic variants (needsAttention, occupied, available)
+5. Urgency-based color coding:
+   - Low (< 2 min): Amber
+   - Medium (2-5 min): Orange
+   - High/Critical (> 5 min): Red
+6. Action buttons with loading states:
+   - Acknowledge (green, for pending calls)
+   - Complete (primary brand color, for acknowledged calls)
+   - Go to Table (outline style, always visible)
+7. Animated layout transitions using Reanimated
+
+**Linting:**
+- All files pass Biome linting checks
+

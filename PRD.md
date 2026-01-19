@@ -433,7 +433,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Sort by time (newest first)
   - Real-time updates
 
-- [ ] **5.6** Create Call Card Component (`components/calls/CallCard.tsx`):
+- [x] **5.6** Create Call Card Component (`components/calls/CallCard.tsx`):
   - Table number with zone name
   - Call reason (if provided)
   - Time elapsed since call
