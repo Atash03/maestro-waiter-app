@@ -2771,3 +2771,36 @@ Enhanced the bill screen to include a bill calculation preview before creating b
 - All files pass Biome linting checks
 - TypeScript compilation passes for modified files
 
+
+---
+
+### Task 6.4: Implement discount application (COMPLETED)
+
+**Note:** This task was already implemented as part of Tasks 6.2 and 6.3. The discount application functionality is fully integrated in the bill screen.
+
+**Already Implemented Features:**
+1. **`PUT /bill/:id/discounts`** - Implemented in `src/services/api/bills.ts`:
+   - `updateBillDiscounts()` function sends discount IDs and optional custom amount
+   - Used in bill screen's `handleApplyDiscounts` callback
+
+2. **`POST /discount/calculate` for preview** - Implemented in `src/services/api/discounts.ts`:
+   - `calculateDiscounts()` function calculates discount totals
+   - Used via `useDiscountCalculation` hook in `DiscountSelector` component
+   - Real-time preview updates as user selects/deselects discounts
+
+3. **Show discount breakdown** - Implemented in `app/(main)/bill/[orderId].tsx`:
+   - "Applied Discounts" section displays all applied discounts
+   - Each discount shows name and amount saved
+   - Summary section shows total discount deducted from subtotal
+   - Discount amount highlighted in green color for visual clarity
+
+**Files Involved:**
+- `src/services/api/bills.ts` - `updateBillDiscounts()` API function
+- `src/services/api/discounts.ts` - `calculateDiscounts()` API function
+- `src/hooks/useDiscountQueries.ts` - `useDiscountCalculation` hook
+- `components/bills/DiscountSelector.tsx` - Discount selection modal with preview
+- `app/(main)/bill/[orderId].tsx` - Bill screen with discount display and application
+
+**Linting:**
+- All files pass Biome linting checks
+

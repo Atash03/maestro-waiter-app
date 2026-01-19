@@ -482,7 +482,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Custom discount amount input
   - Real-time total recalculation
 
-- [ ] **6.4** Implement discount application:
+- [x] **6.4** Implement discount application:
   - `PUT /bill/:id/discounts`
   - `POST /discount/calculate` for preview
   - Show discount breakdown
