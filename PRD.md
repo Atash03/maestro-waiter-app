@@ -173,7 +173,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Redirect to login if no valid session
   - Auto-refresh session on each request (handled by backend)
 
-- [ ] **1.8** Create base UI components (`components/ui/`):
+- [x] **1.8** Create base UI components (`components/ui/`):
   - `Button.tsx` - Primary, secondary, outline variants with press animation
   - `Input.tsx` - Text input with label, error state, icons
   - `Card.tsx` - Container with shadow and border radius

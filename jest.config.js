@@ -31,7 +31,10 @@ module.exports = {
     {
       displayName: 'web',
       preset: 'jest-expo/web',
-      testMatch: ['<rootDir>/src/__tests__/*-screen.test.tsx'],
+      testMatch: [
+        '<rootDir>/src/__tests__/*-screen.test.tsx',
+        '<rootDir>/src/__tests__/ui-components-render.test.tsx',
+      ],
       setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
       transformIgnorePatterns: [
         'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|react-native-sse|react-native-uuid|react-native-toast-message|@react-native-async-storage|zustand|@tanstack|react-native-reanimated)',
@@ -41,5 +44,10 @@ module.exports = {
       },
     },
   ],
-  collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/*.d.ts', '!**/node_modules/**'],
+  collectCoverageFrom: [
+    'src/**/*.{ts,tsx}',
+    'components/**/*.{ts,tsx}',
+    '!src/**/*.d.ts',
+    '!**/node_modules/**',
+  ],
 };

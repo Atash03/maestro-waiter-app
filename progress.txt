@@ -383,3 +383,102 @@
 
 **Linting:**
 - All files pass Biome linting checks
+
+---
+
+### Task 1.8: Create base UI components (COMPLETED)
+
+**Files Created:**
+- `components/ui/Button.tsx` - Full-featured button component with:
+  - Variants: primary, secondary, outline, ghost, destructive
+  - Sizes: sm, md, lg
+  - Loading state with ActivityIndicator
+  - Disabled state with visual feedback
+  - Press animation using React Native Reanimated
+  - Left/right icon support
+  - Full width option
+  - Theme-aware colors
+
+- `components/ui/Input.tsx` - Text input component with:
+  - Label, error, and hint support
+  - Left/right icon support
+  - Focus animation on border
+  - Disabled state
+  - Theme-aware colors
+
+- `components/ui/Card.tsx` - Container component with:
+  - Padding options: none, sm, md, lg
+  - Elevated (shadow) option
+  - Bordered option
+  - Pressable with animation
+  - Theme-aware colors
+
+- `components/ui/Badge.tsx` - Status badge component with:
+  - Variants: default, primary, success, warning, error, info, available, occupied, reserved, pending, preparing, ready
+  - Sizes: sm, md, lg
+  - Theme-aware colors matching PRD status colors
+
+- `components/ui/Avatar.tsx` - Avatar component with:
+  - Sizes: xs, sm, md, lg, xl
+  - Image source support
+  - Initials fallback (generated from name)
+  - Default placeholder (?)
+
+- `components/ui/Spinner.tsx` - Loading indicator with:
+  - Sizes: sm, md, lg
+  - Custom color support
+  - Uses ActivityIndicator
+
+- `components/ui/Toast.tsx` - Notification toast with:
+  - Types: success, error, warning, info
+  - Slide-in animation
+  - Auto-dismiss with configurable duration
+  - Close button
+  - Icon based on type
+
+- `components/ui/Modal.tsx` - Modal component with:
+  - Title and footer support
+  - Scale and opacity animations
+  - Backdrop press to close (configurable)
+  - Theme-aware colors
+
+- `components/ui/Skeleton.tsx` - Loading skeleton with:
+  - Variants: text, circular, rectangular, rounded
+  - Custom width/height
+  - Shimmer animation
+  - SkeletonGroup component for repeated skeletons
+
+- `components/ui/index.ts` - Central export file for all UI components
+
+**Theme Constants Updated:**
+- `constants/theme.ts` - Added design tokens from PRD:
+  - BrandColors: primary (#F94623), primaryLight, primaryDark
+  - StatusColors: available, occupied, reserved, needsAttention, ready, preparing, pending
+  - CategoryColors: kitchen, bar
+  - Spacing: 4px grid (xs, sm, md, lg, xl, 2xl, 3xl, 4xl)
+  - BorderRadius: sm, md, lg, xl, 2xl, full
+  - Extended Colors with light/dark themes including textSecondary, textMuted, backgroundSecondary, border colors, error/success/warning/info colors
+
+**Files Modified:**
+- `jest.setup.js` - Added react-native-reanimated mock
+- `jest.config.js` - Updated test patterns for UI components
+
+**Tests Created:**
+- `src/__tests__/ui-components-render.test.tsx` - 62 tests covering:
+  - Theme constants (BrandColors, StatusColors, CategoryColors, Spacing, BorderRadius, Colors)
+  - UI component exports verification
+  - Button render tests (variants, sizes, loading, disabled, icons)
+  - Input render tests (label, error, hint, icons, disabled)
+  - Card render tests (padding, pressable, elevated, bordered)
+  - Badge render tests (variants, sizes)
+  - Avatar render tests (name, sizes, image source)
+  - Spinner render tests (sizes, color)
+  - Modal component verification
+  - Skeleton render tests (variants, dimensions)
+  - SkeletonGroup render tests (count, direction, spacing)
+
+**Test Results:**
+- 303 tests passing (12 dependency + 70 types + 33 API client + 55 API endpoints + 31 auth store + 16 login screen + 24 protected route + 62 UI components tests)
+
+**Linting:**
+- All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)

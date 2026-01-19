@@ -5,27 +5,101 @@
 
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
+// Brand colors from PRD
+export const BrandColors = {
+  primary: '#F94623',
+  primaryLight: '#FB6E4F',
+  primaryDark: '#D63D1E',
+} as const;
+
+// Status colors for various UI states
+export const StatusColors = {
+  available: '#22C55E',
+  occupied: '#F59E0B',
+  reserved: '#3B82F6',
+  needsAttention: '#EF4444',
+  ready: '#10B981',
+  preparing: '#F97316',
+  pending: '#6B7280',
+} as const;
+
+// Category colors for menu items
+export const CategoryColors = {
+  kitchen: '#F97316',
+  bar: '#3B82F6',
+} as const;
+
+// Spacing based on 4px grid
+export const Spacing = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  '2xl': 24,
+  '3xl': 32,
+  '4xl': 48,
+} as const;
+
+// Border radius values
+export const BorderRadius = {
+  sm: 4,
+  md: 8,
+  lg: 12,
+  xl: 16,
+  '2xl': 24,
+  full: 9999,
+} as const;
+
+const tintColorLight = BrandColors.primary;
 const tintColorDark = '#fff';
 
 export const Colors = {
   light: {
     text: '#11181C',
-    background: '#fff',
+    textSecondary: '#6B7280',
+    textMuted: '#9CA3AF',
+    background: '#FFFFFF',
+    backgroundSecondary: '#F9FAFB',
+    border: '#E5E7EB',
+    borderFocused: BrandColors.primary,
     tint: tintColorLight,
     icon: '#687076',
     tabIconDefault: '#687076',
     tabIconSelected: tintColorLight,
+    error: '#DC2626',
+    errorBackground: '#FEE2E2',
+    success: '#22C55E',
+    successBackground: '#DCFCE7',
+    warning: '#F59E0B',
+    warningBackground: '#FEF3C7',
+    info: '#3B82F6',
+    infoBackground: '#DBEAFE',
+    overlay: 'rgba(0, 0, 0, 0.5)',
   },
   dark: {
     text: '#ECEDEE',
+    textSecondary: '#9BA1A6',
+    textMuted: '#687076',
     background: '#151718',
+    backgroundSecondary: '#1E2021',
+    border: '#2D3133',
+    borderFocused: BrandColors.primaryLight,
     tint: tintColorDark,
     icon: '#9BA1A6',
     tabIconDefault: '#9BA1A6',
     tabIconSelected: tintColorDark,
+    error: '#EF4444',
+    errorBackground: '#450A0A',
+    success: '#22C55E',
+    successBackground: '#052E16',
+    warning: '#F59E0B',
+    warningBackground: '#422006',
+    info: '#3B82F6',
+    infoBackground: '#1E3A5F',
+    overlay: 'rgba(0, 0, 0, 0.7)',
   },
-};
+} as const;
 
 export const Fonts = Platform.select({
   ios: {
