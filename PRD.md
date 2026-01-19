@@ -487,7 +487,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - `POST /discount/calculate` for preview
   - Show discount breakdown
 
-- [ ] **6.5** Create Payment Form (`components/bills/PaymentForm.tsx`):
+- [x] **6.5** Create Payment Form (`components/bills/PaymentForm.tsx`):
   - Payment method selector (Cash, BankCard, etc.)
   - Amount input (default to remaining balance)
   - Split payment support (multiple methods)

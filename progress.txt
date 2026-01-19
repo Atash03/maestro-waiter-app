@@ -2804,3 +2804,67 @@ Enhanced the bill screen to include a bill calculation preview before creating b
 **Linting:**
 - All files pass Biome linting checks
 
+
+---
+
+### Task 6.5: Create Payment Form (COMPLETED)
+
+**Files Created:**
+- `components/bills/PaymentForm.tsx` - Payment form modal component with:
+  - Payment method selector (Cash, BankCard, GapjykPay, CustomerAccount)
+  - Visual method selection with icons and checkmarks
+  - Amount input with currency symbol and "Full Amount" button
+  - Transaction ID input for card payments (required validation)
+  - Notes field (optional, max 200 characters)
+  - Balance summary showing total, paid, and remaining
+  - Real-time form validation
+  - Keyboard avoiding view for better UX
+  - Animated modal transitions using react-native-reanimated
+  - Loading states during payment processing
+  - Toast notifications for success/error feedback
+
+**Files Modified:**
+- `app/(main)/bill/[orderId].tsx` - Integrated PaymentForm component:
+  - Added PaymentForm import
+  - Added createPayment API import
+  - Added state for payment modal visibility and processing
+  - Added handlers: handleOpenPaymentModal, handleClosePaymentModal, handleSubmitPayment
+  - Added billTotalAmount and billPaidAmount computed values
+  - Replaced placeholder "Add Payment" button with actual payment modal trigger
+  - Added PaymentForm modal at end of component
+
+**Component Features:**
+1. **Payment Method Selector**:
+   - Grid layout with 4 payment methods
+   - Visual icons for each method (💵, 💳, 📱, 👤)
+   - Selected state with brand color border and checkmark indicator
+
+2. **Amount Input**:
+   - Large currency-formatted input field
+   - "Full Amount" button to auto-fill remaining balance
+   - Decimal keyboard type with validation (max 2 decimal places)
+
+3. **Transaction ID** (card payments only):
+   - Conditionally rendered when Bank Card is selected
+   - Required field validation for card payments
+   - Auto-capitalization enabled
+
+4. **Balance Summary Card**:
+   - Shows total bill amount
+   - Shows already paid amount (if any)
+   - Displays remaining balance with brand color
+
+5. **Validation**:
+   - Amount must be positive
+   - Amount cannot exceed remaining balance
+   - Transaction ID required for card payments
+   - Error messages displayed inline
+
+6. **Integration**:
+   - Calls createPayment API on submit
+   - Invalidates bill cache and refetches after success
+   - Toast notifications for success/error
+   - Modal closes automatically on successful payment
+
+**Linting:**
+- All files pass Biome linting checks

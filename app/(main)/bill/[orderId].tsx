@@ -24,6 +24,7 @@ import Animated, { FadeIn, FadeInDown, SlideInRight } from 'react-native-reanima
 import Toast from 'react-native-toast-message';
 
 import { DiscountSelector } from '@/components/bills/DiscountSelector';
+import { PaymentForm, type PaymentFormData } from '@/components/bills/PaymentForm';
 import { ThemedText } from '@/components/themed-text';
 import { Badge, type BadgeVariant } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -38,6 +39,7 @@ import {
 } from '@/src/hooks/useBillQueries';
 import { useOrder } from '@/src/hooks/useOrderQueries';
 import { createBill, updateBillDiscounts } from '@/src/services/api/bills';
+import { createPayment } from '@/src/services/api/payments';
 import type { CalculateBillResponse } from '@/src/types/api';
 import { BillStatus, OrderItemStatus, PaymentMethod } from '@/src/types/enums';
 import type { Bill, BillItem, OrderItem, Payment, Translation } from '@/src/types/models';
@@ -446,6 +448,8 @@ export default function BillScreen() {
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [showDiscountModal, setShowDiscountModal] = useState(false);
   const [isApplyingDiscounts, setIsApplyingDiscounts] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   // Bill calculation for preview (enabled only when modal is open)
   const {
@@ -507,6 +511,57 @@ export default function BillScreen() {
   const handleCloseDiscountModal = useCallback(() => {
     setShowDiscountModal(false);
   }, []);
+
+  // Open payment modal
+  const handleOpenPaymentModal = useCallback(() => {
+    if (!bill) return;
+    setShowPaymentModal(true);
+  }, [bill]);
+
+  // Close payment modal
+  const handleClosePaymentModal = useCallback(() => {
+    setShowPaymentModal(false);
+  }, []);
+
+  // Handle payment submission
+  const handleSubmitPayment = useCallback(
+    async (paymentData: PaymentFormData) => {
+      if (!bill) return;
+
+      setIsProcessingPayment(true);
+
+      try {
+        await createPayment({
+          billId: paymentData.billId,
+          amount: paymentData.amount,
+          method: paymentData.method,
+          transactionId: paymentData.transactionId,
+          notes: paymentData.notes,
+        });
+
+        Toast.show({
+          type: 'success',
+          text1: 'Payment Successful',
+          text2: `Payment of $${paymentData.amount.toFixed(2)} has been recorded`,
+        });
+
+        setShowPaymentModal(false);
+        invalidateBillByOrder(orderId ?? '');
+        await refetchBill();
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to process payment';
+        Toast.show({
+          type: 'error',
+          text1: 'Payment Failed',
+          text2: errorMessage,
+        });
+        throw err; // Re-throw to let the form handle the error state
+      } finally {
+        setIsProcessingPayment(false);
+      }
+    },
+    [bill, orderId, invalidateBillByOrder, refetchBill]
+  );
 
   // Apply discounts to bill
   const handleApplyDiscounts = useCallback(
@@ -610,6 +665,16 @@ export default function BillScreen() {
 
   // Get current bill subtotal for discount calculation
   const billSubtotal = useMemo(() => Number.parseFloat(bill?.subtotal ?? '0'), [bill?.subtotal]);
+
+  // Get bill total and paid amounts for payment form
+  const billTotalAmount = useMemo(
+    () => Number.parseFloat(bill?.totalAmount ?? '0'),
+    [bill?.totalAmount]
+  );
+  const billPaidAmount = useMemo(
+    () => Number.parseFloat(bill?.paidAmount ?? '0'),
+    [bill?.paidAmount]
+  );
 
   // Error state
   if (error && !isLoading) {
@@ -869,14 +934,8 @@ export default function BillScreen() {
               </Button>
               <Button
                 variant="primary"
-                onPress={() => {
-                  // TODO: Implement payment form in Task 6.5
-                  Toast.show({
-                    type: 'info',
-                    text1: 'Coming Soon',
-                    text2: 'Payment processing will be implemented in Task 6.5',
-                  });
-                }}
+                onPress={handleOpenPaymentModal}
+                disabled={isProcessingPayment}
                 style={styles.actionButton}
                 testID="add-payment-btn"
               >
@@ -932,6 +991,20 @@ export default function BillScreen() {
         isApplying={isApplyingDiscounts}
         testID="discount-selector-modal"
       />
+
+      {/* Payment Form Modal */}
+      {bill && (
+        <PaymentForm
+          visible={showPaymentModal}
+          onClose={handleClosePaymentModal}
+          onSubmit={handleSubmitPayment}
+          billId={bill.id}
+          totalAmount={billTotalAmount}
+          paidAmount={billPaidAmount}
+          isSubmitting={isProcessingPayment}
+          testID="payment-form-modal"
+        />
+      )}
     </View>
   );
 }
