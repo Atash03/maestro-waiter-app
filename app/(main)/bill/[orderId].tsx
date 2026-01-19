@@ -25,6 +25,7 @@ import Toast from 'react-native-toast-message';
 
 import { DiscountSelector } from '@/components/bills/DiscountSelector';
 import { PaymentForm, type PaymentFormData } from '@/components/bills/PaymentForm';
+import { PaymentSuccessModal } from '@/components/bills/PaymentSuccessModal';
 import { ThemedText } from '@/components/themed-text';
 import { Badge, type BadgeVariant } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -450,6 +451,13 @@ export default function BillScreen() {
   const [isApplyingDiscounts, setIsApplyingDiscounts] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [lastPaymentInfo, setLastPaymentInfo] = useState<{
+    amount: number;
+    method: PaymentMethod;
+    newRemainingBalance: number;
+    isFullyPaid: boolean;
+  } | null>(null);
 
   // Bill calculation for preview (enabled only when modal is open)
   const {
@@ -539,15 +547,27 @@ export default function BillScreen() {
           notes: paymentData.notes,
         });
 
-        Toast.show({
-          type: 'success',
-          text1: 'Payment Successful',
-          text2: `Payment of $${paymentData.amount.toFixed(2)} has been recorded`,
+        // Calculate new remaining balance after payment
+        const currentPaid = Number.parseFloat(bill.paidAmount) || 0;
+        const totalBill = Number.parseFloat(bill.totalAmount) || 0;
+        const newPaidAmount = currentPaid + paymentData.amount;
+        const newRemainingBalance = Math.max(0, totalBill - newPaidAmount);
+        const isFullyPaid = newRemainingBalance <= 0;
+
+        // Store payment info for success modal
+        setLastPaymentInfo({
+          amount: paymentData.amount,
+          method: paymentData.method,
+          newRemainingBalance,
+          isFullyPaid,
         });
 
         setShowPaymentModal(false);
         invalidateBillByOrder(orderId ?? '');
         await refetchBill();
+
+        // Show success modal
+        setShowSuccessModal(true);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to process payment';
         Toast.show({
@@ -562,6 +582,22 @@ export default function BillScreen() {
     },
     [bill, orderId, invalidateBillByOrder, refetchBill]
   );
+
+  // Close success modal
+  const handleCloseSuccessModal = useCallback(() => {
+    setShowSuccessModal(false);
+    setLastPaymentInfo(null);
+  }, []);
+
+  // Add another payment from success modal
+  const handleAddAnotherPaymentFromSuccess = useCallback(() => {
+    setShowSuccessModal(false);
+    setLastPaymentInfo(null);
+    // Delay opening payment modal slightly to allow success modal to close
+    setTimeout(() => {
+      setShowPaymentModal(true);
+    }, 100);
+  }, []);
 
   // Apply discounts to bill
   const handleApplyDiscounts = useCallback(
@@ -1003,6 +1039,23 @@ export default function BillScreen() {
           paidAmount={billPaidAmount}
           isSubmitting={isProcessingPayment}
           testID="payment-form-modal"
+        />
+      )}
+
+      {/* Payment Success Modal */}
+      {lastPaymentInfo && (
+        <PaymentSuccessModal
+          visible={showSuccessModal}
+          onClose={handleCloseSuccessModal}
+          paymentAmount={lastPaymentInfo.amount}
+          paymentMethod={lastPaymentInfo.method}
+          totalAmount={billTotalAmount}
+          remainingBalance={lastPaymentInfo.newRemainingBalance}
+          isFullyPaid={lastPaymentInfo.isFullyPaid}
+          onAddAnotherPayment={
+            !lastPaymentInfo.isFullyPaid ? handleAddAnotherPaymentFromSuccess : undefined
+          }
+          testID="payment-success-modal"
         />
       )}
     </View>

@@ -494,7 +494,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Transaction ID for card payments
   - Notes field
 
-- [ ] **6.6** Implement Payment Processing:
+- [x] **6.6** Implement Payment Processing:
   - `POST /payment` for each payment
   - Handle partial payments
   - Show remaining balance
