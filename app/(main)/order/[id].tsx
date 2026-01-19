@@ -576,11 +576,12 @@ export default function OrderDetailScreen() {
   // Navigate to bill
   const handleCreateBill = useCallback(() => {
     if (order) {
-      // TODO: Navigate to bill screen
-      // router.push(`/(main)/bill/${order.id}`);
-      Alert.alert('Create Bill', 'Bill creation will be implemented in Phase 6');
+      router.push({
+        pathname: '/(main)/bill/[orderId]',
+        params: { orderId: order.id },
+      });
     }
-  }, [order]);
+  }, [order, router]);
 
   // Change table handler
   const handleChangeTable = useCallback(

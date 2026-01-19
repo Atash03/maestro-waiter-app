@@ -2626,3 +2626,47 @@ Each mutation follows this pattern:
 **Linting:**
 - All files pass Biome linting checks
 
+
+---
+
+### Task 6.1: Create Bill Screen (COMPLETED)
+
+**Files Created:**
+- `app/(main)/bill/[orderId].tsx` - Bill Screen component with:
+  - Order items display with quantities and prices
+  - Bill summary section (subtotal, discounts, service fee, total)
+  - Payment section displaying payment history
+  - Applied discounts section
+  - Status card showing bill status (Draft, Finalized, Paid, Cancelled)
+  - Create Bill button for orders without existing bills
+  - Add Discount and Add Payment buttons (placeholders for Tasks 6.3 and 6.5)
+  - Print Receipt button for paid bills
+  - Pull-to-refresh functionality
+  - Loading skeleton during data fetch
+  - Error and empty states handling
+  - Remaining balance calculation for partial payments
+
+- `src/hooks/useBillQueries.ts` - React Query hooks for bills:
+  - `useBills` - Fetch all bills with filtering/pagination
+  - `useBill` - Fetch single bill by ID
+  - `useBillByOrder` - Fetch bill by order ID
+  - `useBillCalculation` - Calculate bill totals (preview)
+  - `useBillCacheActions` - Cache invalidation utilities
+  - Query key factory for targeted cache invalidation
+
+**Files Modified:**
+- `app/(main)/_layout.tsx` - Added bill/[orderId] route to the Stack navigator
+- `app/(main)/order/[id].tsx` - Updated handleCreateBill to navigate to bill screen instead of showing alert
+
+**Features Implemented:**
+- Bill status display with color-coded badges
+- Order items list with extras and pricing
+- Bill summary with subtotal, discounts, service fee, and total
+- Payments history with method, date, and amount
+- Remaining balance calculation
+- Create bill from order functionality
+- Navigation integration with order detail screen
+
+**Linting:**
+- All new files pass Biome linting checks
+

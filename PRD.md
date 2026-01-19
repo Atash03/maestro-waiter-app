@@ -464,7 +464,7 @@ interface Translation { en: string; ru: string; tm: string; }
 - Process multiple payment methods
 
 ### Tasks
-- [ ] **6.1** Create Bill Screen (`app/(main)/bill/[orderId].tsx`):
+- [x] **6.1** Create Bill Screen (`app/(main)/bill/[orderId].tsx`):
   - Show order items to be billed
   - Item selection for split billing (future)
   - Subtotal, discounts, service fee, total

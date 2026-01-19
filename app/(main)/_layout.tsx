@@ -29,6 +29,13 @@ export default function MainLayout() {
           title: 'Order Details',
         }}
       />
+      <Stack.Screen
+        name="bill/[orderId]"
+        options={{
+          headerShown: false,
+          title: 'Bill',
+        }}
+      />
     </Stack>
   );
 }

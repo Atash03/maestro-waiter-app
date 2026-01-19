@@ -1,0 +1,917 @@
+/**
+ * Bill Screen
+ *
+ * Displays bill information for an order including:
+ * - Order items to be billed
+ * - Subtotal, discounts, service fee, total
+ * - Payment section
+ * - Item selection for split billing (future)
+ */
+
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
+import Animated, { FadeIn, SlideInRight } from 'react-native-reanimated';
+import Toast from 'react-native-toast-message';
+
+import { ThemedText } from '@/components/themed-text';
+import { Badge, type BadgeVariant } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Skeleton, SkeletonGroup } from '@/components/ui/Skeleton';
+import { BorderRadius, BrandColors, Colors, Spacing, StatusColors } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useBillByOrder, useBillCacheActions } from '@/src/hooks/useBillQueries';
+import { useOrder } from '@/src/hooks/useOrderQueries';
+import { createBill } from '@/src/services/api/bills';
+import { BillStatus, OrderItemStatus, PaymentMethod } from '@/src/types/enums';
+import type { Bill, BillItem, OrderItem, Payment, Translation } from '@/src/types/models';
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+/**
+ * Get translated text from Translation object
+ */
+function getTranslatedText(
+  translation: Translation | undefined,
+  fallback = '',
+  preferredLang: 'en' | 'ru' | 'tm' = 'en'
+): string {
+  if (!translation) return fallback;
+  return (
+    translation[preferredLang] || translation.en || translation.ru || translation.tm || fallback
+  );
+}
+
+/**
+ * Format price for display
+ */
+function formatPrice(price: string | undefined): string {
+  if (!price) return '$0.00';
+  const num = Number.parseFloat(price);
+  if (Number.isNaN(num)) return '$0.00';
+  return `$${num.toFixed(2)}`;
+}
+
+/**
+ * Format date time for display
+ */
+function formatDateTime(dateString: string): string {
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+}
+
+/**
+ * Get badge variant for bill status
+ */
+function getBillStatusBadgeVariant(status: BillStatus | undefined): BadgeVariant {
+  switch (status) {
+    case BillStatus.DRAFT:
+      return 'pending';
+    case BillStatus.FINALIZED:
+      return 'warning';
+    case BillStatus.PAID:
+      return 'success';
+    case BillStatus.CANCELLED:
+      return 'error';
+    default:
+      return 'default';
+  }
+}
+
+/**
+ * Get human-readable label for bill status
+ */
+function getBillStatusLabel(status: BillStatus | undefined): string {
+  switch (status) {
+    case BillStatus.DRAFT:
+      return 'Draft';
+    case BillStatus.FINALIZED:
+      return 'Finalized';
+    case BillStatus.PAID:
+      return 'Paid';
+    case BillStatus.CANCELLED:
+      return 'Cancelled';
+    default:
+      return 'Unknown';
+  }
+}
+
+/**
+ * Get human-readable label for payment method
+ */
+function getPaymentMethodLabel(method: PaymentMethod): string {
+  switch (method) {
+    case PaymentMethod.CASH:
+      return 'Cash';
+    case PaymentMethod.BANK_CARD:
+      return 'Bank Card';
+    case PaymentMethod.GAPJYK_PAY:
+      return 'Gapjyk Pay';
+    case PaymentMethod.CUSTOMER_ACCOUNT:
+      return 'Customer Account';
+    default:
+      return method;
+  }
+}
+
+/**
+ * Calculate remaining balance
+ */
+function calculateRemainingBalance(bill: Bill): number {
+  const total = Number.parseFloat(bill.totalAmount) || 0;
+  const paid = Number.parseFloat(bill.paidAmount) || 0;
+  return Math.max(0, total - paid);
+}
+
+/**
+ * Check if order items can be billed
+ */
+function canBillItems(items: OrderItem[] | undefined): boolean {
+  if (!items || items.length === 0) return false;
+  // At least one item must be in a billable state (not pending, not cancelled/declined)
+  return items.some(
+    (item) =>
+      item.status !== OrderItemStatus.PENDING &&
+      item.status !== OrderItemStatus.CANCELED &&
+      item.status !== OrderItemStatus.DECLINED
+  );
+}
+
+/**
+ * Get billable items from order
+ */
+function getBillableItems(items: OrderItem[] | undefined): OrderItem[] {
+  if (!items) return [];
+  return items.filter(
+    (item) => item.status !== OrderItemStatus.CANCELED && item.status !== OrderItemStatus.DECLINED
+  );
+}
+
+// ============================================================================
+// Bill Item Row Component
+// ============================================================================
+
+interface BillItemRowProps {
+  item: OrderItem;
+  testID?: string;
+}
+
+function BillItemRow({ item, testID }: BillItemRowProps) {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
+
+  const quantity = Number.parseInt(item.quantity, 10) || 0;
+  const extrasText = item.extras
+    ?.map((extra) => {
+      const name = getTranslatedText(extra.title, 'Extra');
+      return extra.quantity > 1 ? `${extra.quantity}x ${name}` : name;
+    })
+    .join(', ');
+
+  return (
+    <Animated.View entering={SlideInRight.duration(300)} testID={testID}>
+      <View style={styles.billItemRow}>
+        <View style={styles.billItemInfo}>
+          <ThemedText style={styles.billItemName} numberOfLines={1}>
+            {getTranslatedText(item.itemTitle, 'Unknown Item')}
+          </ThemedText>
+          {extrasText && (
+            <ThemedText
+              style={[styles.billItemExtras, { color: colors.textMuted }]}
+              numberOfLines={1}
+            >
+              {extrasText}
+            </ThemedText>
+          )}
+        </View>
+        <View style={styles.billItemQuantity}>
+          <ThemedText style={[styles.billItemQuantityText, { color: colors.textSecondary }]}>
+            x{quantity}
+          </ThemedText>
+        </View>
+        <View style={styles.billItemPrice}>
+          <ThemedText style={styles.billItemPriceText}>{formatPrice(item.subtotal)}</ThemedText>
+        </View>
+      </View>
+    </Animated.View>
+  );
+}
+
+// ============================================================================
+// Payment Row Component
+// ============================================================================
+
+interface PaymentRowProps {
+  payment: Payment;
+  testID?: string;
+}
+
+function PaymentRow({ payment, testID }: PaymentRowProps) {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
+
+  return (
+    <View style={styles.paymentRow} testID={testID}>
+      <View style={styles.paymentInfo}>
+        <ThemedText style={styles.paymentMethod}>
+          {getPaymentMethodLabel(payment.paymentMethod)}
+        </ThemedText>
+        <ThemedText style={[styles.paymentDate, { color: colors.textMuted }]}>
+          {formatDateTime(payment.createdAt)}
+        </ThemedText>
+        {payment.transactionId && (
+          <ThemedText style={[styles.paymentTransaction, { color: colors.textMuted }]}>
+            Txn: {payment.transactionId}
+          </ThemedText>
+        )}
+      </View>
+      <ThemedText style={styles.paymentAmount}>{formatPrice(payment.amount)}</ThemedText>
+    </View>
+  );
+}
+
+// ============================================================================
+// Loading Skeleton
+// ============================================================================
+
+function BillSkeleton() {
+  return (
+    <View style={styles.skeletonContainer}>
+      <Card padding="md" style={styles.skeletonCard}>
+        <SkeletonGroup count={2} spacing={Spacing.sm}>
+          <Skeleton width="60%" height={24} variant="text" />
+        </SkeletonGroup>
+        <SkeletonGroup count={3} spacing={Spacing.xs} style={{ marginTop: Spacing.md }}>
+          <Skeleton width="80%" height={16} variant="text" />
+        </SkeletonGroup>
+      </Card>
+
+      <SkeletonGroup count={4} spacing={Spacing.sm} style={{ marginTop: Spacing.md }}>
+        <Card padding="md">
+          <Skeleton width="70%" height={20} variant="text" />
+          <Skeleton width="30%" height={16} variant="text" style={{ marginTop: Spacing.sm }} />
+        </Card>
+      </SkeletonGroup>
+
+      <Card padding="md" style={{ marginTop: Spacing.md }}>
+        <SkeletonGroup count={4} spacing={Spacing.sm}>
+          <Skeleton width="100%" height={20} variant="text" />
+        </SkeletonGroup>
+      </Card>
+    </View>
+  );
+}
+
+// ============================================================================
+// Bill Screen
+// ============================================================================
+
+export default function BillScreen() {
+  const router = useRouter();
+  const { orderId } = useLocalSearchParams<{ orderId: string }>();
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
+
+  // Data fetching
+  const {
+    data: order,
+    isLoading: isLoadingOrder,
+    error: orderError,
+    refetch: refetchOrder,
+  } = useOrder({ id: orderId ?? '' });
+
+  const {
+    data: billsResponse,
+    isLoading: isLoadingBill,
+    error: billError,
+    refetch: refetchBill,
+    isRefetching,
+  } = useBillByOrder({ orderId: orderId ?? '' });
+
+  const { invalidateBillByOrder } = useBillCacheActions();
+
+  // Get the bill from the response (if exists)
+  const bill = useMemo(() => {
+    if (!billsResponse?.data || billsResponse.data.length === 0) return null;
+    return billsResponse.data[0];
+  }, [billsResponse]);
+
+  // State
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isCreatingBill, setIsCreatingBill] = useState(false);
+
+  // Loading state
+  const isLoading = isLoadingOrder || isLoadingBill;
+  const error = orderError || billError;
+
+  // Pull to refresh
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await Promise.all([refetchOrder(), refetchBill()]);
+    setIsRefreshing(false);
+  }, [refetchOrder, refetchBill]);
+
+  // Create bill for order
+  const handleCreateBill = useCallback(async () => {
+    if (!order || !orderId) return;
+
+    const billableItems = getBillableItems(order.orderItems);
+    if (billableItems.length === 0) {
+      Toast.show({
+        type: 'error',
+        text1: 'Cannot Create Bill',
+        text2: 'No billable items in this order',
+      });
+      return;
+    }
+
+    setIsCreatingBill(true);
+
+    try {
+      const items: BillItem[] = billableItems.map((item) => ({
+        orderItemId: item.id,
+        quantity: Number.parseInt(item.quantity, 10) || 1,
+        price: item.subtotal,
+      }));
+
+      await createBill({
+        orderId,
+        items,
+        customerId: order.customerId ?? undefined,
+      });
+
+      Toast.show({
+        type: 'success',
+        text1: 'Bill Created',
+        text2: 'Bill has been created successfully',
+      });
+
+      invalidateBillByOrder(orderId);
+      await refetchBill();
+    } catch (err) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: err instanceof Error ? err.message : 'Failed to create bill',
+      });
+    } finally {
+      setIsCreatingBill(false);
+    }
+  }, [order, orderId, invalidateBillByOrder, refetchBill]);
+
+  // Computed values
+  const billableItems = useMemo(() => getBillableItems(order?.orderItems), [order?.orderItems]);
+  const canCreateBill = useMemo(
+    () => !bill && canBillItems(order?.orderItems),
+    [bill, order?.orderItems]
+  );
+  const remainingBalance = useMemo(() => (bill ? calculateRemainingBalance(bill) : 0), [bill]);
+  const isPaid = bill?.status === BillStatus.PAID;
+  const hasPayments = bill?.payments && bill.payments.length > 0;
+
+  // Error state
+  if (error && !isLoading) {
+    return (
+      <View
+        style={[styles.container, styles.centerContent, { backgroundColor: colors.background }]}
+      >
+        <ThemedText style={styles.errorText}>Failed to load bill</ThemedText>
+        <ThemedText style={[styles.errorSubtext, { color: colors.textMuted }]}>
+          {error.message}
+        </ThemedText>
+        <Button variant="primary" onPress={() => handleRefresh()} style={{ marginTop: Spacing.md }}>
+          Retry
+        </Button>
+      </View>
+    );
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View
+          style={[
+            styles.header,
+            { backgroundColor: colors.background, borderBottomColor: colors.border },
+          ]}
+        >
+          <Pressable onPress={() => router.back()} style={styles.backButton}>
+            <ThemedText style={styles.backButtonText}>{'<'} Back</ThemedText>
+          </Pressable>
+          <ThemedText style={styles.headerTitle}>Bill</ThemedText>
+          <View style={styles.headerSpacer} />
+        </View>
+        <BillSkeleton />
+      </View>
+    );
+  }
+
+  // No order found
+  if (!order) {
+    return (
+      <View
+        style={[styles.container, styles.centerContent, { backgroundColor: colors.background }]}
+      >
+        <ThemedText style={styles.errorText}>Order not found</ThemedText>
+        <Button variant="outline" onPress={() => router.back()} style={{ marginTop: Spacing.md }}>
+          Go Back
+        </Button>
+      </View>
+    );
+  }
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Header */}
+      <View
+        style={[
+          styles.header,
+          { backgroundColor: colors.background, borderBottomColor: colors.border },
+        ]}
+      >
+        <Pressable onPress={() => router.back()} style={styles.backButton} testID="bill-back-btn">
+          <ThemedText style={styles.backButtonText}>{'<'} Back</ThemedText>
+        </Pressable>
+        <ThemedText style={styles.headerTitle}>Bill - {order.orderCode}</ThemedText>
+        <View style={styles.headerSpacer} />
+      </View>
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
+        testID="bill-scroll"
+      >
+        {/* Bill Status Card (if bill exists) */}
+        {bill && (
+          <Animated.View entering={FadeIn.duration(300)}>
+            <Card padding="md" elevated style={styles.statusCard}>
+              <View style={styles.statusRow}>
+                <Badge variant={getBillStatusBadgeVariant(bill.status)} size="md">
+                  {getBillStatusLabel(bill.status)}
+                </Badge>
+                {isPaid && (
+                  <View style={[styles.paidBadge, { backgroundColor: StatusColors.ready }]}>
+                    <ThemedText style={styles.paidBadgeText}>Fully Paid</ThemedText>
+                  </View>
+                )}
+              </View>
+              <ThemedText style={[styles.billDate, { color: colors.textMuted }]}>
+                Created: {formatDateTime(bill.createdAt)}
+              </ThemedText>
+            </Card>
+          </Animated.View>
+        )}
+
+        {/* Order Items Section */}
+        <View style={styles.section}>
+          <ThemedText style={styles.sectionTitle}>Order Items</ThemedText>
+          <Card padding="md">
+            {billableItems.length > 0 ? (
+              billableItems.map((item, index) => (
+                <BillItemRow key={item.id} item={item} testID={`bill-item-${index}`} />
+              ))
+            ) : (
+              <ThemedText style={[styles.emptyText, { color: colors.textMuted }]}>
+                No items to bill
+              </ThemedText>
+            )}
+          </Card>
+        </View>
+
+        {/* Bill Summary Section */}
+        <View style={styles.section}>
+          <ThemedText style={styles.sectionTitle}>Summary</ThemedText>
+          <Card padding="md" elevated>
+            {/* Subtotal */}
+            <View style={styles.summaryRow}>
+              <ThemedText style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                Subtotal
+              </ThemedText>
+              <ThemedText style={styles.summaryValue}>
+                {formatPrice(bill?.subtotal ?? order.totalAmount)}
+              </ThemedText>
+            </View>
+
+            {/* Discounts */}
+            {bill && Number.parseFloat(bill.discountAmount) > 0 && (
+              <View style={styles.summaryRow}>
+                <ThemedText style={[styles.summaryLabel, { color: StatusColors.ready }]}>
+                  Discounts
+                </ThemedText>
+                <ThemedText style={[styles.summaryValue, { color: StatusColors.ready }]}>
+                  -{formatPrice(bill.discountAmount)}
+                </ThemedText>
+              </View>
+            )}
+
+            {/* Service Fee */}
+            {(bill?.serviceFeeAmount || order.serviceFeeAmount) && (
+              <View style={styles.summaryRow}>
+                <ThemedText style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                  Service Fee {order.serviceFeePercent ? `(${order.serviceFeePercent}%)` : ''}
+                </ThemedText>
+                <ThemedText style={styles.summaryValue}>
+                  {formatPrice(bill?.serviceFeeAmount ?? order.serviceFeeAmount)}
+                </ThemedText>
+              </View>
+            )}
+
+            {/* Divider */}
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+            {/* Total */}
+            <View style={styles.summaryRow}>
+              <ThemedText style={styles.totalLabel}>Total</ThemedText>
+              <ThemedText style={styles.totalValue}>
+                {formatPrice(bill?.totalAmount ?? order.totalAmount)}
+              </ThemedText>
+            </View>
+
+            {/* Paid Amount (if bill exists) */}
+            {bill && hasPayments && (
+              <>
+                <View style={styles.summaryRow}>
+                  <ThemedText style={[styles.summaryLabel, { color: StatusColors.ready }]}>
+                    Paid
+                  </ThemedText>
+                  <ThemedText style={[styles.summaryValue, { color: StatusColors.ready }]}>
+                    {formatPrice(bill.paidAmount)}
+                  </ThemedText>
+                </View>
+
+                {/* Remaining Balance */}
+                {remainingBalance > 0 && (
+                  <View style={styles.summaryRow}>
+                    <ThemedText
+                      style={[styles.summaryLabel, { color: StatusColors.needsAttention }]}
+                    >
+                      Remaining
+                    </ThemedText>
+                    <ThemedText
+                      style={[styles.summaryValue, { color: StatusColors.needsAttention }]}
+                    >
+                      {formatPrice(remainingBalance.toFixed(2))}
+                    </ThemedText>
+                  </View>
+                )}
+              </>
+            )}
+          </Card>
+        </View>
+
+        {/* Payments Section (if bill exists and has payments) */}
+        {bill && hasPayments && (
+          <View style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>Payments</ThemedText>
+            <Card padding="md">
+              {bill.payments?.map((payment, index) => (
+                <PaymentRow key={payment.id} payment={payment} testID={`payment-${index}`} />
+              ))}
+            </Card>
+          </View>
+        )}
+
+        {/* Applied Discounts Section (if bill exists and has discounts) */}
+        {bill?.discounts && bill.discounts.length > 0 && (
+          <View style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>Applied Discounts</ThemedText>
+            <Card padding="md">
+              {bill.discounts.map((discount, index) => (
+                <View
+                  key={discount.discountId}
+                  style={styles.discountRow}
+                  testID={`discount-${index}`}
+                >
+                  <ThemedText style={styles.discountName}>
+                    {discount.discount
+                      ? getTranslatedText(discount.discount.title, 'Discount')
+                      : 'Discount'}
+                  </ThemedText>
+                  <ThemedText style={[styles.discountAmount, { color: StatusColors.ready }]}>
+                    -{formatPrice(discount.amount)}
+                  </ThemedText>
+                </View>
+              ))}
+            </Card>
+          </View>
+        )}
+
+        {/* Action Buttons */}
+        <View style={styles.actionButtons}>
+          {/* Create Bill Button (if no bill exists) */}
+          {canCreateBill && (
+            <Button
+              variant="primary"
+              onPress={handleCreateBill}
+              disabled={isCreatingBill}
+              style={styles.actionButton}
+              testID="create-bill-btn"
+            >
+              {isCreatingBill ? 'Creating Bill...' : 'Create Bill'}
+            </Button>
+          )}
+
+          {/* Bill exists - show payment actions */}
+          {bill && !isPaid && (
+            <>
+              <Button
+                variant="outline"
+                onPress={() => {
+                  // TODO: Implement discount selector in Task 6.3
+                  Toast.show({
+                    type: 'info',
+                    text1: 'Coming Soon',
+                    text2: 'Discount selection will be implemented in Task 6.3',
+                  });
+                }}
+                style={styles.actionButton}
+                testID="add-discount-btn"
+              >
+                Add Discount
+              </Button>
+              <Button
+                variant="primary"
+                onPress={() => {
+                  // TODO: Implement payment form in Task 6.5
+                  Toast.show({
+                    type: 'info',
+                    text1: 'Coming Soon',
+                    text2: 'Payment processing will be implemented in Task 6.5',
+                  });
+                }}
+                style={styles.actionButton}
+                testID="add-payment-btn"
+              >
+                Add Payment
+              </Button>
+            </>
+          )}
+
+          {/* Print/Share Receipt (if paid) */}
+          {isPaid && (
+            <Button
+              variant="outline"
+              onPress={() => {
+                Toast.show({
+                  type: 'info',
+                  text1: 'Coming Soon',
+                  text2: 'Receipt printing will be implemented in a future update',
+                });
+              }}
+              style={styles.actionButton}
+              testID="print-receipt-btn"
+            >
+              Print Receipt
+            </Button>
+          )}
+        </View>
+      </ScrollView>
+
+      {/* Loading Overlay */}
+      {isRefetching && !isRefreshing && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="small" color={BrandColors.primary} />
+        </View>
+      )}
+    </View>
+  );
+}
+
+// ============================================================================
+// Styles
+// ============================================================================
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderBottomWidth: 1,
+  },
+  backButton: {
+    paddingVertical: Spacing.xs,
+    paddingRight: Spacing.md,
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: BrandColors.primary,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  headerSpacer: {
+    width: 60,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: Spacing.md,
+    paddingBottom: Spacing.xl,
+  },
+  skeletonContainer: {
+    padding: Spacing.md,
+  },
+  skeletonCard: {
+    marginBottom: Spacing.md,
+  },
+  statusCard: {
+    marginBottom: Spacing.md,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.xs,
+  },
+  paidBadge: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+  },
+  paidBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  billDate: {
+    fontSize: 12,
+  },
+  section: {
+    marginBottom: Spacing.md,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: Spacing.sm,
+  },
+  billItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E5E7EB',
+  },
+  billItemInfo: {
+    flex: 1,
+    marginRight: Spacing.sm,
+  },
+  billItemName: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  billItemExtras: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  billItemQuantity: {
+    width: 40,
+    alignItems: 'center',
+  },
+  billItemQuantityText: {
+    fontSize: 14,
+  },
+  billItemPrice: {
+    width: 80,
+    alignItems: 'flex-end',
+  },
+  billItemPriceText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.xs,
+  },
+  summaryLabel: {
+    fontSize: 14,
+  },
+  summaryValue: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  divider: {
+    height: 1,
+    marginVertical: Spacing.sm,
+  },
+  totalLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  totalValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: BrandColors.primary,
+  },
+  paymentRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E5E7EB',
+  },
+  paymentInfo: {
+    flex: 1,
+  },
+  paymentMethod: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  paymentDate: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  paymentTransaction: {
+    fontSize: 11,
+    marginTop: 2,
+  },
+  paymentAmount: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: StatusColors.ready,
+  },
+  discountRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E5E7EB',
+  },
+  discountName: {
+    fontSize: 14,
+    fontWeight: '500',
+    flex: 1,
+  },
+  discountAmount: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  actionButtons: {
+    gap: Spacing.sm,
+    marginTop: Spacing.md,
+  },
+  actionButton: {
+    width: '100%',
+  },
+  emptyText: {
+    fontSize: 14,
+    textAlign: 'center',
+    paddingVertical: Spacing.md,
+  },
+  errorText: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: Spacing.xs,
+  },
+  errorSubtext: {
+    fontSize: 14,
+    textAlign: 'center',
+    paddingHorizontal: Spacing.lg,
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 60,
+    right: Spacing.md,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.full,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+});
