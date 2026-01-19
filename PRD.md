@@ -199,7 +199,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Track selected table
   - Filter tables by zone
 
-- [ ] **2.2** Implement Zones/Tables data fetching:
+- [x] **2.2** Implement Zones/Tables data fetching:
   - Use React Query for caching
   - `GET /zone` - Fetch all zones with tables
   - `GET /table` - Fetch all tables

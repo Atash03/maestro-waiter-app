@@ -545,3 +545,75 @@
 
 **Linting:**
 - All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)
+
+---
+
+### Task 2.2: Implement Zones/Tables data fetching (COMPLETED)
+
+**Files Created:**
+- `src/hooks/useTableQueries.ts` - React Query hooks for tables and zones data fetching with:
+  - Query key factories (`tableQueryKeys`, `zoneQueryKeys`) for targeted cache invalidation
+  - `useTables(options?)` - Fetch all tables with optional filtering/pagination
+  - `useTable({ id })` - Fetch a single table by ID
+  - `useZones(options?)` - Fetch all zones with optional filtering/pagination
+  - `useZone({ id })` - Fetch a single zone by ID
+  - `useTablesAndZones(options?)` - Combined hook to fetch both tables and zones together
+  - `useTablesByZone(tables, zoneId)` - Utility to filter tables by zone from cached data
+  - `useTableCacheActions()` - Cache management utilities:
+    - `invalidateTables(params?)` - Invalidate table queries
+    - `invalidateZones(params?)` - Invalidate zone queries
+    - `invalidateAll()` - Invalidate both tables and zones
+    - `prefetchTables(params?)` - Prefetch table data
+    - `prefetchZones(params?)` - Prefetch zone data
+    - `prefetchAll()` - Prefetch both tables and zones
+  - Default stale time: 5 minutes
+  - Default cache time: 30 minutes
+  - Pull-to-refresh support via `refetchAll()` in combined hook
+
+**Files Modified:**
+- `src/hooks/index.ts` - Updated to export all table query hooks and types
+- `jest.config.js` - Added table-queries.test.tsx to web test environment
+
+**Tests Created:**
+- `src/__tests__/table-queries.test.tsx` - 38 tests covering:
+  - Query keys generation (12 tests)
+    - tableQueryKeys.all, lists, list with/without params, details, detail
+    - zoneQueryKeys.all, lists, list with/without params, details, detail
+  - useTables hook (3 tests)
+    - Successful fetch
+    - Fetch with params
+    - Error handling
+  - useTable hook (2 tests)
+    - Fetch single table by ID
+    - Disabled when ID is empty
+  - useZones hook (3 tests)
+    - Successful fetch
+    - Fetch active zones only
+    - Error handling
+  - useZone hook (2 tests)
+    - Fetch single zone by ID
+    - Disabled when ID is empty
+  - useTablesAndZones hook (3 tests)
+    - Fetch both tables and zones
+    - Combined error reporting
+    - refetchAll function
+  - useTablesByZone utility (4 tests)
+    - Filter by zone ID
+    - Return all when zoneId undefined
+    - Return empty when tables undefined
+    - Return empty when no match
+  - useTableCacheActions hook (7 tests)
+    - Return all cache action functions
+    - invalidateTables with/without params
+    - invalidateZones
+    - invalidateAll
+    - prefetchTables
+    - prefetchZones
+    - prefetchAll
+  - Hook exports verification (2 tests)
+
+**Test Results:**
+- 377 tests passing (339 previous + 38 table queries tests)
+
+**Linting:**
+- All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)

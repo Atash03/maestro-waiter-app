@@ -35,6 +35,7 @@ module.exports = {
       testMatch: [
         '<rootDir>/src/__tests__/*-screen.test.tsx',
         '<rootDir>/src/__tests__/ui-components-render.test.tsx',
+        '<rootDir>/src/__tests__/table-queries.test.tsx',
       ],
       setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
       transformIgnorePatterns: [
