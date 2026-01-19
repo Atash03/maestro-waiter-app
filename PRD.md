@@ -419,7 +419,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - `waiter:call-cancelled` - Remove from active
   - Play sound + vibration for new calls
 
-- [ ] **5.4** Create Notification Toast (`components/common/CallNotification.tsx`):
+- [x] **5.4** Create Notification Toast (`components/common/CallNotification.tsx`):
   - Non-intrusive banner at top of screen
   - Color-coded by request type
   - Table number and request reason

@@ -2386,3 +2386,52 @@ Implemented comprehensive order modification features including changing table, 
 **Linting:**
 - All new files pass Biome linting checks (imports organized, formatting applied)
 
+
+---
+
+### Task 5.4: Create Notification Toast (CallNotification.tsx) (COMPLETED)
+
+**File Created:**
+- `components/common/CallNotification.tsx` - Non-intrusive banner component for waiter call notifications
+
+**Features Implemented:**
+
+1. **Visual Design:**
+   - Non-intrusive banner at top of screen with safe area insets
+   - Left accent strip with urgency-based color (amber → orange → red)
+   - Table badge with table title and zone name
+   - Running timer showing elapsed time since call (updates every second)
+   - Optional reason text display
+
+2. **Urgency Color Coding:**
+   - Under 2 minutes: Amber (normal)
+   - 2-5 minutes: Orange (getting urgent)
+   - Over 5 minutes: Red (urgent)
+
+3. **Animation:**
+   - Slide-in animation from left with spring physics
+   - Press scale animation for interactive feedback
+   - Slide-out animation on dismiss
+
+4. **Interactive Actions:**
+   - Acknowledge button (green, for pending calls)
+   - Dismiss button (outlined)
+   - Close button (top right)
+   - Pressable card to navigate to call details
+
+5. **Props Interface:**
+   - `call: NotificationCall` - The call data from notification store
+   - `onAcknowledge?: (callId: string) => void` - Acknowledge callback
+   - `onDismiss?: (callId: string) => void` - Dismiss callback
+   - `onPress?: (callId: string) => void` - Press callback
+   - `testID?: string` - For testing
+
+**Technical Details:**
+- Uses react-native-reanimated for smooth animations
+- Uses react-native-safe-area-context for proper positioning
+- Integrates with NotificationCall type from notificationStore
+- Uses theme colors via useThemeColor hook
+- Uses StatusColors from theme constants
+
+**Linting:**
+- All files pass Biome linting checks
