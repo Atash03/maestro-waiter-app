@@ -687,3 +687,111 @@
 
 **Linting:**
 - All files pass Biome linting checks
+
+---
+
+### Task 2.4: Create Table Component (COMPLETED)
+
+**Files Created:**
+- `components/tables/TableItem.tsx` - Full-featured table component with:
+  - Visual representation based on table dimensions (width, height)
+  - Color-coded status indication using StatusColors from theme:
+    - Available: green (#4CAF50)
+    - Occupied: primary/orange (#F94623)
+    - Reserved: blue (#2196F3)
+    - Needs Attention: amber (#FF9800)
+  - Pulsing animation for tables with pending waiter calls or needing attention
+  - Table title/number display centered on the table
+  - Capacity display (number of seats)
+  - Guest count display with emoji (👥) when occupied
+  - Active order indicator (📋) when table has active order
+  - Attention indicator (⚠️) when table needs attention
+  - Press animation with scale effect using react-native-reanimated
+  - Selection state with different opacity
+  - Proper coordinate and dimension parsing (handles strings, empty values, invalid values)
+  - `getStatusColor(status)` helper function exported for reuse
+
+- `components/tables/index.ts` - Central export file for table components:
+  - Exports TableItem component
+  - Exports TableItemData, TableItemProps, TableStatus types
+  - Exports getStatusColor helper function
+
+**Files Modified:**
+- `app/(tabs)/tables/index.tsx` - Updated to use the new TableItem component:
+  - Removed inline TableItem component implementation
+  - Imports TableItem from `@/components/tables`
+  - Removed unused styles and imports
+
+- `jest.setup.js` - Updated react-native-reanimated mock:
+  - Added `cancelAnimation` function
+  - Added `interpolate` function
+
+- `jest.config.js` - Added `table-item.test.tsx` to web test match patterns
+
+**Types Defined:**
+- `TableStatus` - Union type: 'available' | 'occupied' | 'reserved' | 'needsAttention'
+- `TableItemData` - Extends Table model with status properties:
+  - status: TableStatus
+  - guestCount?: number
+  - hasActiveOrder?: boolean
+  - hasPendingCall?: boolean
+- `TableItemProps` - Component props:
+  - table: TableItemData
+  - onPress?: (table: Table) => void
+  - onLongPress?: (table: Table) => void
+  - isSelected?: boolean
+  - testID?: string
+
+**Tests Created:**
+- `src/__tests__/table-item.test.tsx` - 40 tests covering:
+  - getStatusColor helper function (5 tests):
+    - Returns correct color for available, occupied, reserved, needsAttention statuses
+    - Returns available color for unknown status (fallback)
+  - TableItem rendering (4 tests):
+    - Renders table title correctly
+    - Renders capacity when > 0 and not showing guest count
+    - Does not render capacity text when capacity is 0
+    - Renders correctly with default props
+  - Status display (6 tests):
+    - Renders correctly with all four status types (parameterized)
+    - Renders attention indicator for needsAttention status
+    - Does not show attention indicator for available status
+    - Renders order indicator when hasActiveOrder is true
+    - Does not show order indicator when status is needsAttention
+  - Guest count display (3 tests):
+    - Shows guest count when occupied and guestCount > 0
+    - Does not show guest count when status is not occupied
+    - Does not show guest count when guestCount is 0
+  - Pulse animation (3 tests):
+    - Renders pulse layer when hasPendingCall is true
+    - Renders pulse layer when status is needsAttention
+    - Does not render pulse layer for available status without pending call
+  - Press handlers (4 tests):
+    - Can render with onPress callback
+    - Can render with onLongPress callback
+    - Renders when onPress is not provided
+    - Renders when onLongPress is not provided
+  - Coordinate parsing (4 tests):
+    - Renders with valid x and y coordinates
+    - Handles empty coordinate strings
+    - Handles undefined coordinate values
+    - Handles non-numeric coordinate strings
+  - Dimension parsing (3 tests):
+    - Renders with valid width and height
+    - Handles empty dimension strings
+    - Handles invalid dimension strings
+  - Selection state (2 tests):
+    - Renders correctly when selected
+    - Renders correctly when not selected
+  - Color handling (2 tests):
+    - Renders when table color is provided
+    - Renders when table color is empty
+  - Export verification (2 tests):
+    - Exports TableItem component
+    - Exports getStatusColor function
+
+**Test Results:**
+- 444 tests passing (404 previous + 40 table item tests)
+
+**Linting:**
+- All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)

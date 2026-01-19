@@ -212,7 +212,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Pinch-to-zoom and pan gestures
   - Zone background with proper dimensions
 
-- [ ] **2.4** Create Table Component (`components/tables/TableItem.tsx`):
+- [x] **2.4** Create Table Component (`components/tables/TableItem.tsx`):
   - Visual representation based on table shape/size
   - Color-coded status indication:
     - Available (green)

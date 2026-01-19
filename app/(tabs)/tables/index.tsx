@@ -20,31 +20,19 @@ import {
   View,
 } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
-
+import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import type { TableItemData, TableStatus } from '@/components/tables';
+import { getStatusColor, TableItem } from '@/components/tables';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Badge } from '@/components/ui/Badge';
 import { Skeleton, SkeletonGroup } from '@/components/ui/Skeleton';
 import { Spinner } from '@/components/ui/Spinner';
-import { BorderRadius, Colors, Spacing, StatusColors } from '@/constants/theme';
+import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTablesAndZones, useTablesByZone } from '@/src/hooks/useTableQueries';
 import { useTableStore } from '@/src/stores/tableStore';
 import type { Table, Translation, Zone } from '@/src/types/models';
-
-// ============================================================================
-// Types
-// ============================================================================
-
-type TableStatus = 'available' | 'occupied' | 'reserved' | 'needsAttention';
-
-interface TableWithStatus extends Table {
-  status: TableStatus;
-  guestCount?: number;
-  hasActiveOrder?: boolean;
-  hasPendingCall?: boolean;
-}
 
 // ============================================================================
 // Constants
@@ -85,24 +73,6 @@ function getTableStatus(_table: Table): TableStatus {
   // TODO: Integrate with orders/waiter calls in Phase 4
   // For now, return 'available' as default
   return 'available';
-}
-
-/**
- * Get status color for a table
- */
-function getStatusColor(status: TableStatus): string {
-  switch (status) {
-    case 'available':
-      return StatusColors.available;
-    case 'occupied':
-      return StatusColors.occupied;
-    case 'reserved':
-      return StatusColors.reserved;
-    case 'needsAttention':
-      return StatusColors.needsAttention;
-    default:
-      return StatusColors.available;
-  }
 }
 
 // ============================================================================
@@ -178,81 +148,11 @@ function ZoneTabs({ zones, selectedZoneId, onSelectZone }: ZoneTabsProps) {
 }
 
 // ============================================================================
-// Table Item Component
-// ============================================================================
-
-interface TableItemProps {
-  table: TableWithStatus;
-  onPress: (table: Table) => void;
-  onLongPress: (table: Table) => void;
-}
-
-function TableItem({ table, onPress, onLongPress }: TableItemProps) {
-  const statusColor = getStatusColor(table.status);
-  const pressScale = useSharedValue(1);
-
-  const width = parseCoordinate(table.width) || 60;
-  const height = parseCoordinate(table.height) || 60;
-  const x = parseCoordinate(table.x);
-  const y = parseCoordinate(table.y);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pressScale.value }],
-  }));
-
-  const handlePressIn = useCallback(() => {
-    pressScale.value = withSpring(0.95);
-  }, [pressScale]);
-
-  const handlePressOut = useCallback(() => {
-    pressScale.value = withSpring(1);
-  }, [pressScale]);
-
-  return (
-    <Animated.View
-      style={[
-        styles.tableItem,
-        animatedStyle,
-        {
-          left: x,
-          top: y,
-          width,
-          height,
-          backgroundColor: table.color || statusColor,
-          borderColor: statusColor,
-        },
-      ]}
-    >
-      <TouchableOpacity
-        testID={`table-item-${table.id}`}
-        style={styles.tableItemTouchable}
-        onPress={() => onPress(table)}
-        onLongPress={() => onLongPress(table)}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        activeOpacity={1}
-        delayLongPress={300}
-      >
-        <ThemedText style={styles.tableTitle} numberOfLines={1}>
-          {table.title}
-        </ThemedText>
-        {table.capacity > 0 && (
-          <ThemedText style={styles.tableCapacity}>{table.capacity}</ThemedText>
-        )}
-        {table.status === 'needsAttention' && (
-          <View style={styles.attentionIndicator} testID={`table-attention-${table.id}`} />
-        )}
-      </TouchableOpacity>
-    </Animated.View>
-  );
-}
-
-// ============================================================================
 // Floor Plan Canvas Component
 // ============================================================================
 
 interface FloorPlanCanvasProps {
-  tables: TableWithStatus[];
+  tables: TableItemData[];
   onTablePress: (table: Table) => void;
   onTableLongPress: (table: Table) => void;
 }
@@ -493,7 +393,7 @@ export default function FloorPlanScreen() {
   const filteredTables = useTablesByZone(tablesData, selectedZoneId ?? undefined);
 
   // Map tables with status
-  const tablesWithStatus: TableWithStatus[] = useMemo(
+  const tablesWithStatus: TableItemData[] = useMemo(
     () =>
       filteredTables.map((table) => ({
         ...table,
@@ -674,45 +574,6 @@ const styles = StyleSheet.create({
   gridPattern: {
     ...StyleSheet.absoluteFillObject,
     opacity: 0.1,
-  },
-  tableItem: {
-    position: 'absolute',
-    borderRadius: BorderRadius.md,
-    borderWidth: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  tableItemTouchable: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: Spacing.xs,
-  },
-  tableTitle: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
-  tableCapacity: {
-    fontSize: 10,
-    color: 'rgba(255, 255, 255, 0.8)',
-    marginTop: 2,
-  },
-  attentionIndicator: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: StatusColors.needsAttention,
   },
   legendContainer: {
     position: 'absolute',

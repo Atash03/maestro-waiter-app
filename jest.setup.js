@@ -86,8 +86,10 @@ jest.mock('expo-splash-screen', () => ({
 
 // Mock react-native-reanimated
 jest.mock('react-native-reanimated', () => {
+  // Use react-native-reanimated/mock for web environment
   const Reanimated = require('react-native-reanimated/mock');
   Reanimated.default.call = () => {};
+
   return {
     ...Reanimated,
     useSharedValue: jest.fn((initialValue) => ({ value: initialValue })),
@@ -98,6 +100,8 @@ jest.mock('react-native-reanimated', () => {
     withSequence: jest.fn((...animations) => animations[0]),
     withDelay: jest.fn((_, animation) => animation),
     runOnJS: jest.fn((fn) => fn),
+    cancelAnimation: jest.fn(),
+    interpolate: jest.fn((value) => value),
     Easing: {
       inOut: jest.fn((easing) => easing),
       ease: jest.fn(),
