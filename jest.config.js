@@ -13,6 +13,7 @@ module.exports = {
         '<rootDir>/src/__tests__/protected-route.test.ts',
         '<rootDir>/src/__tests__/table-store.test.ts',
         '<rootDir>/src/__tests__/my-section.test.tsx',
+        '<rootDir>/src/__tests__/menu-store.test.ts',
       ],
       setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
       transform: {

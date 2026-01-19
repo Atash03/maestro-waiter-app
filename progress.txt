@@ -1118,3 +1118,91 @@
 
 **Linting:**
 - All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)
+
+---
+
+### Task 3.1: Create menu store (COMPLETED)
+
+**Files Created:**
+- `src/stores/menuStore.ts` - Full-featured Zustand menu store with:
+  - `MenuState` interface defining all state and actions
+  - Menu categories array cache from API
+  - Menu items array cache from API
+  - Extras array cache from API
+  - Selected category ID tracking
+  - Search query state for filtering
+  - Recently used item IDs tracking (persisted to AsyncStorage)
+  - Loading states for categories, items, and extras (independent)
+  - Error state handling
+  - `fetchCategories()` - Fetches all menu categories from API
+  - `fetchItems()` - Fetches all active menu items from API
+  - `fetchExtras()` - Fetches all active extras from API
+  - `fetchAll()` - Fetches categories, items, and extras in parallel
+  - `selectCategory(categoryId)` - Selects a category by ID
+  - `setSearchQuery(query)` - Sets the search query for filtering
+  - `getCategoryById(categoryId)` - Returns category by ID (including nested children)
+  - `getItemById(itemId)` - Returns menu item by ID
+  - `getExtraById(extraId)` - Returns extra by ID
+  - `getItemsByCategory(categoryId)` - Returns all items in a category
+  - `getFilteredItems()` - Returns items filtered by selected category and search query
+  - `searchItems(query)` - Searches items by title and description (all languages)
+  - `addToRecentItems(itemId)` - Adds item to recently used list (max 20, persisted)
+  - `getRecentItems()` - Returns recently used MenuItem objects
+  - `clearRecentItems()` - Clears recently used items
+  - `loadRecentItems()` - Loads recently used items from AsyncStorage
+  - `clearError()` - Clears error message
+  - `reset()` - Resets store to initial state
+
+**Helper Functions Exported:**
+- `getTranslatedText(translation, fallback, preferredLang)` - Get translated text from Translation object
+
+**Custom Hooks Exported:**
+- `useMenuStore` - Full store access
+- `useMenuCategories` - Optimized hook for categories array only
+- `useMenuItems` - Optimized hook for items array only
+- `useExtras` - Optimized hook for extras array only
+- `useSelectedCategory` - Returns the full selected category object
+- `useSearchQuery` - Returns the current search query
+- `useFilteredItems` - Returns items filtered by category and search query
+- `useItemsByCategory(categoryId)` - Returns items filtered by category
+- `useRecentItems` - Returns recently used MenuItem objects
+- `useMenuLoading` - Loading states (isLoadingCategories, isLoadingItems, isLoadingExtras, isLoading)
+- `useMenuError` - Error state only
+- `useSelectedCategoryId` - Selected category ID only
+- `useRecentItemIds` - Recent item IDs array only
+
+**Files Modified:**
+- `src/stores/index.ts` - Updated to export all menu store functions and types
+- `jest.config.js` - Added menu-store.test.ts to node test match patterns
+
+**Tests Created:**
+- `src/__tests__/menu-store.test.ts` - 77 tests covering:
+  - Initial state verification
+  - fetchCategories success, loading state, and error handling
+  - fetchItems success, loading state, and error handling
+  - fetchExtras success, loading state, and error handling
+  - fetchAll parallel execution
+  - selectCategory functionality
+  - setSearchQuery functionality
+  - getCategoryById (top-level and nested categories)
+  - getItemById functionality
+  - getExtraById functionality
+  - getItemsByCategory filtering
+  - getFilteredItems (no filters, category filter, search filter, combined filters)
+  - searchItems (empty query, title search, description search, case insensitive)
+  - addToRecentItems (add, move to front, limit max, persistence)
+  - getRecentItems (as MenuItem objects, filter non-existent)
+  - clearRecentItems functionality and persistence
+  - loadRecentItems from AsyncStorage (valid data, null, invalid JSON, non-array)
+  - clearError functionality
+  - reset functionality
+  - getTranslatedText helper (10 tests for language fallbacks)
+  - All hook exports verification (12 tests)
+  - MenuState type export verification
+  - Store index exports verification
+
+**Test Results:**
+- 741 tests passing (664 previous + 77 menu store tests)
+
+**Linting:**
+- All files pass Biome linting checks

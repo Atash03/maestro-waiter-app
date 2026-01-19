@@ -254,7 +254,7 @@ interface Translation { en: string; ru: string; tm: string; }
 - Implement live order summary
 
 ### Tasks
-- [ ] **3.1** Create menu store (`stores/menuStore.ts`):
+- [x] **3.1** Create menu store (`stores/menuStore.ts`):
   - Cache menu categories and items
   - Search/filter functionality
   - Recently used items tracking
