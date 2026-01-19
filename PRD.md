@@ -520,7 +520,7 @@ interface Translation { en: string; ru: string; tm: string; }
 - Shift summary (simplified version)
 
 ### Tasks
-- [ ] **7.1** Create Profile Screen (`app/(main)/(tabs)/profile/index.tsx`):
+- [x] **7.1** Create Profile Screen (`app/(main)/(tabs)/profile/index.tsx`):
   - User info display (username, role)
   - Current session info
   - Today's activity summary:

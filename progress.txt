@@ -2972,3 +2972,57 @@ Created a reusable BillSummary component that displays a complete breakdown of a
 
 **Linting:**
 - All files pass Biome linting checks
+
+---
+
+### Task 7.1: Create Profile Screen (COMPLETED)
+
+**Implementation:**
+Created the Profile Screen at `app/(tabs)/profile/index.tsx` with user info display, activity summary, and logout functionality.
+
+1. **Profile Screen** (`app/(tabs)/profile/index.tsx`):
+   - User info display:
+     - Avatar component with user initials
+     - Username display
+     - Role badge (Administrator, Manager, Waiter, etc.)
+   - Session info section:
+     - Organization connection status
+     - Account creation date
+   - Today's activity summary with stat cards:
+     - Orders taken (with active orders count)
+     - Total sales (formatted currency)
+     - Calls handled
+     - Active orders
+   - Settings link button (navigates to future settings screen)
+   - Logout button with confirmation dialog
+
+2. **Helper Functions**:
+   - `getTodayDateRange()` - Get start and end of current day
+   - `isToday()` - Check if a date string is from today
+   - `calculateActivityStats()` - Calculate orders, sales, calls stats
+   - `formatCurrency()` - Format amount as TMT currency
+   - `getRoleDisplayName()` - Convert role enum to display name
+
+3. **Sub-Components**:
+   - `StatCard` - Reusable stat display card with icon, value, title, subtitle
+   - `ProfileSkeleton` - Loading skeleton for profile screen
+
+4. **Features**:
+   - Pull-to-refresh for data updates
+   - Loading overlay during logout
+   - Animated sections with FadeIn effects
+   - Error handling for logout failures
+   - Responsive layout with proper spacing
+
+5. **Tab Layout Update** (`app/(tabs)/_layout.tsx`):
+   - Added Profile tab with person.fill icon
+   - Hidden unused Home and Explore tabs from tab bar
+
+**Files Created:**
+- `app/(tabs)/profile/index.tsx` - Profile screen with user info and activity summary
+
+**Files Modified:**
+- `app/(tabs)/_layout.tsx` - Added Profile tab, hidden unused tabs
+
+**Linting:**
+- All files pass Biome linting checks
