@@ -43,6 +43,15 @@ export {
   useNetworkStatus,
 } from './useNetworkStatus';
 export {
+  // Offline support hooks
+  useCacheStatus,
+  useOfflineCacheSync,
+  useOfflineGuard,
+  useOfflineInit,
+  useOfflineStatus,
+  useSyncControl,
+} from './useOfflineSupport';
+export {
   // Utility functions
   countOrdersWithReadyItems,
   filterOrdersByStatus,

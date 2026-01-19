@@ -590,7 +590,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Shimmer effects
   - Progress indicators
 
-- [ ] **8.5** Implement offline support:
+- [x] **8.5** Implement offline support:
   - Cache critical data (menu, tables)
   - Queue actions when offline
   - Sync when back online

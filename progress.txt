@@ -3501,3 +3501,65 @@ Task 8.4 focused on ensuring loading states are implemented throughout the appli
 - Circular progress indeterminate uses continuous rotation animation
 - All components support light/dark theme modes
 - Components are accessible with testID props for testing
+
+---
+
+### Task 8.5: Implement offline support (COMPLETED)
+
+**Files Created:**
+- `src/services/offline/offlineStorage.ts` - Persistence layer for caching critical data to AsyncStorage
+  - Menu categories cache (24h expiry)
+  - Menu items cache (24h expiry)
+  - Extras cache (24h expiry)
+  - Tables cache (6h expiry)
+  - Zones cache (24h expiry)
+  - Cache validation and timestamps
+  - Cache status checking utilities
+- `src/services/offline/syncManager.ts` - Coordinates syncing of offline queued mutations
+  - Processes queued mutations when back online
+  - Network status monitoring for auto-sync
+  - Queue processing with retry logic
+  - Support for all mutation types (orders, order items, waiter calls, bills, payments)
+- `src/services/offline/index.ts` - Central export for offline services
+- `src/stores/offlineQueueStore.ts` - Zustand store for managing offline mutation queue
+  - Queue items with status tracking (pending, processing, failed, completed)
+  - Retry count management (max 3 retries)
+  - AsyncStorage persistence
+  - Selector hooks for queue status
+- `src/hooks/useOfflineSupport.ts` - React hooks for offline functionality
+  - `useOfflineInit()` - Initialize offline support at app startup
+  - `useOfflineCacheSync()` - Auto-save data to cache when it changes
+  - `useOfflineStatus()` - Get offline/sync status
+  - `useCacheStatus()` - Check cache validity
+  - `useSyncControl()` - Manual sync control
+  - `useOfflineGuard()` - Check if actions should be blocked offline
+- `components/common/OfflineIndicator.tsx` - Visual indicator for pending sync items
+  - Shows pending mutation count
+  - Shows failed mutation count with retry option
+  - Animated syncing indicator
+  - Tap to manually trigger sync
+
+**Files Modified:**
+- `app/_layout.tsx` - Integrated offline support initialization and OfflineIndicator component
+- `src/hooks/index.ts` - Added exports for offline support hooks
+- `src/stores/index.ts` - Added exports for offline queue store
+- `src/services/index.ts` - Added exports for offline services
+
+**Key Features:**
+1. **Cache Critical Data** - Menu categories, items, extras, tables, and zones are cached to AsyncStorage with configurable expiration
+2. **Queue Actions When Offline** - Mutations are queued with status tracking and retry logic
+3. **Sync When Back Online** - Automatic sync when network connection is restored
+4. **Clear Offline Indicator** - OfflineIndicator component shows sync status and allows manual retry
+
+**Supported Offline Mutation Types:**
+- CREATE_ORDER
+- ADD_ORDER_ITEMS
+- UPDATE_ORDER_ITEM_STATUS
+- ACKNOWLEDGE_CALL
+- COMPLETE_CALL
+- CANCEL_CALL
+- CREATE_BILL
+- CREATE_PAYMENT
+
+**Linting:**
+- All files pass Biome linting checks (1 pre-existing warning unrelated to this task)

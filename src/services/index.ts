@@ -18,5 +18,7 @@ export {
 } from './errorHandler';
 // Notification services
 export * from './notifications';
+// Offline services
+export * from './offline';
 // SSE services
 export * from './sse';

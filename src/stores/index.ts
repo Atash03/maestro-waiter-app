@@ -53,6 +53,20 @@ export {
   useVibrationEnabled,
 } from './notificationStore';
 export {
+  type MutationType,
+  type OfflineQueueState,
+  type QueuedMutation,
+  type QueueItemStatus,
+  useFailedQueueItems,
+  useIsQueueInitialized,
+  useIsQueueProcessing,
+  useLastSyncAt,
+  useOfflineQueue,
+  useOfflineQueueStore,
+  usePendingQueueItems,
+  useQueueCounts,
+} from './offlineQueueStore';
+export {
   // Helper functions
   calculateExtrasTotal,
   calculateItemSubtotal,

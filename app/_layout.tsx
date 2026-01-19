@@ -9,8 +9,10 @@ import 'react-native-reanimated';
 import ToastMessage from 'react-native-toast-message';
 
 import { OfflineBanner } from '@/components/common/OfflineBanner';
+import { OfflineIndicator } from '@/components/common/OfflineIndicator';
 import { ErrorBoundary } from '@/components/errors/ErrorBoundary';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useOfflineCacheSync, useOfflineInit } from '@/src/hooks/useOfflineSupport';
 import { useAuthCallbacks, useProtectedRoute } from '@/src/hooks/useProtectedRoute';
 import { initializeApiClient } from '@/src/services/api/client';
 import { useAuthStore } from '@/src/stores/authStore';
@@ -41,6 +43,12 @@ function RootLayoutNav() {
   const { initialize: initializeSettings } = useSettingsStore();
   const { initialize: initializeNetwork, cleanup: cleanupNetwork } = useNetworkStore();
   const [isReady, setIsReady] = useState(false);
+
+  // Initialize offline support (loads cached data and starts sync monitoring)
+  useOfflineInit();
+
+  // Sync data to offline cache when it changes
+  useOfflineCacheSync();
 
   // Initialize stores on app start
   useEffect(() => {
@@ -85,6 +93,7 @@ function RootLayoutNav() {
           <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
         </Stack>
         <OfflineBanner />
+        <OfflineIndicator />
         <ToastMessage />
         <StatusBar style="auto" />
       </ThemeProvider>
