@@ -373,7 +373,7 @@ interface Translation { en: string; ru: string; tm: string; }
     - Cancel item (with reason)
   - Show decline reason if declined
 
-- [ ] **4.5** Implement "Add More Items" to existing order:
+- [x] **4.5** Implement "Add More Items" to existing order:
   - Navigate to menu with orderId
   - Add items to existing order
   - Send new items to kitchen

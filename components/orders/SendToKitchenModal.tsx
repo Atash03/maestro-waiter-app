@@ -7,6 +7,7 @@
  * - Loading state during API call
  * - Success animation
  * - Error display with retry option
+ * - Support for adding items to existing orders (Task 4.5)
  */
 
 import { useCallback, useEffect } from 'react';
@@ -44,6 +45,8 @@ export interface SendToKitchenModalProps {
   onCancel: () => void;
   onRetry: () => void;
   onDismissSuccess: () => void;
+  /** Whether we're adding items to an existing order (Task 4.5) */
+  isAddingToExistingOrder?: boolean;
   testID?: string;
 }
 
@@ -110,6 +113,7 @@ export function SendToKitchenModal({
   onCancel,
   onRetry,
   onDismissSuccess,
+  isAddingToExistingOrder = false,
   testID = 'send-to-kitchen-modal',
 }: SendToKitchenModalProps) {
   const colorScheme = useColorScheme();
@@ -148,9 +152,13 @@ export function SendToKitchenModal({
             <View style={styles.iconContainer}>
               <ThemedText style={styles.kitchenIcon}>🍳</ThemedText>
             </View>
-            <ThemedText style={[styles.title, { color: colors.text }]}>Send to Kitchen?</ThemedText>
+            <ThemedText style={[styles.title, { color: colors.text }]}>
+              {isAddingToExistingOrder ? 'Add Items to Order?' : 'Send to Kitchen?'}
+            </ThemedText>
             <ThemedText style={[styles.subtitle, { color: colors.textSecondary }]}>
-              {`Send ${totalQuantity} ${itemText} to the kitchen for preparation.`}
+              {isAddingToExistingOrder
+                ? `Add ${totalQuantity} ${itemText} to the existing order and send to kitchen.`
+                : `Send ${totalQuantity} ${itemText} to the kitchen for preparation.`}
             </ThemedText>
             <View style={styles.buttonRow}>
               <Button
@@ -169,7 +177,7 @@ export function SendToKitchenModal({
                 onPress={onConfirm}
                 style={styles.button}
               >
-                Send Order
+                {isAddingToExistingOrder ? 'Add Items' : 'Send Order'}
               </Button>
             </View>
           </Animated.View>
@@ -189,10 +197,12 @@ export function SendToKitchenModal({
               testID={`${testID}-loading-indicator`}
             />
             <ThemedText style={[styles.title, styles.titleSpaced, { color: colors.text }]}>
-              Sending Order...
+              {isAddingToExistingOrder ? 'Adding Items...' : 'Sending Order...'}
             </ThemedText>
             <ThemedText style={[styles.subtitle, { color: colors.textSecondary }]}>
-              {`Sending ${totalQuantity} ${itemText} to the kitchen`}
+              {isAddingToExistingOrder
+                ? `Adding ${totalQuantity} ${itemText} to the order`
+                : `Sending ${totalQuantity} ${itemText} to the kitchen`}
             </ThemedText>
           </Animated.View>
         );
@@ -207,10 +217,12 @@ export function SendToKitchenModal({
           >
             <SuccessIcon />
             <ThemedText style={[styles.title, styles.titleSpaced, { color: colors.text }]}>
-              Order Sent!
+              {isAddingToExistingOrder ? 'Items Added!' : 'Order Sent!'}
             </ThemedText>
             <ThemedText style={[styles.subtitle, { color: colors.textSecondary }]}>
-              {`${totalQuantity} ${itemText} sent to the kitchen`}
+              {isAddingToExistingOrder
+                ? `${totalQuantity} ${itemText} added and sent to kitchen`
+                : `${totalQuantity} ${itemText} sent to the kitchen`}
             </ThemedText>
           </Animated.View>
         );
@@ -383,6 +395,3 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
-
-// Export types for external use
-export type { SendToKitchenModalProps };

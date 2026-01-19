@@ -2111,3 +2111,46 @@ The OrderCard component was already created as part of Task 4.1. All features sp
 
 **Linting:**
 - All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)
+
+---
+
+### Task 4.5: Implement "Add More Items" to existing order (COMPLETED)
+
+**Files Modified:**
+- `app/(main)/order/new.tsx` - Updated Order Entry Screen to support adding items to existing orders:
+  - Accept `orderId` as optional parameter from route
+  - Pass `existingOrderId` to `sendToKitchen` hook when adding to existing order
+  - Show "Add Items" header title when adding to existing order
+  - Display table info in subtitle when adding to existing order
+  - "Add to Order" button text instead of "Send to Kitchen"
+  - Pass `isAddingToExistingOrder` prop to OrderSummary and SendToKitchenModal
+
+- `components/orders/SendToKitchenModal.tsx` - Updated modal to support adding items context:
+  - Added `isAddingToExistingOrder` optional prop
+  - Confirm state: "Add Items to Order?" title, "Add [X] items to the existing order and send to kitchen" subtitle
+  - Sending state: "Adding Items..." title with appropriate subtitle
+  - Success state: "Items Added!" title with "added and sent to kitchen" subtitle
+  - Confirm button: "Add Items" instead of "Send Order"
+
+**Implementation Details:**
+- Order Detail Screen (`app/(main)/order/[id].tsx`) already has "Add Items" button that navigates with both `tableId` and `orderId` params
+- `useSendToKitchen` hook already supports `existingOrderId` parameter to add items to existing order (skips order creation)
+- New items are:
+  1. Added to existing order via `POST /order-item/batch`
+  2. Status updated to SentToPrepare via `PATCH /order-item/batch/status`
+- After success, navigates back to order detail screen
+
+**User Flow:**
+1. User views order detail screen
+2. Taps "Add Items" button
+3. Navigated to Order Entry screen with `orderId` and `tableId` params
+4. Header shows "Add Items" with table info
+5. User selects items from menu
+6. Button shows "Add to Order"
+7. Confirmation modal shows "Add Items to Order?"
+8. On confirm, items added to existing order and sent to kitchen
+9. Success modal shows "Items Added!"
+10. Auto-navigates back to order detail screen
+
+**Linting:**
+- All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)

@@ -1,7 +1,7 @@
 /**
  * Order Entry Screen
  *
- * Main screen for creating new orders. Features:
+ * Main screen for creating new orders or adding items to existing orders. Features:
  * - Split-screen layout: Menu (left/top) + Order Summary (right/bottom)
  * - Responsive to screen orientation
  * - Menu categories with items
@@ -9,6 +9,7 @@
  * - Table information header
  * - Uses orderStore for state management (Task 3.9)
  * - Send to Kitchen flow with confirmation modal (Task 3.10)
+ * - Add items to existing order (Task 4.5)
  */
 
 import { router, useLocalSearchParams } from 'expo-router';
@@ -394,17 +395,19 @@ interface OrderSummaryProps {
   onSendOrder: () => void;
   isSending: boolean;
   isTablet: boolean;
+  isAddingToExistingOrder?: boolean;
 }
 
 function OrderSummary({
   items,
   total,
-  onEditItem,
+  onEditItem: _onEditItem,
   onRemoveItem,
   onUpdateQuantity,
   onSendOrder,
   isSending,
   isTablet,
+  isAddingToExistingOrder = false,
 }: OrderSummaryProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
@@ -441,7 +444,6 @@ function OrderSummary({
           <OrderSummaryItem
             key={item.id}
             item={item}
-            onEdit={onEditItem}
             onRemove={onRemoveItem}
             onUpdateQuantity={onUpdateQuantity}
           />
@@ -466,7 +468,7 @@ function OrderSummary({
           disabled={isSending || items.length === 0}
           fullWidth
         >
-          Send to Kitchen
+          {isAddingToExistingOrder ? 'Add to Order' : 'Send to Kitchen'}
         </Button>
       </View>
     </View>
@@ -486,7 +488,7 @@ function OrderEntrySkeleton() {
       </View>
 
       {/* Categories skeleton */}
-      <View style={styles.categoryListContent}>
+      <View style={styles.searchContainer}>
         <SkeletonGroup count={5} direction="horizontal" spacing={Spacing.sm}>
           <Skeleton variant="rounded" width={80} height={36} />
         </SkeletonGroup>
@@ -511,9 +513,12 @@ export default function OrderEntryScreen() {
   const colors = Colors[colorScheme ?? 'light'];
   const { width } = useWindowDimensions();
 
-  // Get tableId from route params
-  const params = useLocalSearchParams<{ tableId?: string }>();
+  // Get tableId and orderId from route params
+  // orderId is present when adding items to an existing order (Task 4.5)
+  const params = useLocalSearchParams<{ tableId?: string; orderId?: string }>();
   const tableId = params.tableId ?? '';
+  const existingOrderId = params.orderId ?? '';
+  const isAddingToExistingOrder = Boolean(existingOrderId);
 
   // Determine if tablet layout
   const isTablet = width >= TABLET_BREAKPOINT;
@@ -694,13 +699,19 @@ export default function OrderEntryScreen() {
   const handleConfirmSend = useCallback(async () => {
     if (!hasItems) return;
 
-    const result = await sendToKitchen(tableId, orderItems, orderNotes);
+    // Pass existingOrderId when adding to an existing order (Task 4.5)
+    const result = await sendToKitchen(
+      tableId,
+      orderItems,
+      orderNotes,
+      existingOrderId || undefined
+    );
 
     if (result.success) {
       // Temporarily disable send button for 3 seconds to prevent double-sends
       setSendDisabledUntil(Date.now() + 3000);
     }
-  }, [hasItems, tableId, orderItems, orderNotes, sendToKitchen]);
+  }, [hasItems, tableId, orderItems, orderNotes, existingOrderId, sendToKitchen]);
 
   // Handle cancel send modal
   const handleCancelSend = useCallback(() => {
@@ -715,12 +726,20 @@ export default function OrderEntryScreen() {
   }, [clearSendError, retrySend]);
 
   // Handle dismiss success - clear order and navigate back
+  // When adding to existing order (Task 4.5), navigate back to order detail
   const handleDismissSuccess = useCallback(() => {
     setShowSendModal(false);
     clearOrder();
     resetSendState();
-    router.back();
-  }, [clearOrder, resetSendState]);
+
+    if (isAddingToExistingOrder) {
+      // Navigate back to order detail screen
+      router.back();
+    } else {
+      // Navigate back (usually to table selection)
+      router.back();
+    }
+  }, [clearOrder, resetSendState, isAddingToExistingOrder]);
 
   // Handle close
   const handleClose = useCallback(() => {
@@ -749,11 +768,13 @@ export default function OrderEntryScreen() {
           </TouchableOpacity>
           <View style={styles.headerTitle}>
             <ThemedText style={styles.headerTitleText}>
-              {table ? `Table ${table.title}` : 'New Order'}
+              {isAddingToExistingOrder ? 'Add Items' : table ? `Table ${table.title}` : 'New Order'}
             </ThemedText>
             {table?.zone && (
               <ThemedText style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-                {getTranslatedText(table.zone.title)}
+                {isAddingToExistingOrder
+                  ? `Table ${table.title} • ${getTranslatedText(table.zone.title)}`
+                  : getTranslatedText(table.zone.title)}
               </ThemedText>
             )}
           </View>
@@ -811,11 +832,12 @@ export default function OrderEntryScreen() {
             onSendOrder={handleSendOrderPress}
             isSending={isSending || isSendTemporarilyDisabled}
             isTablet={isTablet}
+            isAddingToExistingOrder={isAddingToExistingOrder}
           />
         </View>
       </View>
 
-      {/* Send to Kitchen Modal (Task 3.10) */}
+      {/* Send to Kitchen Modal (Task 3.10, Task 4.5) */}
       <SendToKitchenModal
         visible={showSendModal}
         state={modalState}
@@ -826,6 +848,7 @@ export default function OrderEntryScreen() {
         onCancel={handleCancelSend}
         onRetry={handleRetrySend}
         onDismissSuccess={handleDismissSuccess}
+        isAddingToExistingOrder={isAddingToExistingOrder}
         testID="send-to-kitchen-modal"
       />
 
