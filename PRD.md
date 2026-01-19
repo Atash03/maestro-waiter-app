@@ -399,7 +399,7 @@ interface Translation { en: string; ru: string; tm: string; }
 - Quick response actions
 
 ### Tasks
-- [ ] **5.1** Implement SSE connection (`services/sse/sseClient.ts`):
+- [x] **5.1** Implement SSE connection (`services/sse/sseClient.ts`):
   - Connect to `GET /sse` with session headers
   - Subscribe to topics: `waiter`, `org`
   - Handle reconnection on disconnect

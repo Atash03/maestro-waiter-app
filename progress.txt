@@ -2263,3 +2263,41 @@ Implemented comprehensive order modification features including changing table, 
 - All files pass Biome linting checks
 - Pre-existing TypeScript type issues in Card component style prop (not introduced by this task)
 
+
+---
+
+### Task 5.1: Implement SSE connection (COMPLETED)
+
+**Files Created:**
+- `src/services/sse/sseClient.ts` - Full-featured SSE client with:
+  - `SSEClient` class with configurable base URL, session ID, and topics
+  - Connection to `GET /sse` endpoint with required headers (`maestro-session-id`, `x-maestro-topics`)
+  - Support for all SSE topics: `waiter`, `org`, `kitchen`, `bar`
+  - Automatic reconnection with exponential backoff (1s to 30s, max 10 attempts)
+  - Last event ID storage in AsyncStorage for event replay on reconnection
+  - Event handler registration with `on()` and `off()` methods
+  - Type-safe event handling for all SSE event types:
+    - `waiter:call` - New waiter call notification
+    - `waiter:call-acknowledged` - Call acknowledged by waiter
+    - `waiter:call-completed` - Call completed
+    - `waiter:call-cancelled` - Call cancelled
+    - `order:created` - New order created
+    - `order:updated` - Order status updated
+    - `order-item:created` - New order item added
+    - `order-item:updated` - Order item status updated
+  - Connection state tracking (`disconnected`, `connecting`, `connected`, `reconnecting`)
+  - Session and topic update methods (auto-reconnect on change)
+  - Singleton pattern: `initializeSSEClient`, `getSSEClient`, `isSSEClientInitialized`, `resetSSEClient`
+- `src/services/sse/index.ts` - Central export file for SSE services
+
+**Key Features:**
+- Uses `react-native-sse` library for EventSource support
+- Stores `Last-Event-ID` header for reconnection replay
+- Exponential backoff with jitter for reconnection
+- Type-safe event payloads mapped to event types
+- Handler cleanup on disconnect
+- Manual disconnect vs automatic reconnect distinction
+
+**Linting:**
+- All files pass Biome linting checks
+
