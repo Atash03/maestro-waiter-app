@@ -265,7 +265,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - `GET /extra` - Available extras/add-ons
   - Pre-fetch on app load for faster access
 
-- [ ] **3.3** Create Order Entry Screen (`app/(main)/order/new.tsx`):
+- [x] **3.3** Create Order Entry Screen (`app/(main)/order/new.tsx`):
   - Accept tableId as parameter
   - Split-screen layout: Menu (left/top) + Order Summary (right/bottom)
   - Responsive to screen orientation

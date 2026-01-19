@@ -1268,3 +1268,82 @@
 
 **Linting:**
 - All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)
+
+---
+
+### Task 3.3: Create Order Entry Screen (COMPLETED)
+
+**Files Created:**
+- `app/(main)/_layout.tsx` - Main route group layout with Stack navigator for order screens
+- `app/(main)/order/new.tsx` - Full-featured Order Entry Screen with:
+  - `LocalOrderItem` interface for local order state (before API submission)
+  - `LocalOrder` interface for complete order state
+  - `parsePrice(price)` - Parse price string to number
+  - `formatPrice(price)` - Format number to 2 decimal places
+  - `calculateExtrasTotal(extras, availableExtras)` - Calculate extras total price
+  - `calculateItemSubtotal(item, availableExtras)` - Calculate item subtotal with extras
+  - `calculateOrderTotal(items)` - Calculate total order amount
+  - `CategoryChip` component - Individual category chip with Kitchen/Bar color coding
+  - `CategoryList` component - Horizontal scrollable category chips with "All" option
+  - `MenuSearch` component - Search input with clear button
+  - `MenuItemCard` component - Menu item card with quantity badge, unavailable overlay, press animation
+  - `MenuItemGrid` component - Grid of menu items (2 columns for phone, 3 for tablet)
+  - `OrderSummaryItem` component - Order item with quantity controls, remove button, extras/notes display
+  - `OrderSummary` component - Order items list with totals and "Send to Kitchen" button
+  - `OrderEntrySkeleton` component - Loading skeleton for initial load
+  - `OrderEntryScreen` - Main screen with split-screen layout (tablet) or stacked (phone)
+  - Table header with zone name display
+  - Category filtering and search functionality
+  - Live order summary with running totals
+  - Pull-to-refresh for menu data
+  - Loading overlay for background fetches
+
+- `src/__tests__/order-entry-screen.test.tsx` - 48 tests covering:
+  - Helper functions (12 tests):
+    - parsePrice: valid prices, undefined/empty, invalid strings
+    - formatPrice: decimal formatting, zero handling
+    - calculateExtrasTotal: with extras, empty array, non-existent extras
+    - calculateItemSubtotal: base price, with extras
+    - calculateOrderTotal: sum subtotals, empty order
+  - Route Parameters (1 test): tableId from route params
+  - Data Fetching Integration (4 tests): useMenuData, useTable, loading state, refetchAll
+  - Category Filtering (3 tests): filter by category, all items, store update
+  - Search Filtering (5 tests): title search, description search, case insensitive, store update, combined filter
+  - Menu Item Data (3 tests): price, isActive, categoryId
+  - Category Data (2 tests): type property, translation structure
+  - Extras Data (2 tests): actualPrice, isActive
+  - Table Data (2 tests): zone information, title display
+  - Order State Management (2 tests): order item fields, extras structure
+  - Navigation (1 test): router.back
+  - Module Export (2 tests): default export, helper function exports
+  - Translation Helper (3 tests): English default, fallback, language fallthrough
+  - Inactive Items (2 tests): identify inactive, active selectable
+  - Category Colors (2 tests): Kitchen orange, Bar blue
+  - Screen Layout (2 tests): tablet breakpoint, sidebar width
+
+**Files Modified:**
+- `app/_layout.tsx` - Added `(main)` route group to Stack navigator
+
+**Features Implemented:**
+- Split-screen layout: Menu (left/top) + Order Summary (right/bottom)
+- Responsive design: Tablet (side-by-side) vs Phone (stacked)
+- Menu categories with horizontal scrollable chips
+- Color-coded categories (Kitchen: orange, Bar: blue)
+- Menu search with real-time filtering
+- Menu item grid with quantity badges
+- Unavailable items grayed out with overlay
+- Press animation on menu item cards
+- Live order summary with item list
+- Quantity controls (+/-) for each order item
+- Remove item functionality
+- Running totals display
+- "Send to Kitchen" button (API implementation pending Task 3.10)
+- Pull-to-refresh for menu data
+- Loading skeleton on initial load
+- Table header with zone name
+
+**Test Results:**
+- 859 tests passing (811 previous + 48 order entry screen tests)
+
+**Linting:**
+- All files pass Biome linting checks
