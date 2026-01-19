@@ -482,3 +482,66 @@
 
 **Linting:**
 - All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)
+
+---
+
+### Task 2.1: Create table store (COMPLETED)
+
+**Files Created:**
+- `src/stores/tableStore.ts` - Full-featured Zustand table store with:
+  - `TableState` interface defining all state and actions
+  - Tables array cache from API
+  - Zones array cache from API
+  - Selected table ID tracking
+  - Selected zone ID tracking
+  - Loading states for tables and zones (independent)
+  - Error state handling
+  - `fetchTables()` - Fetches all tables from API
+  - `fetchZones()` - Fetches all zones from API
+  - `fetchAll()` - Fetches both tables and zones in parallel
+  - `selectTable(tableId)` - Selects a table by ID
+  - `selectZone(zoneId)` - Selects a zone by ID (clears table selection if table not in new zone)
+  - `getTableById(tableId)` - Returns table by ID
+  - `getZoneById(zoneId)` - Returns zone by ID
+  - `getTablesByZone(zoneId)` - Returns all tables in a specific zone
+  - `clearError()` - Clears error message
+  - `reset()` - Resets store to initial state
+
+**Custom Hooks Exported:**
+- `useTableStore` - Full store access
+- `useTables` - Optimized hook for tables array only
+- `useZones` - Optimized hook for zones array only
+- `useSelectedTable` - Returns the full selected table object
+- `useSelectedZone` - Returns the full selected zone object
+- `useTablesInSelectedZone` - Returns tables filtered by selected zone
+- `useTableLoading` - Loading states (isLoadingTables, isLoadingZones, isLoading)
+- `useTableError` - Error state only
+- `useSelectedIds` - Selected IDs (selectedTableId, selectedZoneId)
+
+**Files Modified:**
+- `src/stores/index.ts` - Updated to export all table store functions and types
+- `jest.config.js` - Added table-store.test.ts to test match patterns
+
+**Tests Created:**
+- `src/__tests__/table-store.test.ts` - 36 tests covering:
+  - Initial state verification
+  - fetchTables success and error handling
+  - fetchZones success and error handling
+  - fetchAll parallel execution
+  - selectTable functionality
+  - selectZone functionality (including table selection clearing)
+  - getTableById functionality
+  - getZoneById functionality
+  - getTablesByZone filtering
+  - clearError functionality
+  - reset functionality
+  - Loading state transitions
+  - All hook exports verification
+  - TableState type export verification
+  - Store index exports verification
+
+**Test Results:**
+- 339 tests passing (303 previous + 36 table store tests)
+
+**Linting:**
+- All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)

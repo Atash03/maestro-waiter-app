@@ -194,7 +194,7 @@ interface Translation { en: string; ru: string; tm: string; }
 - Enable table selection for order creation
 
 ### Tasks
-- [ ] **2.1** Create table store (`stores/tableStore.ts`):
+- [x] **2.1** Create table store (`stores/tableStore.ts`):
   - Cache tables and zones data
   - Track selected table
   - Filter tables by zone

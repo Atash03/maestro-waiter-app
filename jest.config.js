@@ -11,6 +11,7 @@ module.exports = {
         '<rootDir>/src/__tests__/api-endpoints.test.ts',
         '<rootDir>/src/__tests__/auth-store.test.ts',
         '<rootDir>/src/__tests__/protected-route.test.ts',
+        '<rootDir>/src/__tests__/table-store.test.ts',
       ],
       setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
       transform: {

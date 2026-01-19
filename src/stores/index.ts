@@ -11,3 +11,16 @@ export {
   useIsAuthenticated,
   useRememberMe,
 } from './authStore';
+
+export {
+  type TableState,
+  useSelectedIds,
+  useSelectedTable,
+  useSelectedZone,
+  useTableError,
+  useTableLoading,
+  useTableStore,
+  useTables,
+  useTablesInSelectedZone,
+  useZones,
+} from './tableStore';
