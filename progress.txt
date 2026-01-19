@@ -1520,3 +1520,76 @@
 
 **Linting:**
 - All files pass Biome linting checks
+
+---
+
+### Task 3.6: Create Menu Search (COMPLETED)
+
+**Files Created:**
+- `components/menu/MenuSearch.tsx` - Full-featured menu search component with:
+  - Prominent search bar at top
+  - Real-time filtering as user types with debounce (300ms delay)
+  - Search across name and description
+  - Recent searches history with AsyncStorage persistence
+  - Clear button to reset search
+  - Focus/blur animations using react-native-reanimated
+  - Theme-aware colors (light/dark mode)
+  - `MenuSearch` main component with all features
+  - `ClearButton` component with fade animation
+  - `SearchIcon` component
+  - `RecentSearchItemRow` component for individual recent search entries
+  - `RecentSearchesDropdown` component with header and Clear All button
+  - Configurable props: showRecentSearches, maxRecentSearches, autoFocus, disabled
+  - Full TypeScript types and testIDs for all interactive elements
+
+**Utility Functions Exported:**
+- `loadRecentSearches()` - Load recent searches from AsyncStorage
+- `saveRecentSearches(searches)` - Save recent searches to AsyncStorage
+- `addToRecentSearches(searches, query, maxSearches)` - Add a search to the list
+- `removeFromRecentSearches(searches, query)` - Remove a search from the list
+- `clearRecentSearches()` - Clear all recent searches from storage
+
+**Types Exported:**
+- `MenuSearchProps` - Component props interface
+- `RecentSearchItem` - Recent search item with query and timestamp
+
+**Files Modified:**
+- `components/menu/index.ts` - Already exports MenuSearch component and all utility functions
+
+**Tests Created:**
+- `src/__tests__/menu-search.test.tsx` - 48 tests covering:
+  - Utility functions (21 tests):
+    - addToRecentSearches: add new, move existing, case-insensitive, max limit, empty/whitespace queries, trimming, timestamp
+    - removeFromRecentSearches: remove, case-insensitive, not found, empty list
+    - loadRecentSearches: load, null, invalid JSON, non-array, error handling
+    - saveRecentSearches: save, error handling
+    - clearRecentSearches: remove, error handling
+  - Component rendering (6 tests): renders, input, icon, placeholder, value
+  - Clear button (3 tests): hidden when empty, shown when content, hidden when disabled
+  - Text input props (1 test): correct properties
+  - Recent searches loading (2 tests): loads when enabled, skips when disabled
+  - Export verification (13 tests): all component and function exports
+  - Type verification (2 tests): MenuSearchProps, RecentSearchItem
+
+**Features Implemented:**
+- Prominent search bar at top of menu
+- Real-time filtering as user types (debounced 300ms)
+- Search icon with focus color change
+- Clear button with fade animation
+- Recent searches history dropdown
+  - Shows when input focused and empty
+  - Stores up to 10 recent searches (configurable)
+  - Persisted to AsyncStorage
+  - Individual remove buttons
+  - Clear All button
+  - Auto-hide on blur with delay
+- Keyboard submit to add to history
+- Disabled state support
+- Theme-aware colors (light/dark mode)
+- Full TypeScript types
+
+**Test Results:**
+- 1047 tests passing (999 previous + 48 menu search tests)
+
+**Linting:**
+- All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)

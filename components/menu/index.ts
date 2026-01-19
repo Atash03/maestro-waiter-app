@@ -37,3 +37,17 @@ export {
   MenuItemList,
   parsePrice,
 } from './MenuItemList';
+
+// Menu Search Component Types
+export type { MenuSearchProps, RecentSearchItem } from './MenuSearch';
+
+// Menu Search Component
+export {
+  addToRecentSearches,
+  clearRecentSearches,
+  default as MenuSearchDefault,
+  loadRecentSearches,
+  MenuSearch,
+  removeFromRecentSearches,
+  saveRecentSearches,
+} from './MenuSearch';

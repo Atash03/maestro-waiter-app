@@ -284,7 +284,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - "Not available" state for inactive items
   - Quantity badges if already in order
 
-- [ ] **3.6** Create Menu Search (`components/menu/MenuSearch.tsx`):
+- [x] **3.6** Create Menu Search (`components/menu/MenuSearch.tsx`):
   - Prominent search bar at top
   - Real-time filtering as user types
   - Search across name and description
