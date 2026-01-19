@@ -14,6 +14,10 @@ export {
 
 export {
   type TableState,
+  type TableViewMode,
+  useAssignedTableIds,
+  useAssignedTables,
+  useIsTableAssigned,
   useSelectedIds,
   useSelectedTable,
   useSelectedZone,
@@ -21,6 +25,9 @@ export {
   useTableLoading,
   useTableStore,
   useTables,
+  useTablesByViewMode,
   useTablesInSelectedZone,
+  useViewMode,
+  useViewModeToggle,
   useZones,
 } from './tableStore';

@@ -235,7 +235,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Action buttons: New Order, View Bill, Transfer Table
   - Order history for the table (today)
 
-- [ ] **2.7** Implement "My Section" View:
+- [x] **2.7** Implement "My Section" View:
   - Filter to show only waiter's assigned tables (if applicable)
   - Highlight assigned tables vs other sections
   - Quick toggle between "My Tables" and "All Tables"

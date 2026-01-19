@@ -955,3 +955,93 @@
 
 **Linting:**
 - All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)
+
+---
+
+### Task 2.7: Implement "My Section" View (COMPLETED)
+
+**Files Created:**
+- `src/__tests__/my-section.test.tsx` - 50 tests covering all "My Section" functionality
+
+**Files Modified:**
+- `src/stores/tableStore.ts` - Added "My Section" state and actions:
+  - `TableViewMode` type: 'all' | 'mySection'
+  - `viewMode` state: Current view mode (all tables or my section)
+  - `assignedTableIds` state: Set of table IDs assigned to current waiter
+  - `setViewMode(mode)` - Set the view mode
+  - `toggleViewMode()` - Toggle between 'all' and 'mySection'
+  - `setAssignedTableIds(tableIds)` - Set the list of assigned table IDs
+  - `addAssignedTableId(tableId)` - Add a table to assigned tables
+  - `removeAssignedTableId(tableId)` - Remove a table from assigned tables
+  - `isTableAssigned(tableId)` - Check if a table is assigned
+  - `getAssignedTables()` - Get all assigned Table objects
+
+- `src/stores/index.ts` - Added exports for new hooks and types:
+  - `TableViewMode` type
+  - `useViewMode` - Get current view mode
+  - `useAssignedTableIds` - Get assigned table IDs Set
+  - `useAssignedTables` - Get assigned Table objects
+  - `useIsTableAssigned(tableId)` - Check if specific table is assigned
+  - `useViewModeToggle` - Get view mode with toggle functions
+  - `useTablesByViewMode` - Get tables filtered by view mode
+
+- `components/tables/TableItem.tsx` - Added assigned table highlighting:
+  - `isAssigned` prop: Whether table is assigned to current waiter
+  - `showAssignedIndicator` prop: Show star indicator for assigned tables
+  - Gold star indicator (★) on bottom-left of assigned tables
+
+- `app/(tabs)/tables/index.tsx` - Added "My Section" UI:
+  - `ViewModeToggle` component: Toggle button between "My Tables" and "All Tables"
+    - Shows assigned count badge when in "My Tables" mode
+    - Hint text showing counts (e.g., "3 of 10 assigned to you")
+  - `MySectionEmptyState` component: Empty state when no tables assigned
+    - "Show All Tables" button to switch view modes
+  - Updated `FloorPlanCanvas` to pass `assignedTableIds` and `highlightAssigned`
+  - Tables filtered by view mode in addition to zone filter
+  - Assigned tables highlighted with star indicator in "All Tables" view
+
+- `jest.config.js` - Added my-section.test.tsx to node test patterns
+
+**Features Implemented:**
+- Quick toggle between "My Tables" and "All Tables" views
+- Filter floor plan to show only waiter's assigned tables in "My Section" mode
+- Star indicator (★) highlighting assigned tables in "All Tables" view
+- Empty state with "Show All Tables" button when no assigned tables
+- Assigned count display in toggle button and hint text
+- Store-level state management for assigned tables
+- Full support for adding/removing individual table assignments
+
+**Custom Hooks Added:**
+- `useViewMode()` - Returns current view mode ('all' | 'mySection')
+- `useAssignedTableIds()` - Returns Set of assigned table IDs
+- `useAssignedTables()` - Returns array of assigned Table objects
+- `useIsTableAssigned(tableId)` - Returns boolean for specific table
+- `useViewModeToggle()` - Returns viewMode, toggleViewMode, setViewMode
+- `useTablesByViewMode()` - Returns tables filtered by current view mode
+
+**Tests Created:**
+- 50 tests covering:
+  - TableStore view mode state (2 tests)
+  - setViewMode action (2 tests)
+  - toggleViewMode action (3 tests)
+  - setAssignedTableIds action (3 tests)
+  - addAssignedTableId action (3 tests)
+  - removeAssignedTableId action (2 tests)
+  - isTableAssigned action (2 tests)
+  - getAssignedTables action (3 tests)
+  - reset action (2 tests)
+  - useViewMode hook (2 tests)
+  - useAssignedTableIds hook (1 test)
+  - useAssignedTables hook (1 test)
+  - useIsTableAssigned hook (2 tests)
+  - useViewModeToggle hook (2 tests)
+  - useTablesByViewMode hook (2 tests)
+  - TableViewMode type (2 tests)
+  - Store exports verification (7 tests)
+  - TableState interface verification (9 tests)
+
+**Test Results:**
+- 631 tests passing (581 previous + 50 my-section tests)
+
+**Linting:**
+- All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)

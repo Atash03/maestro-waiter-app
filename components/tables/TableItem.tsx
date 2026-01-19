@@ -49,6 +49,10 @@ export interface TableItemProps {
   onLongPress?: (table: Table) => void;
   /** Whether this table is currently selected */
   isSelected?: boolean;
+  /** Whether this table is assigned to the current waiter (for My Section highlighting) */
+  isAssigned?: boolean;
+  /** Whether to show assigned indicator when in "All Tables" view */
+  showAssignedIndicator?: boolean;
   /** Test ID prefix for testing */
   testID?: string;
 }
@@ -108,6 +112,8 @@ export function TableItem({
   onPress,
   onLongPress,
   isSelected = false,
+  isAssigned = false,
+  showAssignedIndicator = false,
   testID,
 }: TableItemProps) {
   const statusColor = getStatusColor(table.status);
@@ -303,6 +309,13 @@ export function TableItem({
         {table.hasActiveOrder && table.status !== 'needsAttention' && (
           <View style={styles.orderIndicator} testID={`table-order-${table.id}`} />
         )}
+
+        {/* Assigned indicator (shows when in "All Tables" view and table is assigned) */}
+        {showAssignedIndicator && isAssigned && (
+          <View style={styles.assignedIndicator} testID={`table-assigned-${table.id}`}>
+            <ThemedText style={styles.assignedIndicatorText}>★</ThemedText>
+          </View>
+        )}
       </TouchableOpacity>
     </Animated.View>
   );
@@ -381,6 +394,24 @@ const styles = StyleSheet.create({
     backgroundColor: StatusColors.occupied,
     borderWidth: 1,
     borderColor: '#FFFFFF',
+  },
+  assignedIndicator: {
+    position: 'absolute',
+    bottom: 4,
+    left: 4,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#FFD700',
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  assignedIndicatorText: {
+    fontSize: 10,
+    color: '#000000',
+    fontWeight: '700',
   },
 });
 

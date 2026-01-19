@@ -5,12 +5,18 @@
  * - Cache tables and zones data
  * - Track selected table
  * - Filter tables by zone
+ * - "My Section" view for waiter's assigned tables
  */
 
 import { create } from 'zustand';
 import { getTables } from '../services/api/tables';
 import { getZones } from '../services/api/zones';
 import type { Table, Zone } from '../types/models';
+
+/**
+ * View mode for the floor plan
+ */
+export type TableViewMode = 'all' | 'mySection';
 
 /**
  * Table store state interface
@@ -24,6 +30,8 @@ export interface TableState {
   isLoadingTables: boolean;
   isLoadingZones: boolean;
   error: string | null;
+  viewMode: TableViewMode;
+  assignedTableIds: Set<string>;
 
   // Actions
   fetchTables: () => Promise<void>;
@@ -36,6 +44,13 @@ export interface TableState {
   getTablesByZone: (zoneId: string) => Table[];
   clearError: () => void;
   reset: () => void;
+  setViewMode: (mode: TableViewMode) => void;
+  toggleViewMode: () => void;
+  setAssignedTableIds: (tableIds: string[]) => void;
+  addAssignedTableId: (tableId: string) => void;
+  removeAssignedTableId: (tableId: string) => void;
+  isTableAssigned: (tableId: string) => boolean;
+  getAssignedTables: () => Table[];
 }
 
 /**
@@ -49,6 +64,8 @@ const initialState = {
   isLoadingTables: false,
   isLoadingZones: false,
   error: null as string | null,
+  viewMode: 'all' as TableViewMode,
+  assignedTableIds: new Set<string>(),
 };
 
 /**
@@ -171,7 +188,65 @@ export const useTableStore = create<TableState>((set, get) => ({
    * Reset store to initial state
    */
   reset: () => {
-    set(initialState);
+    set({ ...initialState, assignedTableIds: new Set<string>() });
+  },
+
+  /**
+   * Set the view mode (all tables or my section)
+   */
+  setViewMode: (mode: TableViewMode) => {
+    set({ viewMode: mode });
+  },
+
+  /**
+   * Toggle between 'all' and 'mySection' view modes
+   */
+  toggleViewMode: () => {
+    const { viewMode } = get();
+    set({ viewMode: viewMode === 'all' ? 'mySection' : 'all' });
+  },
+
+  /**
+   * Set the list of assigned table IDs for "My Section" view
+   * This should be called when orders are loaded/updated
+   */
+  setAssignedTableIds: (tableIds: string[]) => {
+    set({ assignedTableIds: new Set(tableIds) });
+  },
+
+  /**
+   * Add a table ID to the assigned tables
+   */
+  addAssignedTableId: (tableId: string) => {
+    const { assignedTableIds } = get();
+    const newSet = new Set(assignedTableIds);
+    newSet.add(tableId);
+    set({ assignedTableIds: newSet });
+  },
+
+  /**
+   * Remove a table ID from the assigned tables
+   */
+  removeAssignedTableId: (tableId: string) => {
+    const { assignedTableIds } = get();
+    const newSet = new Set(assignedTableIds);
+    newSet.delete(tableId);
+    set({ assignedTableIds: newSet });
+  },
+
+  /**
+   * Check if a table is assigned to the current waiter
+   */
+  isTableAssigned: (tableId: string) => {
+    return get().assignedTableIds.has(tableId);
+  },
+
+  /**
+   * Get all tables assigned to the current waiter
+   */
+  getAssignedTables: () => {
+    const { tables, assignedTableIds } = get();
+    return tables.filter((t) => assignedTableIds.has(t.id));
   },
 }));
 
@@ -235,3 +310,55 @@ export const useSelectedIds = () =>
     selectedTableId: state.selectedTableId,
     selectedZoneId: state.selectedZoneId,
   }));
+
+/**
+ * Hook to get current view mode
+ */
+export const useViewMode = () => useTableStore((state) => state.viewMode);
+
+/**
+ * Hook to get assigned table IDs
+ */
+export const useAssignedTableIds = () => useTableStore((state) => state.assignedTableIds);
+
+/**
+ * Hook to get assigned tables (full Table objects)
+ * Note: This selector returns a filtered array. For stable references, use useTableStore directly.
+ */
+export const useAssignedTables = () => {
+  const tables = useTableStore((state) => state.tables);
+  const assignedTableIds = useTableStore((state) => state.assignedTableIds);
+  return tables.filter((t) => assignedTableIds.has(t.id));
+};
+
+/**
+ * Hook to check if a specific table is assigned
+ */
+export const useIsTableAssigned = (tableId: string) =>
+  useTableStore((state) => state.assignedTableIds.has(tableId));
+
+/**
+ * Hook to get view mode state and toggle action
+ */
+export const useViewModeToggle = () => {
+  const viewMode = useTableStore((state) => state.viewMode);
+  const toggleViewMode = useTableStore((state) => state.toggleViewMode);
+  const setViewMode = useTableStore((state) => state.setViewMode);
+  return { viewMode, toggleViewMode, setViewMode };
+};
+
+/**
+ * Hook to get tables filtered by view mode (all tables or my section)
+ * When viewMode is 'mySection', returns only assigned tables
+ * When viewMode is 'all', returns all tables
+ */
+export const useTablesByViewMode = () => {
+  const tables = useTableStore((state) => state.tables);
+  const viewMode = useTableStore((state) => state.viewMode);
+  const assignedTableIds = useTableStore((state) => state.assignedTableIds);
+
+  if (viewMode === 'mySection') {
+    return tables.filter((t) => assignedTableIds.has(t.id));
+  }
+  return tables;
+};

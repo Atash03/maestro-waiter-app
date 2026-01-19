@@ -28,9 +28,10 @@ import { ThemedView } from '@/components/themed-view';
 import { Badge } from '@/components/ui/Badge';
 import { Skeleton, SkeletonGroup } from '@/components/ui/Skeleton';
 import { Spinner } from '@/components/ui/Spinner';
-import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { BorderRadius, BrandColors, Colors, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTablesAndZones, useTablesByZone } from '@/src/hooks/useTableQueries';
+import type { TableViewMode } from '@/src/stores/tableStore';
 import { useTableStore } from '@/src/stores/tableStore';
 import type { Table, Translation, Zone } from '@/src/types/models';
 
@@ -148,6 +149,65 @@ function ZoneTabs({ zones, selectedZoneId, onSelectZone }: ZoneTabsProps) {
 }
 
 // ============================================================================
+// View Mode Toggle Component
+// ============================================================================
+
+interface ViewModeToggleProps {
+  viewMode: TableViewMode;
+  onToggle: () => void;
+  assignedCount: number;
+  totalCount: number;
+}
+
+function ViewModeToggle({ viewMode, onToggle, assignedCount, totalCount }: ViewModeToggleProps) {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
+
+  const isMySection = viewMode === 'mySection';
+
+  return (
+    <View style={styles.viewModeContainer} testID="view-mode-toggle-container">
+      <TouchableOpacity
+        testID="view-mode-toggle"
+        style={[
+          styles.viewModeToggle,
+          {
+            backgroundColor: isMySection ? BrandColors.primary : colors.backgroundSecondary,
+            borderColor: isMySection ? BrandColors.primary : colors.border,
+          },
+        ]}
+        onPress={onToggle}
+        activeOpacity={0.7}
+      >
+        <ThemedText
+          style={[styles.viewModeText, isMySection && styles.viewModeTextActive]}
+          testID="view-mode-label"
+        >
+          {isMySection ? 'My Tables' : 'All Tables'}
+        </ThemedText>
+        {isMySection && (
+          <View style={[styles.viewModeBadge, { backgroundColor: '#FFFFFF' }]}>
+            <ThemedText style={[styles.viewModeBadgeText, { color: BrandColors.primary }]}>
+              {assignedCount}
+            </ThemedText>
+          </View>
+        )}
+      </TouchableOpacity>
+
+      {/* Quick toggle hint */}
+      <ThemedText
+        style={[styles.viewModeHint, { color: colors.textMuted }]}
+        testID="view-mode-hint"
+      >
+        {isMySection
+          ? `Showing ${assignedCount} assigned table${assignedCount !== 1 ? 's' : ''}`
+          : `${assignedCount} of ${totalCount} assigned to you`}
+      </ThemedText>
+    </View>
+  );
+}
+
+// ============================================================================
 // Floor Plan Canvas Component
 // ============================================================================
 
@@ -155,9 +215,17 @@ interface FloorPlanCanvasProps {
   tables: TableItemData[];
   onTablePress: (table: Table) => void;
   onTableLongPress: (table: Table) => void;
+  assignedTableIds?: Set<string>;
+  highlightAssigned?: boolean;
 }
 
-function FloorPlanCanvas({ tables, onTablePress, onTableLongPress }: FloorPlanCanvasProps) {
+function FloorPlanCanvas({
+  tables,
+  onTablePress,
+  onTableLongPress,
+  assignedTableIds = new Set(),
+  highlightAssigned = false,
+}: FloorPlanCanvasProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
@@ -251,6 +319,8 @@ function FloorPlanCanvas({ tables, onTablePress, onTableLongPress }: FloorPlanCa
             table={table}
             onPress={onTablePress}
             onLongPress={onTableLongPress}
+            isAssigned={assignedTableIds.has(table.id)}
+            showAssignedIndicator={highlightAssigned}
           />
         ))}
       </Animated.View>
@@ -370,6 +440,36 @@ function EmptyState() {
 }
 
 // ============================================================================
+// My Section Empty State Component
+// ============================================================================
+
+interface MySectionEmptyStateProps {
+  onShowAll: () => void;
+}
+
+function MySectionEmptyState({ onShowAll }: MySectionEmptyStateProps) {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
+
+  return (
+    <ThemedView style={styles.emptyContainer} testID="my-section-empty">
+      <ThemedText style={styles.emptyText}>No assigned tables</ThemedText>
+      <ThemedText style={styles.emptySubtext}>
+        Tables with your active orders will appear here
+      </ThemedText>
+      <TouchableOpacity
+        testID="show-all-tables-button"
+        style={[styles.showAllButton, { backgroundColor: colors.tint }]}
+        onPress={onShowAll}
+        activeOpacity={0.7}
+      >
+        <ThemedText style={styles.showAllButtonText}>Show All Tables</ThemedText>
+      </TouchableOpacity>
+    </ThemedView>
+  );
+}
+
+// ============================================================================
 // Main Floor Plan Screen
 // ============================================================================
 
@@ -377,8 +477,9 @@ export default function FloorPlanScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
-  // Table store for selection
-  const { selectedZoneId, selectZone, selectTable } = useTableStore();
+  // Table store for selection and view mode
+  const { selectedZoneId, selectZone, selectTable, viewMode, toggleViewMode, assignedTableIds } =
+    useTableStore();
 
   // Fetch tables and zones data
   const { tables, zones, isLoading, error, refetchAll } = useTablesAndZones({
@@ -390,7 +491,15 @@ export default function FloorPlanScreen() {
   const zonesData = zones.data?.data ?? [];
 
   // Filter tables by selected zone
-  const filteredTables = useTablesByZone(tablesData, selectedZoneId ?? undefined);
+  const tablesFilteredByZone = useTablesByZone(tablesData, selectedZoneId ?? undefined);
+
+  // Filter by view mode (my section or all)
+  const filteredTables = useMemo(() => {
+    if (viewMode === 'mySection') {
+      return tablesFilteredByZone.filter((table) => assignedTableIds.has(table.id));
+    }
+    return tablesFilteredByZone;
+  }, [tablesFilteredByZone, viewMode, assignedTableIds]);
 
   // Map tables with status
   const tablesWithStatus: TableItemData[] = useMemo(
@@ -401,6 +510,13 @@ export default function FloorPlanScreen() {
       })),
     [filteredTables]
   );
+
+  // Calculate assigned tables count for toggle display
+  const assignedCount = useMemo(() => {
+    return tablesFilteredByZone.filter((table) => assignedTableIds.has(table.id)).length;
+  }, [tablesFilteredByZone, assignedTableIds]);
+
+  const totalCount = tablesFilteredByZone.length;
 
   // Refresh state
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -459,6 +575,14 @@ export default function FloorPlanScreen() {
           </Badge>
         </View>
 
+        {/* View Mode Toggle (My Tables / All Tables) */}
+        <ViewModeToggle
+          viewMode={viewMode}
+          onToggle={toggleViewMode}
+          assignedCount={assignedCount}
+          totalCount={totalCount}
+        />
+
         {/* Zone Tabs */}
         {zonesData.length > 0 && (
           <ZoneTabs
@@ -483,13 +607,19 @@ export default function FloorPlanScreen() {
           testID="floor-plan-scroll"
         >
           {tablesWithStatus.length === 0 ? (
-            <EmptyState />
+            viewMode === 'mySection' ? (
+              <MySectionEmptyState onShowAll={() => toggleViewMode()} />
+            ) : (
+              <EmptyState />
+            )
           ) : (
             <View style={styles.canvasContainer}>
               <FloorPlanCanvas
                 tables={tablesWithStatus}
                 onTablePress={handleTablePress}
                 onTableLongPress={handleTableLongPress}
+                assignedTableIds={assignedTableIds}
+                highlightAssigned={viewMode === 'all'}
               />
             </View>
           )}
@@ -653,6 +783,54 @@ const styles = StyleSheet.create({
     fontSize: 14,
     opacity: 0.6,
     textAlign: 'center',
+  },
+  showAllButton: {
+    marginTop: Spacing.lg,
+    paddingHorizontal: Spacing['2xl'],
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.lg,
+  },
+  showAllButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  viewModeContainer: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    alignItems: 'flex-start',
+    gap: Spacing.xs,
+  },
+  viewModeToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    gap: Spacing.sm,
+  },
+  viewModeText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  viewModeTextActive: {
+    color: '#FFFFFF',
+  },
+  viewModeBadge: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.full,
+    minWidth: 20,
+    alignItems: 'center',
+  },
+  viewModeBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  viewModeHint: {
+    fontSize: 12,
+    paddingHorizontal: Spacing.xs,
   },
   loadingOverlay: {
     position: 'absolute',
