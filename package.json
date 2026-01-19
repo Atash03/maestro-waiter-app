@@ -13,7 +13,10 @@
     "test:coverage": "jest --coverage",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "format": "biome format --write ."
+    "format": "biome format --write .",
+    "bundle:analyze": "npx expo export --platform ios --source-maps && echo 'Source maps generated. Use source-map-explorer to analyze.'",
+    "bundle:ios": "npx expo export --platform ios",
+    "bundle:android": "npx expo export --platform android"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -59,8 +62,10 @@
     "@testing-library/react-native": "^13.3.3",
     "@types/jest": "^30.0.0",
     "@types/react": "~19.1.0",
+    "babel-plugin-transform-imports": "^2.0.0",
     "jest": "^30.2.0",
     "jest-expo": "^54.0.16",
+    "metro-minify-terser": "^0.83.3",
     "ts-jest": "^29.4.6",
     "typescript": "~5.9.2"
   },

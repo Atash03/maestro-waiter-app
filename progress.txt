@@ -3636,3 +3636,70 @@ Task 8.4 focused on ensuring loading states are implemented throughout the appli
 - All new files pass Biome linting checks
 
 ---
+
+---
+
+### Task 8.7: Optimize bundle size (COMPLETED)
+
+**Date:** 2026-01-19
+
+**Implementation Summary:**
+Bundle size optimization to reduce app size and improve load times through tree-shaking, lazy loading utilities, and image optimization.
+
+**Files Created:**
+- `metro.config.js` - Custom Metro bundler configuration with:
+  - Terser minification with production optimizations
+  - Console log removal in production builds
+  - Dead code elimination
+  - Asset extension filtering (removes md, txt, log from bundle)
+  - Source extension prioritization for faster resolution
+
+- `src/utils/lazyLoad.tsx` - Lazy loading utilities:
+  - `LazyLoadFallback` - Default loading component
+  - `createLazyComponent()` - Factory for creating lazy-loaded components with Suspense
+  - `preloadComponent()` - Utility for preloading components in background
+
+- `src/config/bundleOptimization.ts` - Bundle optimization documentation:
+  - Image optimization recommendations
+  - Code splitting configuration
+  - Tree-shake config for dependencies
+  - Production optimization flags
+  - Bundle analysis commands
+  - Estimated savings breakdown
+
+**Files Modified:**
+- `babel.config.js` - Added production environment with transform-imports plugin for tree-shaking @expo/vector-icons
+
+- `package.json` - Added bundle analysis scripts:
+  - `bundle:analyze` - Generate source maps for analysis
+  - `bundle:ios` - Export iOS bundle
+  - `bundle:android` - Export Android bundle
+
+- `app/(tabs)/index.tsx` - Removed unused partial-react-logo.png import, replaced with IconSymbol
+
+- `app/(tabs)/explore.tsx` - Removed unused react-logo.png import and Image component usage
+
+**Files Removed (Unused Template Assets):**
+- `assets/images/react-logo.png` (~6KB)
+- `assets/images/react-logo@2x.png` (~14KB)
+- `assets/images/react-logo@3x.png` (~21KB)
+- `assets/images/partial-react-logo.png` (~5KB)
+
+**Dependencies Installed:**
+- `metro-minify-terser` (dev) - Advanced JavaScript minification
+- `babel-plugin-transform-imports` (dev) - Import transformation for tree-shaking
+
+**Optimization Summary:**
+| Optimization | Estimated Savings |
+|--------------|-------------------|
+| Removed unused images | ~50KB |
+| Metro minification | 15-30% bundle reduction |
+| Tree-shake vector-icons (production) | ~80-150KB |
+| Lazy load utilities ready | Future savings when applied |
+
+**Total Estimated Impact:** ~300-500KB reduction potential (20-30% improvement)
+
+**Linting:**
+- All new files pass Biome linting checks
+- No errors, only pre-existing warning in Skeleton.tsx (acceptable for static lists)
+

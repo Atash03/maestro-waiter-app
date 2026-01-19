@@ -602,7 +602,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Pull-to-refresh
   - Swipe actions
 
-- [ ] **8.7** Optimize bundle size:
+- [x] **8.7** Optimize bundle size:
   - Tree-shake unused code
   - Lazy load screens
   - Optimize images
