@@ -22,6 +22,13 @@ export default function MainLayout() {
           presentation: 'fullScreenModal',
         }}
       />
+      <Stack.Screen
+        name="order/[id]"
+        options={{
+          headerShown: false,
+          title: 'Order Details',
+        }}
+      />
     </Stack>
   );
 }

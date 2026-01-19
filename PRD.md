@@ -344,7 +344,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Pull-to-refresh
   - Real-time updates via SSE
 
-- [ ] **4.2** Create Order Card Component (`components/orders/OrderCard.tsx`):
+- [x] **4.2** Create Order Card Component (`components/orders/OrderCard.tsx`):
   - Order code and table info
   - Order type badge (Dine-in, Delivery, To go)
   - Status indicator with color
@@ -353,7 +353,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Total amount
   - Tap to view details
 
-- [ ] **4.3** Create Order Detail Screen (`app/(main)/order/[id].tsx`):
+- [x] **4.3** Create Order Detail Screen (`app/(main)/order/[id].tsx`):
   - Full order information
   - Customer info (if attached)
   - List of order items with status

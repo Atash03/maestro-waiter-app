@@ -1967,3 +1967,93 @@
 
 **Linting:**
 - All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)
+
+---
+
+### Task 4.2: Create Order Card Component (COMPLETED - Already implemented in Task 4.1)
+
+The OrderCard component was already created as part of Task 4.1. All features specified in the PRD are implemented:
+- Order code and table info
+- Order type badge (Dine-in, Delivery, To go)
+- Status indicator with color
+- Time since created
+- Item count summary
+- Total amount
+- Tap to view details (onPress callback)
+
+---
+
+### Task 4.3: Create Order Detail Screen (COMPLETED)
+
+**Files Created:**
+- `app/(main)/order/[id].tsx` - Full-featured Order Detail Screen with:
+  - Order header with order code, status badge, type badge
+  - Ready items indicator badge
+  - Location/customer display (Table name for dine-in, customer name for delivery/to-go)
+  - Customer info section (phone, address for delivery orders)
+  - Order notes display
+  - Meta info row (item count, creation time, waiter name)
+  - Order items list with individual item cards:
+    - Item name with quantity
+    - Status badge color-coded (Pending gray, Sent yellow, Preparing orange, Ready green, Served muted, Declined/Canceled red)
+    - Extras display
+    - Notes display with italic styling
+    - Decline/cancel reason display (red text)
+    - Strikethrough styling for declined/canceled items
+    - Price display
+    - Action buttons: "Mark Served" (when Ready), "Cancel" (when Pending/Sent/Preparing)
+  - Total card with formatted price and service fee breakdown
+  - Action buttons for active orders: "Add Items", "Create Bill"
+  - Cancelled order reason display
+  - Pull-to-refresh functionality
+  - Loading skeleton state
+  - Error state with retry button
+  - Empty state when order not found
+  - Loading overlay for background fetches
+  - Animated entrance for items using react-native-reanimated
+  - Full TypeScript types and testIDs
+
+**Files Modified:**
+- `app/(main)/_layout.tsx` - Added route for `order/[id]` screen
+
+**Helper Functions Exported:**
+- `getTranslatedText(translation, fallback, preferredLang)` - Get translated text
+- `formatPrice(price)` - Format price for display ($X.XX)
+- `formatDateTime(dateString)` - Format date time for display
+- `getOrderStatusBadgeVariant(status)` - Map order status to badge variant
+- `getOrderStatusLabel(status)` - Get human-readable order status label
+- `getOrderTypeBadgeVariant(orderType)` - Map order type to badge variant
+- `getOrderTypeLabel(orderType)` - Get human-readable order type label
+- `getOrderItemBadgeVariant(status)` - Map order item status to badge variant
+- `getOrderItemStatusLabel(status)` - Get human-readable order item status label
+- `getOrderItemStatusColor(status)` - Get color for order item status
+- `canMarkAsServed(status)` - Check if item can be marked as served (Ready status)
+- `canCancelItem(status)` - Check if item can be cancelled (Pending/Sent/Preparing)
+- `isItemCancelled(status)` - Check if item is in cancelled/declined state
+- `countItemsByStatus(items, status)` - Count items by status
+- `getTotalQuantity(items)` - Get total quantity of items
+
+**Types Exported:**
+- `OrderItemRowProps` - Props for OrderItemRow component
+
+**Features Implemented:**
+- Full order information display
+- Customer info (for delivery/to-go orders)
+- List of order items with status color coding:
+  - Pending (gray)
+  - SentToPrepare (yellow)
+  - Preparing (orange)
+  - Ready (green, highlighted with left border)
+  - Served (muted)
+  - Declined/Canceled (red, strikethrough)
+- Swipe actions via buttons:
+  - Mark as Served (when Ready)
+  - Cancel item (with confirmation, when Pending/Sent/Preparing)
+- Show decline reason if declined
+- Action buttons: Add Items, Create Bill
+- Navigation from Orders List to Order Detail
+- Pull-to-refresh for order data
+- Loading and error states
+
+**Linting:**
+- All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)
