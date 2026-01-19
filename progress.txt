@@ -617,3 +617,73 @@
 
 **Linting:**
 - All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)
+
+---
+
+### Task 2.3: Create Floor Plan Screen (COMPLETED)
+
+**Files Created:**
+- `app/(tabs)/tables/index.tsx` - Full-featured Floor Plan Screen with:
+  - Zone tabs/segmented control for filtering tables by zone
+  - Interactive floor plan canvas with tables positioned using x, y, width, height from API
+  - Pinch-to-zoom gesture using react-native-gesture-handler `Gesture.Pinch()`
+  - Pan gesture for moving around the floor plan using `Gesture.Pan()`
+  - Combined simultaneous gesture handling for smooth interactions
+  - Table items with:
+    - Color-coded status indication (available/occupied/reserved/needsAttention)
+    - Press animation using react-native-reanimated
+    - Table title and capacity display
+    - Attention indicator for tables needing attention
+  - Zone tabs with horizontal scrolling
+  - "All" tab for viewing all tables across zones
+  - Status legend (collapsible) explaining color codes
+  - Pull-to-refresh functionality using RefreshControl
+  - Loading skeleton state for initial load
+  - Error state with retry button
+  - Empty state for when no tables exist
+  - Loading overlay indicator for background fetches
+  - Full TypeScript types and testIDs for all interactive elements
+  - Theme-aware colors supporting light/dark mode
+
+**Files Modified:**
+- `app/(tabs)/_layout.tsx` - Added Tables tab with `square.grid.2x2.fill` icon as the first tab
+- `jest.setup.js` - Added mock for `react-native-gesture-handler` with:
+  - GestureHandlerRootView, GestureDetector components
+  - Gesture.Pinch(), Gesture.Pan(), Gesture.Simultaneous(), Gesture.Tap() methods
+  - Support for gesture callbacks (onStart, onUpdate, onEnd)
+
+**Tests Created:**
+- `src/__tests__/floor-plan-screen.test.tsx` - 27 tests covering:
+  - Data fetching integration (useTablesAndZones hook usage, loading/error states)
+  - Zone filtering (useTablesByZone utility, zone selection)
+  - Table selection (selectTable, deselection)
+  - Zone data structure (active filtering, translation support)
+  - Table data structure (positioning, capacity, color, zoneId)
+  - Coordinate parsing (string to number conversion)
+  - Status colors verification
+  - Refetch functionality for pull-to-refresh
+  - Module export verification
+  - Translation helper function
+  - Empty state handling
+  - Canvas bounds calculation
+  - Table store integration
+
+**Features Implemented:**
+- Zone tabs with active zone filtering
+- Interactive floor plan canvas
+- Tables positioned using x, y, width, height from API
+- Pinch-to-zoom and pan gestures
+- Color-coded table status (available, occupied, reserved, needsAttention)
+- Pull-to-refresh with RefreshControl
+- Loading skeleton on initial load
+- Error state with retry functionality
+- Empty state for no tables
+- Status legend (collapsible)
+- Press animation on table items
+- Theme-aware styling (light/dark mode support)
+
+**Test Results:**
+- 404 tests passing (377 previous + 27 floor plan screen tests)
+
+**Linting:**
+- All files pass Biome linting checks

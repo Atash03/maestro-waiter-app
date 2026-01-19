@@ -205,7 +205,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - `GET /table` - Fetch all tables
   - Implement pull-to-refresh
 
-- [ ] **2.3** Create Floor Plan Screen (`app/(main)/(tabs)/tables/index.tsx`):
+- [x] **2.3** Create Floor Plan Screen (`app/(main)/(tabs)/tables/index.tsx`):
   - Display zones as tabs or segmented control
   - Interactive floor plan canvas
   - Tables positioned using x, y, width, height from API

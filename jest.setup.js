@@ -106,6 +106,44 @@ jest.mock('react-native-reanimated', () => {
   };
 });
 
+// Mock react-native-gesture-handler
+jest.mock('react-native-gesture-handler', () => {
+  const { View } = require('react-native');
+  const mockGesture = {
+    onStart: function () {
+      return this;
+    },
+    onUpdate: function () {
+      return this;
+    },
+    onEnd: function () {
+      return this;
+    },
+  };
+  return {
+    GestureHandlerRootView: View,
+    GestureDetector: ({ children }) => children,
+    Gesture: {
+      Pinch: () => ({ ...mockGesture }),
+      Pan: () => ({ ...mockGesture }),
+      Simultaneous: (...gestures) => gestures,
+      Tap: () => ({
+        ...mockGesture,
+        numberOfTaps: function () {
+          return this;
+        },
+      }),
+    },
+    TouchableOpacity: View,
+    ScrollView: View,
+    PanGestureHandler: View,
+    PinchGestureHandler: View,
+    TapGestureHandler: View,
+    State: {},
+    Directions: {},
+  };
+});
+
 // Suppress console warnings during tests
 global.console = {
   ...console,
