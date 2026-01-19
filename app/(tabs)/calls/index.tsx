@@ -15,6 +15,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { CallCard } from '@/components/calls';
+import { NotificationBell } from '@/components/common';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Badge } from '@/components/ui/Badge';
@@ -361,9 +362,12 @@ export default function CallsScreen() {
             </Badge>
           )}
         </View>
-        <Badge variant="default" size="sm">
-          {`${filteredCalls.length} calls`}
-        </Badge>
+        <View style={styles.headerRight}>
+          <Badge variant="default" size="sm">
+            {`${filteredCalls.length} calls`}
+          </Badge>
+          <NotificationBell testID="notification-bell" />
+        </View>
       </View>
 
       {/* Status Filter Tabs */}
@@ -444,6 +448,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
   },
   filterScrollView: {
     flexGrow: 0,

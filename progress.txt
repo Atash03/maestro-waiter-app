@@ -2584,3 +2584,45 @@ Each mutation follows this pattern:
 
 **Linting:**
 - All files pass Biome linting checks
+
+---
+
+### Task 5.8: Add notification bell icon to header (COMPLETED)
+
+**Files Created:**
+- `components/common/NotificationBell.tsx` - Notification bell component with:
+  - Badge showing pending waiter call count
+  - Tap to navigate to calls screen
+  - Pulsing animation when there are pending calls (bell ringing + scale pulse)
+  - Press animation feedback
+  - Uses `useBadgeCount` hook from notification store
+  - MaterialIcons for the bell icon
+  - Reanimated animations for smooth performance
+
+- `components/common/index.ts` - Export file for common components
+
+**Files Modified:**
+- `app/(tabs)/tables/index.tsx` - Added NotificationBell to header
+- `app/(tabs)/orders/index.tsx` - Added NotificationBell to header
+- `app/(tabs)/calls/index.tsx` - Added NotificationBell to header
+
+**Features Implemented:**
+1. Badge showing pending call count (displays "9+" for counts > 9)
+2. Tap to open calls screen using expo-router navigation
+3. Pulsing animation when new calls:
+   - Bell ringing animation (rotates left/right)
+   - Scale pulse animation
+   - Animations pause between cycles for subtle effect
+4. Badge scales in/out based on pending count
+5. Press feedback animation
+6. Icon color changes to red when there are pending calls
+7. Uses "notifications-active" icon when calls are pending
+
+**Component Props:**
+- `onPress?: () => void` - Override default navigation behavior
+- `size?: number` - Size of the bell icon (default: 24)
+- `testID?: string` - Test ID for testing
+
+**Linting:**
+- All files pass Biome linting checks
+

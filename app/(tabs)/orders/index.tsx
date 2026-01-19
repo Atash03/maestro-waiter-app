@@ -21,6 +21,7 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import { NotificationBell } from '@/components/common';
 import { OrderCard } from '@/components/orders/OrderCard';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -324,9 +325,12 @@ export default function OrdersListScreen() {
             </Badge>
           )}
         </View>
-        <Badge variant="default" size="sm">
-          {filteredOrders.length} orders
-        </Badge>
+        <View style={styles.headerRight}>
+          <Badge variant="default" size="sm">
+            {filteredOrders.length} orders
+          </Badge>
+          <NotificationBell testID="notification-bell" />
+        </View>
       </View>
 
       {/* Status Filter Tabs */}
@@ -443,6 +447,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
   },
   filterScrollView: {
     flexGrow: 0,

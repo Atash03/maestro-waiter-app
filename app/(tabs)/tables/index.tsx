@@ -21,6 +21,7 @@ import {
 } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import { NotificationBell } from '@/components/common';
 import type { TableItemData, TableStatus } from '@/components/tables';
 import { StatusLegend, TableItem } from '@/components/tables';
 import { ThemedText } from '@/components/themed-text';
@@ -524,9 +525,12 @@ export default function FloorPlanScreen() {
         {/* Header */}
         <View style={styles.header}>
           <ThemedText style={styles.headerTitle}>Floor Plan</ThemedText>
-          <Badge variant="default" size="sm" testID="table-count-badge">
-            {`${tablesWithStatus.length} tables`}
-          </Badge>
+          <View style={styles.headerRight}>
+            <Badge variant="default" size="sm" testID="table-count-badge">
+              {`${tablesWithStatus.length} tables`}
+            </Badge>
+            <NotificationBell testID="notification-bell" />
+          </View>
         </View>
 
         {/* View Mode Toggle (My Tables / All Tables) */}
@@ -618,6 +622,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
   },
   zoneTabsWrapper: {
     paddingVertical: Spacing.sm,

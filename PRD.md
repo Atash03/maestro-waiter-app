@@ -449,7 +449,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - `PUT /waiter-call/:id/cancel` - Cancel call
   - Optimistic updates for faster UI
 
-- [ ] **5.8** Add notification bell icon to header:
+- [x] **5.8** Add notification bell icon to header:
   - Badge showing pending call count
   - Tap to open calls screen
   - Pulsing animation when new calls
