@@ -5,6 +5,11 @@
  */
 
 export {
+  // Error handling hook
+  handleErrorSimple,
+  useErrorHandler,
+} from './useErrorHandler';
+export {
   // Query keys
   extraQueryKeys,
   // Combined hooks
@@ -31,6 +36,12 @@ export {
   useMenuItems,
   useMenuItemsByCategory,
 } from './useMenuQueries';
+export {
+  // Network status hooks
+  useIsOffline,
+  useIsOnline,
+  useNetworkStatus,
+} from './useNetworkStatus';
 export {
   // Utility functions
   countOrdersWithReadyItems,

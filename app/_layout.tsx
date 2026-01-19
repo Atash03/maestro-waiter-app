@@ -6,11 +6,15 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import 'react-native-reanimated';
+import ToastMessage from 'react-native-toast-message';
 
+import { OfflineBanner } from '@/components/common/OfflineBanner';
+import { ErrorBoundary } from '@/components/errors/ErrorBoundary';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuthCallbacks, useProtectedRoute } from '@/src/hooks/useProtectedRoute';
 import { initializeApiClient } from '@/src/services/api/client';
 import { useAuthStore } from '@/src/stores/authStore';
+import { useNetworkStore } from '@/src/stores/networkStore';
 import { useSettingsStore } from '@/src/stores/settingsStore';
 
 // Prevent the splash screen from auto-hiding
@@ -35,18 +39,26 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const { isInitializing, initialize: initializeAuth } = useAuthStore();
   const { initialize: initializeSettings } = useSettingsStore();
+  const { initialize: initializeNetwork, cleanup: cleanupNetwork } = useNetworkStore();
   const [isReady, setIsReady] = useState(false);
 
   // Initialize stores on app start
   useEffect(() => {
     async function initApp() {
+      // Initialize network monitoring
+      initializeNetwork();
       // Initialize settings and auth in parallel
       await Promise.all([initializeAuth(), initializeSettings()]);
       setIsReady(true);
       await SplashScreen.hideAsync();
     }
     initApp();
-  }, [initializeAuth, initializeSettings]);
+
+    // Cleanup network monitoring on unmount
+    return () => {
+      cleanupNetwork();
+    };
+  }, [initializeAuth, initializeSettings, initializeNetwork, cleanupNetwork]);
 
   // Set up API client callbacks for auth errors (401/403)
   useAuthCallbacks();
@@ -64,15 +76,19 @@ function RootLayoutNav() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="(main)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <Stack>
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="(main)" options={{ headerShown: false }} />
+          <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+        </Stack>
+        <OfflineBanner />
+        <ToastMessage />
+        <StatusBar style="auto" />
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 

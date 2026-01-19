@@ -3331,3 +3331,102 @@ The analysis confirmed these areas are already well-optimized:
 **Linting:**
 - All modified files pass Biome linting (only pre-existing warning about array index key in Skeleton.tsx)
 
+
+---
+
+### Task 8.3: Implement comprehensive error handling (COMPLETED)
+
+**Date:** 2026-01-19
+
+**Dependency Added:**
+- @react-native-community/netinfo - Network connectivity detection
+
+**Files Created:**
+- `src/stores/networkStore.ts` - Zustand store for network connectivity state
+  - Real-time network connectivity tracking
+  - Online/offline status detection
+  - Network state change listeners
+  - Connection type information (wifi, cellular, etc.)
+  - Selectors: `selectIsOffline`, `selectIsInternetReachable`
+
+- `src/services/errorHandler.ts` - Centralized error handling service
+  - Error transformation from API errors to user-friendly messages
+  - Error codes mapping (NETWORK_ERROR, TIMEOUT, UNAUTHORIZED, etc.)
+  - HTTP status code specific messages (400, 404, 409, 422, 429, 500, etc.)
+  - Helper functions: `transformError`, `createOfflineError`, `createRenderError`
+  - Error type checking: `isNetworkError`, `isAuthError`
+
+- `src/hooks/useErrorHandler.ts` - Error display hook
+  - Display errors as toast notifications
+  - Automatic error transformation
+  - Retry callback support
+  - Integration with network store for offline detection
+  - Haptic feedback on errors
+
+- `src/hooks/useNetworkStatus.ts` - Network status hook
+  - Easy access to network connectivity status
+  - `useIsOffline` and `useIsOnline` convenience hooks
+
+- `components/errors/ErrorBoundary.tsx` - React Error Boundary
+  - Catches JavaScript errors in child component tree
+  - User-friendly fallback UI with retry button
+  - Custom fallback support via render props
+  - Error logging with component stack
+
+- `components/errors/NetworkErrorBoundary.tsx` - Network-specific error boundary
+  - Shows offline UI when device is disconnected
+  - Network error display with retry functionality
+  - Loading state during retry attempts
+
+- `components/common/OfflineBanner.tsx` - Offline indicator banner
+  - Animated entrance/exit
+  - Non-intrusive banner at top of screen
+  - Auto-hides when connection is restored
+  - Safe area aware
+
+- `components/errors/index.ts` - Error components export
+- `src/services/index.ts` - Services index with error handler exports
+
+**Files Modified:**
+- `app/_layout.tsx` - Added error handling infrastructure
+  - Wrapped app with ErrorBoundary
+  - Added OfflineBanner component
+  - Added ToastMessage component
+  - Initialize network store on app start
+  - Cleanup network monitoring on unmount
+
+- `src/hooks/index.ts` - Added exports for error handling hooks
+  - `useErrorHandler`, `handleErrorSimple`
+  - `useNetworkStatus`, `useIsOffline`, `useIsOnline`
+
+- `src/stores/index.ts` - Added network store exports
+  - `useNetworkStore`, `selectIsOffline`, `selectIsInternetReachable`
+
+- `components/common/index.ts` - Added OfflineBanner export
+
+**Features Implemented:**
+1. **Network Error Boundaries**
+   - ErrorBoundary component catches render errors
+   - NetworkErrorBoundary for network-specific errors
+   - User-friendly fallback UI with retry options
+
+2. **API Error Toasts**
+   - Automatic error transformation to user-friendly messages
+   - Toast notifications for API errors
+   - Severity-based styling (error, warning, info)
+   - Tap to dismiss or retry
+
+3. **Offline Mode Indicator**
+   - OfflineBanner shows when device is offline
+   - Animated entrance/exit
+   - Safe area aware positioning
+
+4. **Retry Mechanisms**
+   - Retry callbacks in error handler
+   - Retry button in error boundaries
+   - Integration with existing API client retry logic
+
+**Linting:**
+- All new files pass Biome linting checks
+- Only pre-existing warning in Skeleton.tsx (array index key)
+

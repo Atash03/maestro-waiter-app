@@ -6,3 +6,4 @@
 
 export { CallNotification, type CallNotificationProps } from './CallNotification';
 export { NotificationBell, type NotificationBellProps } from './NotificationBell';
+export { OfflineBanner } from './OfflineBanner';
