@@ -22,7 +22,7 @@ import {
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import type { TableItemData, TableStatus } from '@/components/tables';
-import { getStatusColor, TableItem } from '@/components/tables';
+import { StatusLegend, TableItem } from '@/components/tables';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Badge } from '@/components/ui/Badge';
@@ -329,52 +329,6 @@ function FloorPlanCanvas({
 }
 
 // ============================================================================
-// Status Legend Component
-// ============================================================================
-
-function StatusLegend() {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
-
-  const statuses: { status: TableStatus; label: string }[] = [
-    { status: 'available', label: 'Available' },
-    { status: 'occupied', label: 'Occupied' },
-    { status: 'reserved', label: 'Reserved' },
-    { status: 'needsAttention', label: 'Needs Attention' },
-  ];
-
-  return (
-    <View
-      testID="status-legend"
-      style={[styles.legendContainer, { backgroundColor: colors.background }]}
-    >
-      <TouchableOpacity
-        testID="legend-toggle"
-        style={styles.legendToggle}
-        onPress={() => setIsExpanded(!isExpanded)}
-        activeOpacity={0.7}
-      >
-        <ThemedText style={styles.legendToggleText}>
-          {isExpanded ? 'Hide Legend' : 'Legend'}
-        </ThemedText>
-      </TouchableOpacity>
-
-      {isExpanded && (
-        <View style={styles.legendContent}>
-          {statuses.map(({ status, label }) => (
-            <View key={status} style={styles.legendItem}>
-              <View style={[styles.legendColor, { backgroundColor: getStatusColor(status) }]} />
-              <ThemedText style={styles.legendLabel}>{label}</ThemedText>
-            </View>
-          ))}
-        </View>
-      )}
-    </View>
-  );
-}
-
-// ============================================================================
 // Loading Skeleton
 // ============================================================================
 
@@ -625,8 +579,11 @@ export default function FloorPlanScreen() {
           )}
         </ScrollView>
 
-        {/* Status Legend */}
-        <StatusLegend />
+        {/* Status Legend - collapsible color key */}
+        <StatusLegend
+          showAssignedIndicator={viewMode === 'all' && assignedTableIds.size > 0}
+          position="bottom-right"
+        />
 
         {/* Loading overlay for refresh */}
         {tables.isFetching && !isRefreshing && tablesData.length > 0 && (
@@ -704,43 +661,6 @@ const styles = StyleSheet.create({
   gridPattern: {
     ...StyleSheet.absoluteFillObject,
     opacity: 0.1,
-  },
-  legendContainer: {
-    position: 'absolute',
-    bottom: Spacing.lg,
-    right: Spacing.lg,
-    borderRadius: BorderRadius.lg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  legendToggle: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-  },
-  legendToggleText: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  legendContent: {
-    paddingHorizontal: Spacing.md,
-    paddingBottom: Spacing.md,
-    gap: Spacing.xs,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  legendColor: {
-    width: 16,
-    height: 16,
-    borderRadius: BorderRadius.sm,
-  },
-  legendLabel: {
-    fontSize: 12,
   },
   skeletonContainer: {
     flex: 1,

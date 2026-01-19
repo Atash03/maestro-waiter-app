@@ -3,6 +3,8 @@
  * Exports all table-related components
  */
 
+export type { StatusLegendProps } from './StatusLegend';
+export { getStatusItems, StatusLegend } from './StatusLegend';
 export type { TableDetailModalProps } from './TableDetailModal';
 export {
   formatTime,

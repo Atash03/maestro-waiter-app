@@ -1045,3 +1045,76 @@
 
 **Linting:**
 - All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)
+
+---
+
+### Task 2.8: Add table status legend (COMPLETED)
+
+**Files Created:**
+- `components/tables/StatusLegend.tsx` - Full-featured collapsible status legend component with:
+  - Color key for all table statuses (available, occupied, reserved, needs attention)
+  - Collapsible functionality to save screen space
+  - Animated expand/collapse transitions using react-native-reanimated
+  - Theme-aware colors (light/dark mode support)
+  - Optional assigned table indicator (star icon for "Your Table")
+  - Configurable position (bottom-right, bottom-left, top-right, top-left)
+  - `getStatusItems()` helper function exported for testing
+  - Proper testIDs for all interactive elements
+  - Props: initialExpanded, showAssignedIndicator, position, testID
+
+**Files Modified:**
+- `components/tables/index.ts` - Updated to export StatusLegend component, getStatusItems function, and StatusLegendProps type
+- `app/(tabs)/tables/index.tsx` - Updated to use reusable StatusLegend component:
+  - Removed inline StatusLegend implementation
+  - Imported StatusLegend from @/components/tables
+  - Shows assigned indicator when in "all" view mode with assigned tables
+  - Removed unused legend-related styles
+  - Removed unused getStatusColor import
+- `jest.config.js` - Added status-legend.test.tsx to web test match patterns
+
+**Tests Created:**
+- `src/__tests__/status-legend.test.tsx` - 33 tests covering:
+  - getStatusItems helper function (5 tests):
+    - Returns all four status items
+    - Includes available status with correct color
+    - Includes occupied status with correct color
+    - Includes reserved status with correct color
+    - Includes needsAttention status with correct color
+  - Rendering (3 tests):
+    - Renders and displays Legend text when collapsed
+    - Renders toggle button with chevron
+    - Component renders without errors
+  - Collapsible functionality (5 tests):
+    - Starts collapsed by default
+    - Starts expanded when initialExpanded is true
+    - Contains all status labels in DOM when rendered
+    - Collapsed and expanded states show different text
+    - Shows Hide Legend text when expanded
+  - Status items display (5 tests):
+    - Displays Available, Occupied, Reserved, Needs Attention labels
+    - Displays all four status labels when expanded
+  - Assigned indicator (4 tests):
+    - Does not show Your Table text when showAssignedIndicator is false
+    - Shows Your Table text when showAssignedIndicator is true
+    - Shows star icon when showAssignedIndicator is true
+    - Does not show star icon when showAssignedIndicator is false
+  - Position variations (5 tests):
+    - Renders with all position options (bottom-right, bottom-left, top-right, top-left)
+    - All positions render the same content
+  - Theme support (1 test)
+  - Exports (2 tests): StatusLegend component and getStatusItems function
+  - Export verification from index (3 tests)
+
+**Features Implemented:**
+- Collapsible legend with animated expand/collapse
+- Color key for all table status types (Available, Occupied, Reserved, Needs Attention)
+- Status colors match theme StatusColors
+- Optional "Your Table" indicator with gold star icon
+- Four position options for placement on screen
+- Theme-aware styling (light/dark mode)
+
+**Test Results:**
+- 664 tests passing (631 previous + 33 status legend tests)
+
+**Linting:**
+- All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)

@@ -240,7 +240,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Highlight assigned tables vs other sections
   - Quick toggle between "My Tables" and "All Tables"
 
-- [ ] **2.8** Add table status legend:
+- [x] **2.8** Add table status legend:
   - Color key explaining each status
   - Collapsible for more screen space
 
