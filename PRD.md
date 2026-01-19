@@ -310,7 +310,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Service fee display (if applicable)
   - Total amount
 
-- [ ] **3.9** Implement Order Item Management:
+- [x] **3.9** Implement Order Item Management:
   - Add item to order (local state first)
   - Edit item quantity and notes
   - Remove item from order

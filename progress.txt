@@ -1732,3 +1732,85 @@
 
 **Linting:**
 - All files pass Biome linting checks
+
+---
+
+### Task 3.9: Implement Order Item Management (COMPLETED)
+
+**Files Created/Modified:**
+- `src/stores/orderStore.ts` - Full-featured Zustand store for order item management with:
+  - `LocalOrderItem` interface for order items before API submission
+  - `LocalOrder` interface for complete order state
+  - `SelectedExtra` interface for extras with quantities
+  - `OrderState` interface with all state and actions
+  - Constants: MIN_QUANTITY (1), MAX_QUANTITY (99), MAX_NOTES_LENGTH (500)
+  - `initializeOrder(tableId)` - Initialize new order for a table
+  - `clearOrder()` - Clear current order
+  - `setOrderNotes(notes)` - Set order-level notes
+  - `addItem(menuItem, quantity?, notes?, extras?)` - Add item to order with customizations
+  - `removeItem(itemId)` - Remove item from order
+  - `updateItemQuantity(itemId, quantity)` - Update item quantity (auto-recalculates subtotal)
+  - `updateItemNotes(itemId, notes)` - Update item notes
+  - `updateItemExtras(itemId, extras)` - Update item extras (auto-recalculates subtotal)
+  - `updateItem(itemId, updates)` - Update multiple item fields at once
+  - `duplicateItem(itemId)` - Create duplicate of existing item with same customizations
+  - `setAvailableExtras(extras)` - Set available extras for price calculations
+  - `recalculateSubtotals()` - Recalculate all item subtotals
+  - `getItemById(itemId)`, `getItemsByMenuItemId(menuItemId)`, `getItemQuantityByMenuItemId(menuItemId)`
+  - `getOrderTotal()`, `getItemCount()`, `getTotalQuantity()`, `hasItems()`
+  - Helper functions: `generateLocalId`, `parsePrice`, `formatPrice`, `getFormattedPrice`, `clampQuantity`, `truncateNotes`, `calculateSelectedExtrasTotal`, `calculateExtrasTotal`, `calculateItemSubtotal`, `convertToOrderItemExtras`
+
+- `app/(main)/order/new.tsx` - Updated Order Entry Screen to use orderStore:
+  - Replaced local `useState` with `useOrderItems`, `useOrderTotals`, `useOrderActions` hooks
+  - Added `useEffect` to initialize order on mount and set available extras
+  - Updated handlers to use store actions:
+    - `handleMenuItemPress` calls `addItem(menuItem, 1, '', [])`
+    - `handleRemoveItem` calls `removeItem(itemId)`
+    - `handleUpdateQuantity` calls `updateItemQuantity(itemId, quantity)`
+    - `handleDuplicateItem` (prepared for edit modal) calls `duplicateItem(itemId)`
+    - `handleSendOrder` calls `clearOrder()` after success
+    - `handleClose` calls `clearOrder()` before navigation
+  - Badge shows `itemCount` from store totals
+  - MenuItemGrid and OrderSummary receive `orderItems` from store
+
+- `jest.config.js` - Added `order-store.test.ts` to node test match patterns
+
+**Custom Hooks Exported:**
+- `useOrderStore` - Full store access
+- `useCurrentOrder` - Returns current order object
+- `useOrderItems` - Returns order items array (with stable empty array reference)
+- `useOrderTableId` - Returns table ID
+- `useOrderNotes` - Returns order notes
+- `useAvailableExtras` - Returns available extras array
+- `useOrderModified` - Returns modification state (uses shallow comparison)
+- `useOrderTotals` - Returns total, itemCount, totalQuantity, hasItems (uses shallow comparison)
+- `useMenuItemQuantityInOrder(menuItemId)` - Returns quantity for specific menu item
+- `useOrderActions` - Returns all action functions (uses shallow comparison)
+
+**Features Implemented:**
+- Add item to order (local state before API submission)
+- Edit item quantity with automatic subtotal recalculation
+- Edit item notes with max length validation (500 chars)
+- Edit item extras with automatic subtotal recalculation
+- Remove item from order
+- Duplicate item with same customizations (quantity, notes, extras)
+- Order store integrated with Order Entry Screen
+- Store properly handles empty array references for React re-render optimization
+- Uses zustand's `useShallow` for stable object references in hooks
+
+**Test Results:**
+- 124 order store tests passing covering:
+  - Helper functions (30 tests): generateLocalId, parsePrice, formatPrice, getFormattedPrice, clampQuantity, truncateNotes, calculateSelectedExtrasTotal, calculateExtrasTotal, calculateItemSubtotal, convertToOrderItemExtras
+  - Initial state (4 tests)
+  - Order lifecycle (10 tests): initializeOrder, clearOrder, setOrderNotes
+  - Item management (35 tests): addItem, removeItem, updateItemQuantity, updateItemNotes, updateItemExtras, updateItem, duplicateItem
+  - Selectors (15 tests): getItemById, getItemsByMenuItemId, getItemQuantityByMenuItemId, getOrderTotal, getItemCount, getTotalQuantity, hasItems
+  - Utility actions (3 tests): recalculateSubtotals, setAvailableExtras, reset
+  - Custom hooks (14 tests): all hooks verified
+  - Export verification (13 tests): constants, helper functions, hooks
+
+**Total Test Count:**
+- 1315 tests passing (1191 previous + 124 order store tests)
+
+**Linting:**
+- All files pass Biome linting checks (1 acceptable warning for array index key in SkeletonGroup)

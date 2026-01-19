@@ -29,6 +29,39 @@ export {
   useSelectedCategoryId,
 } from './menuStore';
 export {
+  // Helper functions
+  calculateExtrasTotal,
+  calculateItemSubtotal,
+  calculateSelectedExtrasTotal,
+  clampQuantity,
+  convertToOrderItemExtras,
+  formatPrice,
+  generateLocalId,
+  getFormattedPrice,
+  // Types
+  type LocalOrder,
+  type LocalOrderItem,
+  // Constants
+  MAX_NOTES_LENGTH,
+  MAX_QUANTITY,
+  MIN_QUANTITY,
+  type OrderState,
+  parsePrice,
+  type SelectedExtra,
+  truncateNotes,
+  // Store and hooks
+  useAvailableExtras,
+  useCurrentOrder,
+  useMenuItemQuantityInOrder,
+  useOrderActions,
+  useOrderItems,
+  useOrderModified,
+  useOrderNotes,
+  useOrderStore,
+  useOrderTableId,
+  useOrderTotals,
+} from './orderStore';
+export {
   type TableState,
   type TableViewMode,
   useAssignedTableIds,

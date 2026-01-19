@@ -7,10 +7,11 @@
  * - Menu categories with items
  * - Live order summary with running totals
  * - Table information header
+ * - Uses orderStore for state management (Task 3.9)
  */
 
 import { router, useLocalSearchParams } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   RefreshControl,
   ScrollView,
@@ -39,34 +40,15 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useMenuData } from '@/src/hooks/useMenuQueries';
 import { useTable } from '@/src/hooks/useTableQueries';
 import { getTranslatedText, useMenuStore } from '@/src/stores/menuStore';
+import {
+  formatPrice as formatOrderPrice,
+  type LocalOrderItem,
+  parsePrice as parseOrderPrice,
+  useOrderActions,
+  useOrderItems,
+  useOrderTotals,
+} from '@/src/stores/orderStore';
 import type { Extra, MenuItem, OrderItemExtra } from '@/src/types/models';
-
-// ============================================================================
-// Types
-// ============================================================================
-
-/**
- * Order item in the local order state (before sending to API)
- */
-export interface LocalOrderItem {
-  id: string; // Local unique ID
-  menuItemId: string;
-  menuItem: MenuItem;
-  quantity: number;
-  notes: string;
-  extras: OrderItemExtra[];
-  unitPrice: number;
-  subtotal: number;
-}
-
-/**
- * Local order state
- */
-export interface LocalOrder {
-  tableId: string;
-  items: LocalOrderItem[];
-  notes: string;
-}
 
 // ============================================================================
 // Constants
@@ -80,26 +62,17 @@ const SIDEBAR_WIDTH = 360;
 // ============================================================================
 
 /**
- * Generate a unique local ID
- */
-function generateLocalId(): string {
-  return `local_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-}
-
-/**
- * Parse price string to number
+ * Parse price string to number (re-export for component use)
  */
 export function parsePrice(price: string | undefined): number {
-  if (!price) return 0;
-  const parsed = Number.parseFloat(price);
-  return Number.isNaN(parsed) ? 0 : parsed;
+  return parseOrderPrice(price);
 }
 
 /**
- * Format price for display
+ * Format price for display (re-export for component use)
  */
 export function formatPrice(price: number): string {
-  return price.toFixed(2);
+  return formatOrderPrice(price);
 }
 
 /**
@@ -567,14 +540,38 @@ export default function OrderEntryScreen() {
   // Menu store for category selection and search
   const { selectedCategoryId, selectCategory, searchQuery, setSearchQuery } = useMenuStore();
 
-  // Local order state
-  const [order, setOrder] = useState<LocalOrder>({
-    tableId,
-    items: [],
-    notes: '',
-  });
+  // Order store - state management for order items (Task 3.9)
+  const orderItems = useOrderItems();
+  const { total: orderTotal, itemCount, hasItems } = useOrderTotals();
+  const {
+    initializeOrder,
+    clearOrder,
+    addItem,
+    removeItem,
+    updateItemQuantity,
+    duplicateItem,
+    setAvailableExtras,
+  } = useOrderActions();
+
+  // Local UI state
   const [isSending, setIsSending] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Initialize order when screen mounts
+  useEffect(() => {
+    initializeOrder(tableId);
+    return () => {
+      // Cleanup: clear order when leaving screen (optional - can be kept for persistence)
+      // clearOrder();
+    };
+  }, [tableId, initializeOrder]);
+
+  // Update available extras when extras data changes
+  useEffect(() => {
+    if (extrasData.length > 0) {
+      setAvailableExtras(extrasData);
+    }
+  }, [extrasData, setAvailableExtras]);
 
   // Filter items by category and search
   const filteredItems = useMemo(() => {
@@ -604,9 +601,6 @@ export default function OrderEntryScreen() {
     return result;
   }, [itemsData, selectedCategoryId, searchQuery]);
 
-  // Calculate order total
-  const orderTotal = useMemo(() => calculateOrderTotal(order.items), [order.items]);
-
   // Handle refresh
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -622,76 +616,69 @@ export default function OrderEntryScreen() {
     [selectCategory]
   );
 
-  // Handle menu item press - add to order
-  const handleMenuItemPress = useCallback((menuItem: MenuItem) => {
-    const unitPrice = parsePrice(menuItem.price);
-    const newItem: LocalOrderItem = {
-      id: generateLocalId(),
-      menuItemId: menuItem.id,
-      menuItem,
-      quantity: 1,
-      notes: '',
-      extras: [],
-      unitPrice,
-      subtotal: unitPrice,
-    };
+  // Handle menu item press - add to order using orderStore
+  const handleMenuItemPress = useCallback(
+    (menuItem: MenuItem) => {
+      addItem(menuItem, 1, '', []);
+    },
+    [addItem]
+  );
 
-    setOrder((prev) => ({
-      ...prev,
-      items: [...prev.items, newItem],
-    }));
+  // Handle edit order item (placeholder for future modal)
+  const handleEditItem = useCallback((_item: LocalOrderItem) => {
+    // TODO: Open MenuItemModal for editing existing item
   }, []);
 
-  // Handle edit order item
-  const handleEditItem = useCallback((_item: LocalOrderItem) => {}, []);
+  // Handle remove order item using orderStore
+  const handleRemoveItem = useCallback(
+    (itemId: string) => {
+      removeItem(itemId);
+    },
+    [removeItem]
+  );
 
-  // Handle remove order item
-  const handleRemoveItem = useCallback((itemId: string) => {
-    setOrder((prev) => ({
-      ...prev,
-      items: prev.items.filter((item) => item.id !== itemId),
-    }));
-  }, []);
-
-  // Handle update quantity
+  // Handle update quantity using orderStore
   const handleUpdateQuantity = useCallback(
     (itemId: string, quantity: number) => {
-      setOrder((prev) => ({
-        ...prev,
-        items: prev.items.map((item) => {
-          if (item.id === itemId) {
-            const newSubtotal = calculateItemSubtotal({ ...item, quantity }, extrasData);
-            return { ...item, quantity, subtotal: newSubtotal };
-          }
-          return item;
-        }),
-      }));
+      updateItemQuantity(itemId, quantity);
     },
-    [extrasData]
+    [updateItemQuantity]
+  );
+
+  // Handle duplicate item using orderStore (will be used by edit modal)
+  const _handleDuplicateItem = useCallback(
+    (itemId: string) => {
+      duplicateItem(itemId);
+    },
+    [duplicateItem]
   );
 
   // Handle send order
   const handleSendOrder = useCallback(async () => {
-    if (order.items.length === 0) return;
+    if (!hasItems) return;
 
     setIsSending(true);
     try {
+      // TODO: Task 3.10 will implement actual API call
       // For now, just simulate success and navigate back
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Clear order and navigate back
-      setOrder({ tableId, items: [], notes: '' });
+      clearOrder();
       router.back();
     } catch (_error) {
+      // Error handling will be implemented in Task 3.10
     } finally {
       setIsSending(false);
     }
-  }, [order, tableId]);
+  }, [hasItems, clearOrder]);
 
   // Handle close
   const handleClose = useCallback(() => {
+    // Clear order when closing (user cancelled)
+    clearOrder();
     router.back();
-  }, []);
+  }, [clearOrder]);
 
   // Show loading skeleton
   if (isLoadingMenu && itemsData.length === 0) {
@@ -723,7 +710,7 @@ export default function OrderEntryScreen() {
           </View>
         </View>
         <Badge variant="default" size="sm" testID="item-count-badge">
-          {`${order.items.length} items`}
+          {`${itemCount} items`}
         </Badge>
       </View>
 
@@ -757,7 +744,7 @@ export default function OrderEntryScreen() {
           >
             <MenuItemGrid
               items={filteredItems}
-              orderItems={order.items}
+              orderItems={orderItems}
               onItemPress={handleMenuItemPress}
               isTablet={isTablet}
             />
@@ -767,7 +754,7 @@ export default function OrderEntryScreen() {
         {/* Order summary section */}
         <View style={[styles.summarySection, isTablet && styles.summarySectionTablet]}>
           <OrderSummary
-            items={order.items}
+            items={orderItems}
             total={orderTotal}
             onEditItem={handleEditItem}
             onRemoveItem={handleRemoveItem}
