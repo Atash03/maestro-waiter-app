@@ -412,7 +412,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Badge count for unread
   - Sound/vibration preferences
 
-- [ ] **5.3** Implement Push Notification Handler:
+- [x] **5.3** Implement Push Notification Handler:
   - `waiter:call` - New call notification
   - `waiter:call-acknowledged` - Update call status
   - `waiter:call-completed` - Remove from active

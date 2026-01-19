@@ -2346,3 +2346,43 @@ Implemented comprehensive order modification features including changing table, 
 - All files pass Biome linting checks
 
 ---
+
+---
+
+### Task 5.3: Implement Push Notification Handler (COMPLETED)
+
+**Files Created:**
+- `src/services/notifications/notificationHandler.ts` - Notification handler with:
+  - `NotificationHandler` class for managing waiter call notifications
+  - SSE event handlers for waiter call events (call, acknowledged, completed, cancelled)
+  - Sound playback via `expo-av` with network-based sound URL and preloading
+  - Vibration feedback via `expo-haptics` with double-tap pattern for emphasis
+  - Integration with notification store for state management
+  - Respects user sound/vibration preferences
+  - Order item ready notification (light vibration when items become Ready)
+  - Singleton pattern with initialize/get/reset functions
+- `src/services/notifications/index.ts` - Central export for notification services
+
+**Dependencies Added:**
+- `expo-av@16.0.8` - Audio/video playback for notification sounds
+
+**Features Implemented:**
+1. **Waiter Call Event Handling:**
+   - `waiter:call` - Adds call to store, plays sound + vibration
+   - `waiter:call-acknowledged` - Updates call status in store
+   - `waiter:call-completed` - Updates call status in store
+   - `waiter:call-cancelled` - Removes call from store
+
+2. **Notification Feedback:**
+   - Sound playback from network URL (with preloading for faster subsequent plays)
+   - Vibration pattern using Haptics.NotificationFeedbackType.Warning (double-tap)
+   - Configurable via user preferences (sound/vibration can be disabled)
+   - Audio mode configured for playsInSilentModeIOS
+
+3. **Order Item Updates:**
+   - Light vibration feedback when order items become Ready
+   - Uses Haptics.NotificationFeedbackType.Success
+
+**Linting:**
+- All new files pass Biome linting checks (imports organized, formatting applied)
+
