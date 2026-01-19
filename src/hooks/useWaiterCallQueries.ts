@@ -150,7 +150,7 @@ export function useWaiterCall(
 // ============================================================================
 
 /**
- * Hook for acknowledging a waiter call
+ * Hook for acknowledging a waiter call with optimistic updates
  *
  * @example
  * ```tsx
@@ -163,21 +163,62 @@ export function useWaiterCall(
 export function useAcknowledgeCall() {
   const queryClient = useQueryClient();
 
-  return useMutation<AcknowledgeWaiterCallResponse, Error, string>({
+  return useMutation<
+    AcknowledgeWaiterCallResponse,
+    Error,
+    string,
+    { previousCalls?: GetWaiterCallsResponse }
+  >({
     mutationFn: (id: string) => acknowledgeWaiterCall(id),
+    onMutate: async (id) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: waiterCallQueryKeys.lists() });
+
+      // Snapshot the previous value
+      const previousCalls = queryClient.getQueryData<GetWaiterCallsResponse>(
+        waiterCallQueryKeys.list()
+      );
+
+      // Optimistically update the call status
+      queryClient.setQueryData<GetWaiterCallsResponse>(waiterCallQueryKeys.list(), (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          data: old.data.map((call) =>
+            call.id === id
+              ? {
+                  ...call,
+                  status: WaiterCallStatus.ACKNOWLEDGED,
+                  acknowledgedAt: new Date().toISOString(),
+                }
+              : call
+          ),
+        };
+      });
+
+      return { previousCalls };
+    },
+    onError: (_err, _id, context) => {
+      // Rollback on error
+      if (context?.previousCalls) {
+        queryClient.setQueryData(waiterCallQueryKeys.list(), context.previousCalls);
+      }
+    },
     onSuccess: (data, id) => {
-      // Update the specific call in cache
+      // Update the specific call in cache with actual server data
       queryClient.setQueryData<GetWaiterCallResponse>(waiterCallQueryKeys.detail(id), (old) =>
         old ? { ...old, status: data.status, acknowledgedAt: data.acknowledgedAt } : old
       );
-      // Invalidate lists to refetch
+    },
+    onSettled: () => {
+      // Refetch to ensure consistency
       queryClient.invalidateQueries({ queryKey: waiterCallQueryKeys.lists() });
     },
   });
 }
 
 /**
- * Hook for completing a waiter call
+ * Hook for completing a waiter call with optimistic updates
  *
  * @example
  * ```tsx
@@ -190,21 +231,62 @@ export function useAcknowledgeCall() {
 export function useCompleteCall() {
   const queryClient = useQueryClient();
 
-  return useMutation<CompleteWaiterCallResponse, Error, string>({
+  return useMutation<
+    CompleteWaiterCallResponse,
+    Error,
+    string,
+    { previousCalls?: GetWaiterCallsResponse }
+  >({
     mutationFn: (id: string) => completeWaiterCall(id),
+    onMutate: async (id) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: waiterCallQueryKeys.lists() });
+
+      // Snapshot the previous value
+      const previousCalls = queryClient.getQueryData<GetWaiterCallsResponse>(
+        waiterCallQueryKeys.list()
+      );
+
+      // Optimistically update the call status
+      queryClient.setQueryData<GetWaiterCallsResponse>(waiterCallQueryKeys.list(), (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          data: old.data.map((call) =>
+            call.id === id
+              ? {
+                  ...call,
+                  status: WaiterCallStatus.COMPLETED,
+                  completedAt: new Date().toISOString(),
+                }
+              : call
+          ),
+        };
+      });
+
+      return { previousCalls };
+    },
+    onError: (_err, _id, context) => {
+      // Rollback on error
+      if (context?.previousCalls) {
+        queryClient.setQueryData(waiterCallQueryKeys.list(), context.previousCalls);
+      }
+    },
     onSuccess: (data, id) => {
-      // Update the specific call in cache
+      // Update the specific call in cache with actual server data
       queryClient.setQueryData<GetWaiterCallResponse>(waiterCallQueryKeys.detail(id), (old) =>
         old ? { ...old, status: data.status, completedAt: data.completedAt } : old
       );
-      // Invalidate lists to refetch
+    },
+    onSettled: () => {
+      // Refetch to ensure consistency
       queryClient.invalidateQueries({ queryKey: waiterCallQueryKeys.lists() });
     },
   });
 }
 
 /**
- * Hook for cancelling a waiter call
+ * Hook for cancelling a waiter call with optimistic updates
  *
  * @example
  * ```tsx
@@ -217,13 +299,46 @@ export function useCompleteCall() {
 export function useCancelCall() {
   const queryClient = useQueryClient();
 
-  return useMutation<CancelWaiterCallResponse, Error, string>({
+  return useMutation<
+    CancelWaiterCallResponse,
+    Error,
+    string,
+    { previousCalls?: GetWaiterCallsResponse }
+  >({
     mutationFn: (id: string) => cancelWaiterCall(id),
+    onMutate: async (id) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: waiterCallQueryKeys.lists() });
+
+      // Snapshot the previous value
+      const previousCalls = queryClient.getQueryData<GetWaiterCallsResponse>(
+        waiterCallQueryKeys.list()
+      );
+
+      // Optimistically remove the cancelled call
+      queryClient.setQueryData<GetWaiterCallsResponse>(waiterCallQueryKeys.list(), (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          data: old.data.filter((call) => call.id !== id),
+        };
+      });
+
+      return { previousCalls };
+    },
+    onError: (_err, _id, context) => {
+      // Rollback on error
+      if (context?.previousCalls) {
+        queryClient.setQueryData(waiterCallQueryKeys.list(), context.previousCalls);
+      }
+    },
     onSuccess: (_, id) => {
-      // Remove from lists cache
-      queryClient.invalidateQueries({ queryKey: waiterCallQueryKeys.lists() });
       // Remove specific call from cache
       queryClient.removeQueries({ queryKey: waiterCallQueryKeys.detail(id) });
+    },
+    onSettled: () => {
+      // Refetch to ensure consistency
+      queryClient.invalidateQueries({ queryKey: waiterCallQueryKeys.lists() });
     },
   });
 }

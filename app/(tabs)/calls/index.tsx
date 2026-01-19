@@ -26,6 +26,7 @@ import {
   filterCallsByStatus,
   sortCallsByDate,
   useAcknowledgeCall,
+  useCancelCall,
   useCompleteCall,
   useWaiterCalls,
 } from '@/src/hooks';
@@ -202,6 +203,7 @@ export default function CallsScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [acknowledgingId, setAcknowledgingId] = useState<string | null>(null);
   const [completingId, setCompletingId] = useState<string | null>(null);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   // Data fetching
   const { data, isLoading, error, refetch, isFetching } = useWaiterCalls();
@@ -209,6 +211,7 @@ export default function CallsScreen() {
   // Mutations
   const acknowledgeMutation = useAcknowledgeCall();
   const completeMutation = useCompleteCall();
+  const cancelMutation = useCancelCall();
 
   // Compute filtered and sorted calls
   const filteredCalls = useMemo(() => {
@@ -268,6 +271,18 @@ export default function CallsScreen() {
     [completeMutation]
   );
 
+  const handleCancel = useCallback(
+    (id: string) => {
+      setCancellingId(id);
+      cancelMutation.mutate(id, {
+        onSettled: () => {
+          setCancellingId(null);
+        },
+      });
+    },
+    [cancelMutation]
+  );
+
   const handleGoToTable = useCallback(
     (tableId: string) => {
       // Navigate to tables screen with the selected table
@@ -287,13 +302,23 @@ export default function CallsScreen() {
         call={item}
         onAcknowledge={handleAcknowledge}
         onComplete={handleComplete}
+        onCancel={handleCancel}
         onGoToTable={handleGoToTable}
         isAcknowledging={acknowledgingId === item.id}
         isCompleting={completingId === item.id}
+        isCancelling={cancellingId === item.id}
         testID={`call-card-${item.id}`}
       />
     ),
-    [handleAcknowledge, handleComplete, handleGoToTable, acknowledgingId, completingId]
+    [
+      handleAcknowledge,
+      handleComplete,
+      handleCancel,
+      handleGoToTable,
+      acknowledgingId,
+      completingId,
+      cancellingId,
+    ]
   );
 
   const keyExtractor = useCallback((item: WaiterCall) => item.id, []);

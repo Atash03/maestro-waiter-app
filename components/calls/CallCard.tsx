@@ -35,12 +35,16 @@ export interface CallCardProps {
   onAcknowledge: (id: string) => void;
   /** Callback when complete button is pressed */
   onComplete: (id: string) => void;
+  /** Callback when cancel button is pressed */
+  onCancel: (id: string) => void;
   /** Callback when go to table button is pressed */
   onGoToTable: (tableId: string) => void;
   /** Whether the call is currently being acknowledged */
   isAcknowledging?: boolean;
   /** Whether the call is currently being completed */
   isCompleting?: boolean;
+  /** Whether the call is currently being cancelled */
+  isCancelling?: boolean;
   /** Test ID for testing purposes */
   testID?: string;
 }
@@ -53,9 +57,11 @@ export function CallCard({
   call,
   onAcknowledge,
   onComplete,
+  onCancel,
   onGoToTable,
   isAcknowledging = false,
   isCompleting = false,
+  isCancelling = false,
   testID,
 }: CallCardProps) {
   const colorScheme = useColorScheme();
@@ -128,6 +134,10 @@ export function CallCard({
   const handleGoToTable = useCallback(() => {
     onGoToTable(call.tableId);
   }, [call.tableId, onGoToTable]);
+
+  const handleCancel = useCallback(() => {
+    onCancel(call.id);
+  }, [call.id, onCancel]);
 
   return (
     <Animated.View
@@ -227,6 +237,20 @@ export function CallCard({
               Go to Table
             </ThemedText>
           </Pressable>
+          {(isPending || isAcknowledged) && (
+            <Pressable
+              style={[styles.actionButton, styles.cancelButton]}
+              onPress={handleCancel}
+              disabled={isCancelling}
+              testID={testID ? `${testID}-cancel` : undefined}
+            >
+              {isCancelling ? (
+                <Spinner size="sm" color="#FFFFFF" />
+              ) : (
+                <ThemedText style={styles.cancelText}>Cancel</ThemedText>
+              )}
+            </Pressable>
+          )}
         </View>
       </View>
     </Animated.View>
@@ -335,5 +359,13 @@ const styles = StyleSheet.create({
   goToTableText: {
     fontSize: 13,
     fontWeight: '600',
+  },
+  cancelButton: {
+    backgroundColor: StatusColors.needsAttention,
+  },
+  cancelText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });

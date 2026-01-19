@@ -443,7 +443,7 @@ interface Translation { en: string; ru: string; tm: string; }
     - Complete (if acknowledged)
     - Go to Table
 
-- [ ] **5.7** Implement Call Actions:
+- [x] **5.7** Implement Call Actions:
   - `PUT /waiter-call/:id/acknowledge` - Accept call
   - `PUT /waiter-call/:id/complete` - Mark done
   - `PUT /waiter-call/:id/cancel` - Cancel call

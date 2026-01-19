@@ -2541,3 +2541,46 @@ Implemented comprehensive order modification features including changing table, 
 **Linting:**
 - All files pass Biome linting checks
 
+
+---
+
+### Task 5.7: Implement Call Actions (COMPLETED)
+
+**Files Modified:**
+- `src/hooks/useWaiterCallQueries.ts` - Updated mutation hooks with optimistic updates
+- `components/calls/CallCard.tsx` - Added cancel button and prop
+- `app/(tabs)/calls/index.tsx` - Integrated cancel mutation
+
+**Implementation Details:**
+
+**Optimistic Updates:**
+All three mutation hooks now implement optimistic updates for faster UI:
+1. `useAcknowledgeCall` - Optimistically updates call status to ACKNOWLEDGED
+2. `useCompleteCall` - Optimistically updates call status to COMPLETED
+3. `useCancelCall` - Optimistically removes call from the list
+
+**Optimistic Update Pattern:**
+Each mutation follows this pattern:
+- `onMutate`: Cancel queries, snapshot previous data, update cache optimistically
+- `onError`: Rollback to previous data on failure
+- `onSuccess`: Update cache with actual server response
+- `onSettled`: Invalidate queries to ensure consistency
+
+**Cancel Button Added:**
+- Added to CallCard component for pending and acknowledged calls
+- Red background (#EF4444) to indicate destructive action
+- Loading spinner while cancel is in progress
+- Disabled state while cancelling
+
+**CallCard Props Updated:**
+- `onCancel: (id: string) => void` - Callback for cancel action
+- `isCancelling?: boolean` - Loading state for cancel button
+
+**Calls Screen Integration:**
+- Added `useCancelCall` hook
+- Added `cancellingId` state for tracking loading
+- Added `handleCancel` callback
+- Updated `renderCallItem` with cancel props
+
+**Linting:**
+- All files pass Biome linting checks
