@@ -1,4 +1,3 @@
-import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -24,7 +23,6 @@ import { useAuthStore, useRememberMe } from '@/src/stores/authStore';
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export default function LoginScreen() {
-  const router = useRouter();
   const { rememberMe: savedRememberMe, savedUsername } = useRememberMe();
 
   const [username, setUsername] = useState('');
@@ -34,7 +32,7 @@ export default function LoginScreen() {
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
-  const { login, isLoggingIn, clearError, error: storeError, isAuthenticated } = useAuthStore();
+  const { login, isLoggingIn, clearError, error: storeError } = useAuthStore();
 
   // Animation values
   const logoScale = useSharedValue(0.8);
@@ -50,13 +48,6 @@ export default function LoginScreen() {
       setUsername(savedUsername);
     }
   }, [savedUsername]);
-
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      router.replace('/(tabs)');
-    }
-  }, [isAuthenticated, router]);
 
   // Entry animations
   useEffect(() => {

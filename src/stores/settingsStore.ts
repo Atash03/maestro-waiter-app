@@ -10,6 +10,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
+import { useShallow } from 'zustand/react/shallow';
 
 // Storage keys
 const STORAGE_KEYS = {
@@ -229,10 +230,12 @@ export const useSettingsInitialized = () => useSettingsStore((state) => state.is
  * Hook to get settings actions
  */
 export const useSettingsActions = () =>
-  useSettingsStore((state) => ({
-    initialize: state.initialize,
-    setTheme: state.setTheme,
-    setLanguage: state.setLanguage,
-    setFloorPlanZoom: state.setFloorPlanZoom,
-    resetToDefaults: state.resetToDefaults,
-  }));
+  useSettingsStore(
+    useShallow((state) => ({
+      initialize: state.initialize,
+      setTheme: state.setTheme,
+      setLanguage: state.setLanguage,
+      setFloorPlanZoom: state.setFloorPlanZoom,
+      resetToDefaults: state.resetToDefaults,
+    }))
+  );

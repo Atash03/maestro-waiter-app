@@ -14,6 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import uuid from 'react-native-uuid';
 import { create } from 'zustand';
+import { useShallow } from 'zustand/react/shallow';
 import { login as apiLogin, logout as apiLogout, checkSession } from '../services/api/auth';
 import {
   getApiClient,
@@ -394,11 +395,13 @@ export const useAccount = () => useAuthStore((state) => state.account);
  * Hook to get auth loading states
  */
 export const useAuthLoading = () =>
-  useAuthStore((state) => ({
-    isInitializing: state.isInitializing,
-    isLoggingIn: state.isLoggingIn,
-    isLoggingOut: state.isLoggingOut,
-  }));
+  useAuthStore(
+    useShallow((state) => ({
+      isInitializing: state.isInitializing,
+      isLoggingIn: state.isLoggingIn,
+      isLoggingOut: state.isLoggingOut,
+    }))
+  );
 
 /**
  * Hook to get auth error
@@ -409,7 +412,9 @@ export const useAuthError = () => useAuthStore((state) => state.error);
  * Hook to get remember me data
  */
 export const useRememberMe = () =>
-  useAuthStore((state) => ({
-    rememberMe: state.rememberMe,
-    savedUsername: state.savedUsername,
-  }));
+  useAuthStore(
+    useShallow((state) => ({
+      rememberMe: state.rememberMe,
+      savedUsername: state.savedUsername,
+    }))
+  );

@@ -9,6 +9,7 @@
  */
 
 import { create } from 'zustand';
+import { useShallow } from 'zustand/react/shallow';
 import { getTables } from '../services/api/tables';
 import { getZones } from '../services/api/zones';
 import type { Table, Zone } from '../types/models';
@@ -291,11 +292,13 @@ export const useTablesInSelectedZone = () =>
  * Hook to get loading states
  */
 export const useTableLoading = () =>
-  useTableStore((state) => ({
-    isLoadingTables: state.isLoadingTables,
-    isLoadingZones: state.isLoadingZones,
-    isLoading: state.isLoadingTables || state.isLoadingZones,
-  }));
+  useTableStore(
+    useShallow((state) => ({
+      isLoadingTables: state.isLoadingTables,
+      isLoadingZones: state.isLoadingZones,
+      isLoading: state.isLoadingTables || state.isLoadingZones,
+    }))
+  );
 
 /**
  * Hook to get table store error
@@ -306,10 +309,12 @@ export const useTableError = () => useTableStore((state) => state.error);
  * Hook to get selected IDs
  */
 export const useSelectedIds = () =>
-  useTableStore((state) => ({
-    selectedTableId: state.selectedTableId,
-    selectedZoneId: state.selectedZoneId,
-  }));
+  useTableStore(
+    useShallow((state) => ({
+      selectedTableId: state.selectedTableId,
+      selectedZoneId: state.selectedZoneId,
+    }))
+  );
 
 /**
  * Hook to get current view mode

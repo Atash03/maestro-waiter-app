@@ -7,6 +7,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
+import { useShallow } from 'zustand/react/shallow';
 
 /** Storage key for the offline queue */
 const OFFLINE_QUEUE_STORAGE_KEY = '@maestro_offline_queue';
@@ -306,14 +307,16 @@ export const useFailedQueueItems = () =>
  * Hook to get queue counts
  */
 export const useQueueCounts = () =>
-  useOfflineQueueStore((state) => ({
-    pending: state.queue.filter((item) => item.status === 'pending' || item.status === 'processing')
-      .length,
-    failed: state.queue.filter(
-      (item) => item.status === 'failed' && item.retryCount >= item.maxRetries
-    ).length,
-    total: state.queue.length,
-  }));
+  useOfflineQueueStore(
+    useShallow((state) => ({
+      pending: state.queue.filter((item) => item.status === 'pending' || item.status === 'processing')
+        .length,
+      failed: state.queue.filter(
+        (item) => item.status === 'failed' && item.retryCount >= item.maxRetries
+      ).length,
+      total: state.queue.length,
+    }))
+  );
 
 /**
  * Hook to check if queue is processing

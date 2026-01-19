@@ -87,7 +87,8 @@ export function useProtectedRoute(): ProtectedRouteState {
       // First navigation complete
       setHasNavigated(true);
     }
-  }, [isAuthenticated, isInitializing, isNavigationReady, segments, router, hasNavigated]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, isInitializing, isNavigationReady, segments, hasNavigated]);
 
   return {
     isNavigationReady,
@@ -137,7 +138,8 @@ export function useAuthCallbacks(): void {
         // The UI should handle displaying this error to the user
       };
     });
-  }, [router, logout]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [logout]);
 }
 
 export default useProtectedRoute;

@@ -11,6 +11,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
+import { useShallow } from 'zustand/react/shallow';
 import type {
   WaiterCallAcknowledgedEvent,
   WaiterCallCancelledEvent,
@@ -405,20 +406,22 @@ export const useVibrationEnabled = () =>
  * Hook to get notification actions
  */
 export const useNotificationActions = () =>
-  useNotificationStore((state) => ({
-    initialize: state.initialize,
-    addCall: state.addCall,
-    acknowledgeCall: state.acknowledgeCall,
-    completeCall: state.completeCall,
-    cancelCall: state.cancelCall,
-    markCallAsRead: state.markCallAsRead,
-    markAllAsRead: state.markAllAsRead,
-    removeCall: state.removeCall,
-    clearCompletedCalls: state.clearCompletedCalls,
-    clearAllCalls: state.clearAllCalls,
-    setSoundEnabled: state.setSoundEnabled,
-    setVibrationEnabled: state.setVibrationEnabled,
-  }));
+  useNotificationStore(
+    useShallow((state) => ({
+      initialize: state.initialize,
+      addCall: state.addCall,
+      acknowledgeCall: state.acknowledgeCall,
+      completeCall: state.completeCall,
+      cancelCall: state.cancelCall,
+      markCallAsRead: state.markCallAsRead,
+      markAllAsRead: state.markAllAsRead,
+      removeCall: state.removeCall,
+      clearCompletedCalls: state.clearCompletedCalls,
+      clearAllCalls: state.clearAllCalls,
+      setSoundEnabled: state.setSoundEnabled,
+      setVibrationEnabled: state.setVibrationEnabled,
+    }))
+  );
 
 /**
  * Hook to get a specific call by ID

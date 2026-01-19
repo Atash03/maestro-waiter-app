@@ -9,6 +9,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
+import { useShallow } from 'zustand/react/shallow';
 import { getExtras } from '../services/api/extras';
 import { getMenuCategories, getMenuItems } from '../services/api/menu';
 import type { Extra, MenuCategory, MenuItem, Translation } from '../types/models';
@@ -468,12 +469,14 @@ export const useRecentItems = () => {
  * Hook to get loading states
  */
 export const useMenuLoading = () =>
-  useMenuStore((state) => ({
-    isLoadingCategories: state.isLoadingCategories,
-    isLoadingItems: state.isLoadingItems,
-    isLoadingExtras: state.isLoadingExtras,
-    isLoading: state.isLoadingCategories || state.isLoadingItems || state.isLoadingExtras,
-  }));
+  useMenuStore(
+    useShallow((state) => ({
+      isLoadingCategories: state.isLoadingCategories,
+      isLoadingItems: state.isLoadingItems,
+      isLoadingExtras: state.isLoadingExtras,
+      isLoading: state.isLoadingCategories || state.isLoadingItems || state.isLoadingExtras,
+    }))
+  );
 
 /**
  * Hook to get menu store error
