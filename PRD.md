@@ -159,7 +159,7 @@ interface Translation { en: string; ru: string; tm: string; }
   - Login/logout actions
   - Session validation on app start
 
-- [ ] **1.6** Create Login Screen (`app/(auth)/login.tsx`):
+- [x] **1.6** Create Login Screen (`app/(auth)/login.tsx`):
   - Clean, branded design with restaurant logo
   - Username and password fields with validation
   - "Remember me" option using SecureStore

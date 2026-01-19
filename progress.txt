@@ -268,3 +268,58 @@
 
 **Linting:**
 - All files pass Biome linting checks
+
+---
+
+### Task 1.6: Create Login Screen (COMPLETED)
+
+**Files Created/Updated:**
+- `app/(auth)/login.tsx` - Full-featured login screen with:
+  - Clean, branded design with Maestro logo (M in primary color)
+  - Welcome title and subtitle animation on mount
+  - Username and password fields with validation
+  - Real-time field error clearing on input change
+  - "Remember me" checkbox option using SecureStore (via authStore)
+  - Loading state with ActivityIndicator during authentication
+  - Comprehensive error handling with user-friendly messages:
+    - 401: "Invalid username or password"
+    - 403: Device limit exceeded message
+    - Network error: "Unable to connect to server"
+    - Timeout: "Connection timed out"
+  - Animated logo entrance (scale + opacity with spring)
+  - Animated form entrance (slide up + fade in)
+  - Shake animation on validation/login errors
+  - Button press animation (scale feedback)
+  - KeyboardAvoidingView for proper keyboard handling
+  - Auto-redirect to main app when authenticated
+  - Pre-filled username when "Remember me" was enabled
+  - All interactive elements have testIDs for testing
+
+- `app/(auth)/_layout.tsx` - Auth group layout:
+  - Stack navigator with hidden headers
+  - Login screen registration
+
+- `app/_layout.tsx` - Root layout with:
+  - React Query provider setup
+  - API client initialization
+  - Auth store initialization on app start
+  - Protected route logic (redirect to login if not authenticated)
+  - Loading screen while initializing
+  - Theme provider (light/dark mode support)
+  - SplashScreen management
+
+**Tests Created:**
+- `src/__tests__/login-screen.test.tsx` - 16 tests covering:
+  - Auth store integration (hook usage, authentication state)
+  - Login API error handling (401, 403, network, timeout)
+  - Remember me feature (saved username, disabled state)
+  - Login function (credentials, remember me flag, error rejection)
+  - Loading state tracking
+  - Error state tracking and clearing
+  - Module exports verification
+
+**Test Results:**
+- 217 tests passing (12 dependency + 70 types + 33 API client + 55 API endpoints + 31 auth store + 16 login screen tests)
+
+**Linting:**
+- All files pass Biome linting checks
