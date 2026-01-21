@@ -81,7 +81,7 @@ export function useProtectedRoute(): ProtectedRouteState {
     } else if (isAuthenticated && inAuthGroup) {
       // User is authenticated but on auth screen
       // Redirect to main app
-      router.replace('/(tabs)/orders');
+      router.replace('/(tabs)/tables');
       setHasNavigated(true);
     } else if (!hasNavigated) {
       // First navigation complete

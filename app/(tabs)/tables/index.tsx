@@ -38,11 +38,10 @@ import { ThemedView } from '@/components/themed-view';
 import { Badge } from '@/components/ui/Badge';
 import { Skeleton, SkeletonGroup } from '@/components/ui/Skeleton';
 import { Spinner } from '@/components/ui/Spinner';
-import { BorderRadius, BrandColors, Colors, Spacing, StatusColors } from '@/constants/theme';
+import { BorderRadius, Colors, Spacing, StatusColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useHapticRefresh } from '@/src/hooks';
 import { useTablesAndZones, useTablesByZone } from '@/src/hooks/useTableQueries';
-import type { TableViewMode } from '@/src/stores/tableStore';
 import { useTableStore } from '@/src/stores/tableStore';
 import type { Table, Translation, Zone } from '@/src/types/models';
 import { useEffect } from 'react';
@@ -157,64 +156,6 @@ function ZoneTabs({ zones, selectedZoneId, onSelectZone }: ZoneTabsProps) {
   );
 }
 
-// ============================================================================
-// View Mode Toggle Component
-// ============================================================================
-
-interface ViewModeToggleProps {
-  viewMode: TableViewMode;
-  onToggle: () => void;
-  assignedCount: number;
-  totalCount: number;
-}
-
-function ViewModeToggle({ viewMode, onToggle, assignedCount, totalCount }: ViewModeToggleProps) {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
-
-  const isMySection = viewMode === 'mySection';
-
-  return (
-    <View style={styles.viewModeContainer} testID="view-mode-toggle-container">
-      <TouchableOpacity
-        testID="view-mode-toggle"
-        style={[
-          styles.viewModeToggle,
-          {
-            backgroundColor: isMySection ? BrandColors.primary : colors.backgroundSecondary,
-            borderColor: isMySection ? BrandColors.primary : colors.border,
-          },
-        ]}
-        onPress={onToggle}
-        activeOpacity={0.7}
-      >
-        <ThemedText
-          style={[styles.viewModeText, isMySection && styles.viewModeTextActive]}
-          testID="view-mode-label"
-        >
-          {isMySection ? 'My Tables' : 'All Tables'}
-        </ThemedText>
-        {isMySection && (
-          <View style={[styles.viewModeBadge, { backgroundColor: '#FFFFFF' }]}>
-            <ThemedText style={[styles.viewModeBadgeText, { color: BrandColors.primary }]}>
-              {assignedCount}
-            </ThemedText>
-          </View>
-        )}
-      </TouchableOpacity>
-
-      {/* Quick toggle hint */}
-      <ThemedText
-        style={[styles.viewModeHint, { color: colors.textMuted }]}
-        testID="view-mode-hint"
-      >
-        {isMySection
-          ? `Showing ${assignedCount} assigned table${assignedCount !== 1 ? 's' : ''}`
-          : `${assignedCount} of ${totalCount} assigned to you`}
-      </ThemedText>
-    </View>
-  );
-}
 
 // ============================================================================
 // Table Grid Item Component
@@ -225,8 +166,6 @@ interface TableGridItemProps {
   onPress?: (table: Table) => void;
   onLongPress?: (table: Table) => void;
   isSelected?: boolean;
-  isAssigned?: boolean;
-  showAssignedIndicator?: boolean;
 }
 
 function TableGridItem({
@@ -234,8 +173,6 @@ function TableGridItem({
   onPress,
   onLongPress,
   isSelected = false,
-  isAssigned = false,
-  showAssignedIndicator = false,
 }: TableGridItemProps) {
   const statusColor = getStatusColor(table.status);
 
@@ -417,13 +354,6 @@ function TableGridItem({
         {table.hasActiveOrder && table.status !== 'needsAttention' && (
           <View style={styles.orderIndicator} testID={`table-order-${table.id}`} />
         )}
-
-        {/* Assigned indicator (shows when in "All Tables" view and table is assigned) */}
-        {showAssignedIndicator && isAssigned && (
-          <View style={styles.assignedIndicator} testID={`table-assigned-${table.id}`}>
-            <ThemedText style={styles.assignedIndicatorText}>★</ThemedText>
-          </View>
-        )}
       </TouchableOpacity>
     </Animated.View>
   );
@@ -499,35 +429,6 @@ function EmptyState() {
   );
 }
 
-// ============================================================================
-// My Section Empty State Component
-// ============================================================================
-
-interface MySectionEmptyStateProps {
-  onShowAll: () => void;
-}
-
-function MySectionEmptyState({ onShowAll }: MySectionEmptyStateProps) {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
-
-  return (
-    <ThemedView style={styles.emptyContainer} testID="my-section-empty">
-      <ThemedText style={styles.emptyText}>No assigned tables</ThemedText>
-      <ThemedText style={styles.emptySubtext}>
-        Tables with your active orders will appear here
-      </ThemedText>
-      <TouchableOpacity
-        testID="show-all-tables-button"
-        style={[styles.showAllButton, { backgroundColor: colors.tint }]}
-        onPress={onShowAll}
-        activeOpacity={0.7}
-      >
-        <ThemedText style={styles.showAllButtonText}>Show All Tables</ThemedText>
-      </TouchableOpacity>
-    </ThemedView>
-  );
-}
 
 // ============================================================================
 // Main Tables Screen
@@ -538,8 +439,8 @@ export default function TablesScreen() {
   const colors = Colors[colorScheme ?? 'light'];
   const insets = useSafeAreaInsets();
 
-  // Table store for selection and view mode
-  const { selectedZoneId, selectZone, selectTable, viewMode, toggleViewMode, assignedTableIds } =
+  // Table store for selection
+  const { selectedZoneId, selectZone, selectTable } =
     useTableStore();
 
   // Fetch tables and zones data
@@ -554,30 +455,15 @@ export default function TablesScreen() {
   // Filter tables by selected zone
   const tablesFilteredByZone = useTablesByZone(tablesData, selectedZoneId ?? undefined);
 
-  // Filter by view mode (my section or all)
-  const filteredTables = useMemo(() => {
-    if (viewMode === 'mySection') {
-      return tablesFilteredByZone.filter((table) => assignedTableIds.has(table.id));
-    }
-    return tablesFilteredByZone;
-  }, [tablesFilteredByZone, viewMode, assignedTableIds]);
-
   // Map tables with status
   const tablesWithStatus: TableItemData[] = useMemo(
     () =>
-      filteredTables.map((table) => ({
+      tablesFilteredByZone.map((table) => ({
         ...table,
         status: getTableStatus(table),
       })),
-    [filteredTables]
+    [tablesFilteredByZone]
   );
-
-  // Calculate assigned tables count for toggle display
-  const assignedCount = useMemo(() => {
-    return tablesFilteredByZone.filter((table) => assignedTableIds.has(table.id)).length;
-  }, [tablesFilteredByZone, assignedTableIds]);
-
-  const totalCount = tablesFilteredByZone.length;
 
   // Haptic refresh
   const { isRefreshing, handleRefresh } = useHapticRefresh({
@@ -618,11 +504,9 @@ export default function TablesScreen() {
         table={item}
         onPress={handleTablePress}
         onLongPress={handleTableLongPress}
-        isAssigned={assignedTableIds.has(item.id)}
-        showAssignedIndicator={viewMode === 'all'}
       />
     ),
-    [handleTablePress, handleTableLongPress, assignedTableIds, viewMode]
+    [handleTablePress, handleTableLongPress]
   );
 
   // Key extractor
@@ -638,13 +522,6 @@ export default function TablesScreen() {
     []
   );
 
-  // Empty component
-  const ListEmptyComponent = useMemo(() => {
-    if (viewMode === 'mySection') {
-      return <MySectionEmptyState onShowAll={() => toggleViewMode()} />;
-    }
-    return <EmptyState />;
-  }, [viewMode, toggleViewMode]);
 
   // Show loading skeleton on initial load
   if (isLoading && tablesData.length === 0) {
@@ -671,14 +548,6 @@ export default function TablesScreen() {
         </View>
       </View>
 
-      {/* View Mode Toggle (My Tables / All Tables) */}
-      <ViewModeToggle
-        viewMode={viewMode}
-        onToggle={toggleViewMode}
-        assignedCount={assignedCount}
-        totalCount={totalCount}
-      />
-
       {/* Zone Tabs */}
       {zonesData.length > 0 && (
         <ZoneTabs
@@ -704,16 +573,13 @@ export default function TablesScreen() {
             tintColor={colors.tint}
           />
         }
-        ListEmptyComponent={ListEmptyComponent}
+        ListEmptyComponent={EmptyState}
         showsVerticalScrollIndicator={false}
         testID="tables-grid"
       />
 
       {/* Status Legend - collapsible color key */}
-      <StatusLegend
-        showAssignedIndicator={viewMode === 'all' && assignedTableIds.size > 0}
-        position="bottom-right"
-      />
+      <StatusLegend position="bottom-right" />
 
       {/* Loading overlay for refresh */}
       {tables.isFetching && !isRefreshing && tablesData.length > 0 && (
@@ -856,24 +722,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#FFFFFF',
   },
-  assignedIndicator: {
-    position: 'absolute',
-    top: Spacing.sm,
-    left: Spacing.sm,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#FFD700',
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  assignedIndicatorText: {
-    fontSize: 12,
-    color: '#000000',
-    fontWeight: '700',
-  },
   skeletonContainer: {
     flex: 1,
     padding: Spacing.lg,
@@ -922,54 +770,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     opacity: 0.6,
     textAlign: 'center',
-  },
-  showAllButton: {
-    marginTop: Spacing.lg,
-    paddingHorizontal: Spacing['2xl'],
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.lg,
-  },
-  showAllButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  viewModeContainer: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    alignItems: 'flex-start',
-    gap: Spacing.xs,
-  },
-  viewModeToggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.full,
-    borderWidth: 1,
-    gap: Spacing.sm,
-  },
-  viewModeText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  viewModeTextActive: {
-    color: '#FFFFFF',
-  },
-  viewModeBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.full,
-    minWidth: 20,
-    alignItems: 'center',
-  },
-  viewModeBadgeText: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  viewModeHint: {
-    fontSize: 12,
-    paddingHorizontal: Spacing.xs,
   },
   loadingOverlay: {
     position: 'absolute',
