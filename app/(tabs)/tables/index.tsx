@@ -1,11 +1,10 @@
 /**
- * Floor Plan Screen - Tables Tab
+ * Tables Screen - Tables Tab
  *
- * Displays an interactive floor plan with tables organized by zones.
+ * Displays tables in a 2-column grid layout organized by zones.
  * Features:
  * - Zone tabs/segmented control for filtering
- * - Interactive table canvas with positioning from API
- * - Pinch-to-zoom and pan gestures
+ * - 2-column grid of table cards
  * - Color-coded table status (available, occupied, reserved, etc.)
  * - Pull-to-refresh for data updates
  */
@@ -13,40 +12,48 @@
 import { useCallback, useMemo } from 'react';
 import {
   Dimensions,
+  FlatList,
   RefreshControl,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
-import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import Animated, {
+  cancelAnimation,
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NotificationBell } from '@/components/common';
 import type { TableItemData, TableStatus } from '@/components/tables';
-import { StatusLegend, TableItem } from '@/components/tables';
+import { getStatusColor, StatusLegend } from '@/components/tables';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Badge } from '@/components/ui/Badge';
 import { Skeleton, SkeletonGroup } from '@/components/ui/Skeleton';
 import { Spinner } from '@/components/ui/Spinner';
-import { BorderRadius, BrandColors, Colors, Spacing } from '@/constants/theme';
+import { BorderRadius, BrandColors, Colors, Spacing, StatusColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useHapticRefresh } from '@/src/hooks';
 import { useTablesAndZones, useTablesByZone } from '@/src/hooks/useTableQueries';
 import type { TableViewMode } from '@/src/stores/tableStore';
 import { useTableStore } from '@/src/stores/tableStore';
 import type { Table, Translation, Zone } from '@/src/types/models';
+import { useEffect } from 'react';
 
 // ============================================================================
 // Constants
 // ============================================================================
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CANVAS_PADDING = Spacing.lg;
-const MIN_SCALE = 0.5;
-const MAX_SCALE = 3;
-const FLOOR_PLAN_SIZE = 600; // Base size for the floor plan canvas
+const GRID_ITEM_HEIGHT = 100;
+const NUM_COLUMNS = 2;
 
 // ============================================================================
 // Helper Functions
@@ -61,15 +68,6 @@ function getTranslatedText(translation: Translation, lang: 'en' | 'ru' | 'tm' = 
 }
 
 /**
- * Parse coordinate string to number, defaulting to 0
- */
-function parseCoordinate(value: string | undefined): number {
-  if (!value) return 0;
-  const parsed = Number.parseFloat(value);
-  return Number.isNaN(parsed) ? 0 : parsed;
-}
-
-/**
  * Get table status - for now returns 'available' as we don't have order data yet
  * This will be enhanced in Phase 4 when we integrate with orders
  */
@@ -77,6 +75,14 @@ function getTableStatus(_table: Table): TableStatus {
   // TODO: Integrate with orders/waiter calls in Phase 4
   // For now, return 'available' as default
   return 'available';
+}
+
+/**
+ * Get a lighter variant of the status color for the pulse effect
+ */
+function getPulseColor(status: TableStatus): string {
+  const color = getStatusColor(status);
+  return `${color}40`; // 40 = 25% opacity in hex
 }
 
 // ============================================================================
@@ -211,123 +217,215 @@ function ViewModeToggle({ viewMode, onToggle, assignedCount, totalCount }: ViewM
 }
 
 // ============================================================================
-// Floor Plan Canvas Component
+// Table Grid Item Component
 // ============================================================================
 
-interface FloorPlanCanvasProps {
-  tables: TableItemData[];
-  onTablePress: (table: Table) => void;
-  onTableLongPress: (table: Table) => void;
-  assignedTableIds?: Set<string>;
-  highlightAssigned?: boolean;
+interface TableGridItemProps {
+  table: TableItemData;
+  onPress?: (table: Table) => void;
+  onLongPress?: (table: Table) => void;
+  isSelected?: boolean;
+  isAssigned?: boolean;
+  showAssignedIndicator?: boolean;
 }
 
-function FloorPlanCanvas({
-  tables,
-  onTablePress,
-  onTableLongPress,
-  assignedTableIds = new Set(),
-  highlightAssigned = false,
-}: FloorPlanCanvasProps) {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+function TableGridItem({
+  table,
+  onPress,
+  onLongPress,
+  isSelected = false,
+  isAssigned = false,
+  showAssignedIndicator = false,
+}: TableGridItemProps) {
+  const statusColor = getStatusColor(table.status);
 
-  // Gesture state
-  const scale = useSharedValue(1);
-  const savedScale = useSharedValue(1);
-  const translateX = useSharedValue(0);
-  const translateY = useSharedValue(0);
-  const savedTranslateX = useSharedValue(0);
-  const savedTranslateY = useSharedValue(0);
+  // Animation values
+  const pressScale = useSharedValue(1);
+  const pulseOpacity = useSharedValue(0);
+  const pulseScale = useSharedValue(1);
 
-  // Calculate canvas bounds based on table positions
-  const canvasBounds = useMemo(() => {
-    if (tables.length === 0) {
-      return { width: FLOOR_PLAN_SIZE, height: FLOOR_PLAN_SIZE };
+  // Determine if we should show guest count (occupied with guests)
+  const showGuestCount = table.status === 'occupied' && (table.guestCount ?? 0) > 0;
+
+  // Pulse animation for needsAttention status
+  useEffect(() => {
+    if (table.hasPendingCall || table.status === 'needsAttention') {
+      // Start pulsing animation
+      pulseOpacity.value = withRepeat(
+        withSequence(
+          withTiming(1, {
+            duration: 500,
+            easing: Easing.inOut(Easing.ease),
+          }),
+          withTiming(0, {
+            duration: 500,
+            easing: Easing.inOut(Easing.ease),
+          })
+        ),
+        -1,
+        false
+      );
+      pulseScale.value = withRepeat(
+        withSequence(
+          withTiming(1.05, {
+            duration: 500,
+            easing: Easing.inOut(Easing.ease),
+          }),
+          withTiming(1, {
+            duration: 500,
+            easing: Easing.inOut(Easing.ease),
+          })
+        ),
+        -1,
+        false
+      );
+    } else {
+      cancelAnimation(pulseOpacity);
+      cancelAnimation(pulseScale);
+      pulseOpacity.value = withTiming(0, { duration: 200 });
+      pulseScale.value = withTiming(1, { duration: 200 });
     }
 
-    let maxX = 0;
-    let maxY = 0;
-
-    for (const table of tables) {
-      const x = parseCoordinate(table.x);
-      const y = parseCoordinate(table.y);
-      const width = parseCoordinate(table.width) || 60;
-      const height = parseCoordinate(table.height) || 60;
-
-      maxX = Math.max(maxX, x + width);
-      maxY = Math.max(maxY, y + height);
-    }
-
-    return {
-      width: Math.max(maxX + CANVAS_PADDING * 2, FLOOR_PLAN_SIZE),
-      height: Math.max(maxY + CANVAS_PADDING * 2, FLOOR_PLAN_SIZE),
+    return () => {
+      cancelAnimation(pulseOpacity);
+      cancelAnimation(pulseScale);
     };
-  }, [tables]);
+  }, [table.hasPendingCall, table.status, pulseOpacity, pulseScale]);
 
-  // Pinch gesture for zooming
-  const pinchGesture = Gesture.Pinch()
-    .onStart(() => {
-      savedScale.value = scale.value;
-    })
-    .onUpdate((event) => {
-      const newScale = savedScale.value * event.scale;
-      scale.value = Math.min(Math.max(newScale, MIN_SCALE), MAX_SCALE);
-    });
+  // Handle selection scale
+  useEffect(() => {
+    if (isSelected) {
+      pressScale.value = withSpring(1.02, { damping: 15, stiffness: 150 });
+    } else {
+      pressScale.value = withSpring(1, { damping: 15, stiffness: 150 });
+    }
+  }, [isSelected, pressScale]);
 
-  // Pan gesture for moving
-  const panGesture = Gesture.Pan()
-    .onStart(() => {
-      savedTranslateX.value = translateX.value;
-      savedTranslateY.value = translateY.value;
-    })
-    .onUpdate((event) => {
-      translateX.value = savedTranslateX.value + event.translationX;
-      translateY.value = savedTranslateY.value + event.translationY;
-    });
+  // Press handlers
+  const handlePressIn = useCallback(() => {
+    pressScale.value = withSpring(0.97, { damping: 15, stiffness: 300 });
+  }, [pressScale]);
 
-  // Combine gestures
-  const combinedGesture = Gesture.Simultaneous(pinchGesture, panGesture);
+  const handlePressOut = useCallback(() => {
+    const targetScale = isSelected ? 1.02 : 1;
+    pressScale.value = withSpring(targetScale, { damping: 15, stiffness: 150 });
+  }, [pressScale, isSelected]);
 
-  // Animated style for the canvas
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: translateX.value },
-      { translateY: translateY.value },
-      { scale: scale.value },
-    ],
+  const handlePress = useCallback(() => {
+    onPress?.(table);
+  }, [onPress, table]);
+
+  const handleLongPress = useCallback(() => {
+    onLongPress?.(table);
+  }, [onLongPress, table]);
+
+  // Animated styles
+  const containerAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pressScale.value }],
   }));
 
-  return (
-    <GestureDetector gesture={combinedGesture}>
-      <Animated.View
-        testID="floor-plan-canvas"
-        style={[
-          styles.floorPlanCanvas,
-          animatedStyle,
-          {
-            width: canvasBounds.width,
-            height: canvasBounds.height,
-            backgroundColor: colors.backgroundSecondary,
-          },
-        ]}
-      >
-        {/* Grid background pattern */}
-        <View style={styles.gridPattern} />
+  const pulseAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: pulseOpacity.value,
+    transform: [{ scale: pulseScale.value }],
+  }));
 
-        {/* Tables */}
-        {tables.map((table) => (
-          <TableItem
-            key={table.id}
-            table={table}
-            onPress={onTablePress}
-            onLongPress={onTableLongPress}
-            isAssigned={assignedTableIds.has(table.id)}
-            showAssignedIndicator={highlightAssigned}
-          />
-        ))}
-      </Animated.View>
-    </GestureDetector>
+  // Selection border style
+  const selectionStyle = isSelected
+    ? {
+        borderWidth: 3,
+        borderColor: '#FFFFFF',
+        shadowColor: statusColor,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.5,
+        shadowRadius: 8,
+        elevation: 8,
+      }
+    : {};
+
+  return (
+    <Animated.View
+      style={[styles.gridItemContainer, containerAnimatedStyle]}
+      testID={`table-grid-item-${table.id}`}
+    >
+      {/* Pulse effect layer (behind the table) */}
+      {(table.hasPendingCall || table.status === 'needsAttention') && (
+        <Animated.View
+          style={[
+            styles.pulseLayer,
+            pulseAnimatedStyle,
+            {
+              backgroundColor: getPulseColor(table.status),
+              borderRadius: BorderRadius.lg,
+            },
+          ]}
+          testID={`table-pulse-${table.id}`}
+        />
+      )}
+
+      {/* Table body */}
+      <TouchableOpacity
+        style={[
+          styles.gridItemBody,
+          {
+            backgroundColor: table.color || statusColor,
+            borderColor: statusColor,
+          },
+          selectionStyle,
+        ]}
+        onPress={handlePress}
+        onLongPress={handleLongPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        activeOpacity={1}
+        delayLongPress={300}
+        testID={`table-touchable-${table.id}`}
+        accessibilityRole="button"
+        accessibilityLabel={`Table ${table.title}, ${table.status}${table.guestCount ? `, ${table.guestCount} guests` : ''}`}
+        accessibilityHint="Tap to select, long press for options"
+      >
+        {/* Table title */}
+        <ThemedText style={styles.gridItemTitle} numberOfLines={1}>
+          {table.title}
+        </ThemedText>
+
+        {/* Guest count or capacity */}
+        {showGuestCount ? (
+          <View style={styles.guestCountContainer} testID={`table-guests-${table.id}`}>
+            <ThemedText style={styles.guestCountText}>{table.guestCount} guests</ThemedText>
+          </View>
+        ) : (
+          table.capacity > 0 && (
+            <ThemedText style={styles.capacityText} testID={`table-capacity-${table.id}`}>
+              Seats {table.capacity}
+            </ThemedText>
+          )
+        )}
+
+        {/* Status badge */}
+        <View style={[styles.statusBadge, { backgroundColor: 'rgba(0,0,0,0.2)' }]}>
+          <ThemedText style={styles.statusBadgeText}>
+            {table.status.charAt(0).toUpperCase() + table.status.slice(1)}
+          </ThemedText>
+        </View>
+
+        {/* Attention indicator (red dot) */}
+        {table.status === 'needsAttention' && (
+          <View style={styles.attentionIndicator} testID={`table-attention-${table.id}`} />
+        )}
+
+        {/* Active order indicator */}
+        {table.hasActiveOrder && table.status !== 'needsAttention' && (
+          <View style={styles.orderIndicator} testID={`table-order-${table.id}`} />
+        )}
+
+        {/* Assigned indicator (shows when in "All Tables" view and table is assigned) */}
+        {showAssignedIndicator && isAssigned && (
+          <View style={styles.assignedIndicator} testID={`table-assigned-${table.id}`}>
+            <ThemedText style={styles.assignedIndicatorText}>★</ThemedText>
+          </View>
+        )}
+      </TouchableOpacity>
+    </Animated.View>
   );
 }
 
@@ -335,9 +433,9 @@ function FloorPlanCanvas({
 // Loading Skeleton
 // ============================================================================
 
-function FloorPlanSkeleton() {
+function TablesGridSkeleton() {
   return (
-    <ThemedView style={styles.skeletonContainer} testID="floor-plan-skeleton">
+    <ThemedView style={styles.skeletonContainer} testID="tables-grid-skeleton">
       {/* Zone tabs skeleton */}
       <View style={styles.zoneTabsWrapper}>
         <SkeletonGroup count={4} direction="horizontal" spacing={Spacing.sm}>
@@ -345,9 +443,14 @@ function FloorPlanSkeleton() {
         </SkeletonGroup>
       </View>
 
-      {/* Floor plan skeleton */}
-      <View style={styles.canvasContainer}>
-        <Skeleton variant="rectangular" width={SCREEN_WIDTH - Spacing.lg * 2} height={400} />
+      {/* Grid skeleton */}
+      <View style={styles.gridSkeletonContainer}>
+        <SkeletonGroup count={6} direction="vertical" spacing={Spacing.md}>
+          <View style={styles.gridSkeletonRow}>
+            <Skeleton variant="rectangular" width={(SCREEN_WIDTH - Spacing.lg * 3) / 2} height={GRID_ITEM_HEIGHT} />
+            <Skeleton variant="rectangular" width={(SCREEN_WIDTH - Spacing.lg * 3) / 2} height={GRID_ITEM_HEIGHT} />
+          </View>
+        </SkeletonGroup>
       </View>
     </ThemedView>
   );
@@ -367,7 +470,7 @@ function ErrorState({ message, onRetry }: ErrorStateProps) {
   const colors = Colors[colorScheme ?? 'light'];
 
   return (
-    <ThemedView style={styles.errorContainer} testID="floor-plan-error">
+    <ThemedView style={styles.errorContainer} testID="tables-error">
       <ThemedText style={[styles.errorText, { color: colors.error }]}>{message}</ThemedText>
       <TouchableOpacity
         testID="retry-button"
@@ -387,7 +490,7 @@ function ErrorState({ message, onRetry }: ErrorStateProps) {
 
 function EmptyState() {
   return (
-    <ThemedView style={styles.emptyContainer} testID="floor-plan-empty">
+    <ThemedView style={styles.emptyContainer} testID="tables-empty">
       <ThemedText style={styles.emptyText}>No tables found</ThemedText>
       <ThemedText style={styles.emptySubtext}>
         Tables will appear here once added to the system
@@ -427,10 +530,10 @@ function MySectionEmptyState({ onShowAll }: MySectionEmptyStateProps) {
 }
 
 // ============================================================================
-// Main Floor Plan Screen
+// Main Tables Screen
 // ============================================================================
 
-export default function FloorPlanScreen() {
+export default function TablesScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const insets = useSafeAreaInsets();
@@ -508,96 +611,117 @@ export default function FloorPlanScreen() {
     [selectZone]
   );
 
+  // Render grid item
+  const renderGridItem = useCallback(
+    ({ item }: { item: TableItemData }) => (
+      <TableGridItem
+        table={item}
+        onPress={handleTablePress}
+        onLongPress={handleTableLongPress}
+        isAssigned={assignedTableIds.has(item.id)}
+        showAssignedIndicator={viewMode === 'all'}
+      />
+    ),
+    [handleTablePress, handleTableLongPress, assignedTableIds, viewMode]
+  );
+
+  // Key extractor
+  const keyExtractor = useCallback((item: TableItemData) => item.id, []);
+
+  // Get item layout for performance
+  const getItemLayout = useCallback(
+    (_: ArrayLike<TableItemData> | null | undefined, index: number) => ({
+      length: GRID_ITEM_HEIGHT + Spacing.md,
+      offset: (GRID_ITEM_HEIGHT + Spacing.md) * Math.floor(index / NUM_COLUMNS),
+      index,
+    }),
+    []
+  );
+
+  // Empty component
+  const ListEmptyComponent = useMemo(() => {
+    if (viewMode === 'mySection') {
+      return <MySectionEmptyState onShowAll={() => toggleViewMode()} />;
+    }
+    return <EmptyState />;
+  }, [viewMode, toggleViewMode]);
+
   // Show loading skeleton on initial load
   if (isLoading && tablesData.length === 0) {
-    return <FloorPlanSkeleton />;
+    return <TablesGridSkeleton />;
   }
 
   // Show error state
   if (error) {
     return (
-      <ErrorState message={error.message || 'Failed to load floor plan'} onRetry={refetchAll} />
+      <ErrorState message={error.message || 'Failed to load tables'} onRetry={refetchAll} />
     );
   }
 
   return (
-    <GestureHandlerRootView style={styles.gestureRoot}>
-      <ThemedView style={styles.container} testID="floor-plan-screen">
-        {/* Header */}
-        <View style={[styles.header, { paddingTop: insets.top + Spacing.sm }]}>
-          <ThemedText style={styles.headerTitle}>Floor Plan</ThemedText>
-          <View style={styles.headerRight}>
-            <Badge variant="default" size="sm" testID="table-count-badge">
-              {`${tablesWithStatus.length} tables`}
-            </Badge>
-            <NotificationBell testID="notification-bell" />
-          </View>
+    <ThemedView style={styles.container} testID="tables-screen">
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + Spacing.sm }]}>
+        <ThemedText style={styles.headerTitle}>Tables</ThemedText>
+        <View style={styles.headerRight}>
+          <Badge variant="default" size="sm" testID="table-count-badge">
+            {`${tablesWithStatus.length} tables`}
+          </Badge>
+          <NotificationBell testID="notification-bell" />
         </View>
+      </View>
 
-        {/* View Mode Toggle (My Tables / All Tables) */}
-        <ViewModeToggle
-          viewMode={viewMode}
-          onToggle={toggleViewMode}
-          assignedCount={assignedCount}
-          totalCount={totalCount}
+      {/* View Mode Toggle (My Tables / All Tables) */}
+      <ViewModeToggle
+        viewMode={viewMode}
+        onToggle={toggleViewMode}
+        assignedCount={assignedCount}
+        totalCount={totalCount}
+      />
+
+      {/* Zone Tabs */}
+      {zonesData.length > 0 && (
+        <ZoneTabs
+          zones={zonesData}
+          selectedZoneId={selectedZoneId}
+          onSelectZone={handleSelectZone}
         />
+      )}
 
-        {/* Zone Tabs */}
-        {zonesData.length > 0 && (
-          <ZoneTabs
-            zones={zonesData}
-            selectedZoneId={selectedZoneId}
-            onSelectZone={handleSelectZone}
+      {/* Tables Grid */}
+      <FlatList
+        data={tablesWithStatus}
+        keyExtractor={keyExtractor}
+        renderItem={renderGridItem}
+        numColumns={NUM_COLUMNS}
+        contentContainerStyle={styles.gridContainer}
+        columnWrapperStyle={styles.gridRow}
+        getItemLayout={getItemLayout}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.tint}
           />
-        )}
+        }
+        ListEmptyComponent={ListEmptyComponent}
+        showsVerticalScrollIndicator={false}
+        testID="tables-grid"
+      />
 
-        {/* Floor Plan Canvas */}
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollViewContent}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={handleRefresh}
-              tintColor={colors.tint}
-            />
-          }
-          showsVerticalScrollIndicator={false}
-          testID="floor-plan-scroll"
-        >
-          {tablesWithStatus.length === 0 ? (
-            viewMode === 'mySection' ? (
-              <MySectionEmptyState onShowAll={() => toggleViewMode()} />
-            ) : (
-              <EmptyState />
-            )
-          ) : (
-            <View style={styles.canvasContainer}>
-              <FloorPlanCanvas
-                tables={tablesWithStatus}
-                onTablePress={handleTablePress}
-                onTableLongPress={handleTableLongPress}
-                assignedTableIds={assignedTableIds}
-                highlightAssigned={viewMode === 'all'}
-              />
-            </View>
-          )}
-        </ScrollView>
+      {/* Status Legend - collapsible color key */}
+      <StatusLegend
+        showAssignedIndicator={viewMode === 'all' && assignedTableIds.size > 0}
+        position="bottom-right"
+      />
 
-        {/* Status Legend - collapsible color key */}
-        <StatusLegend
-          showAssignedIndicator={viewMode === 'all' && assignedTableIds.size > 0}
-          position="bottom-right"
-        />
-
-        {/* Loading overlay for refresh */}
-        {tables.isFetching && !isRefreshing && tablesData.length > 0 && (
-          <View style={styles.loadingOverlay} testID="loading-overlay">
-            <Spinner size="sm" />
-          </View>
-        )}
-      </ThemedView>
-    </GestureHandlerRootView>
+      {/* Loading overlay for refresh */}
+      {tables.isFetching && !isRefreshing && tablesData.length > 0 && (
+        <View style={styles.loadingOverlay} testID="loading-overlay">
+          <Spinner size="sm" />
+        </View>
+      )}
+    </ThemedView>
   );
 }
 
@@ -606,9 +730,6 @@ export default function FloorPlanScreen() {
 // ============================================================================
 
 const styles = StyleSheet.create({
-  gestureRoot: {
-    flex: 1,
-  },
   container: {
     flex: 1,
   },
@@ -649,31 +770,120 @@ const styles = StyleSheet.create({
   zoneTabTextActive: {
     color: '#FFFFFF',
   },
-  scrollView: {
-    flex: 1,
-  },
-  scrollViewContent: {
-    flexGrow: 1,
+  gridContainer: {
     padding: Spacing.lg,
+    paddingBottom: Spacing['4xl'],
   },
-  canvasContainer: {
+  gridRow: {
+    gap: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  gridItemContainer: {
+    flex: 1,
+    height: GRID_ITEM_HEIGHT,
+  },
+  pulseLayer: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  gridItemBody: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 400,
-    overflow: 'hidden',
-  },
-  floorPlanCanvas: {
+    padding: Spacing.md,
     borderRadius: BorderRadius.lg,
-    position: 'relative',
+    borderWidth: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  gridPattern: {
-    ...StyleSheet.absoluteFillObject,
-    opacity: 0.1,
+  gridItemTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  capacityText: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginTop: 4,
+  },
+  guestCountContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  guestCountText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  statusBadge: {
+    position: 'absolute',
+    bottom: Spacing.sm,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.sm,
+  },
+  statusBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  attentionIndicator: {
+    position: 'absolute',
+    top: Spacing.sm,
+    right: Spacing.sm,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: StatusColors.needsAttention,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  orderIndicator: {
+    position: 'absolute',
+    top: Spacing.sm,
+    right: Spacing.sm,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: StatusColors.occupied,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  assignedIndicator: {
+    position: 'absolute',
+    top: Spacing.sm,
+    left: Spacing.sm,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#FFD700',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  assignedIndicatorText: {
+    fontSize: 12,
+    color: '#000000',
+    fontWeight: '700',
   },
   skeletonContainer: {
     flex: 1,
     padding: Spacing.lg,
+  },
+  gridSkeletonContainer: {
+    marginTop: Spacing.lg,
+  },
+  gridSkeletonRow: {
+    flexDirection: 'row',
+    gap: Spacing.md,
   },
   errorContainer: {
     flex: 1,

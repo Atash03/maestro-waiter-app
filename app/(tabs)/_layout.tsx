@@ -17,7 +17,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="tables"
+        name="tables/index"
         options={{
           title: 'Tables',
           tabBarIcon: ({ color }) => (
@@ -26,7 +26,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="orders"
+        name="orders/index"
         options={{
           title: 'Orders',
           tabBarIcon: ({ color }) => (
@@ -35,14 +35,14 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="calls"
+        name="calls/index"
         options={{
           title: 'Calls',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="bell.fill" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="profile/index"
         options={{
           title: 'Profile',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,

@@ -505,6 +505,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
     gap: Spacing.xs,
+    flexShrink: 0,
   },
   filterTabText: {
     fontSize: 13,
@@ -536,6 +537,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.xs,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
+    flexShrink: 0,
   },
   typeFilterText: {
     fontSize: 12,
