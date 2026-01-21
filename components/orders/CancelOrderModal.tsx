@@ -26,7 +26,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { BorderRadius, BrandColors, Colors, Spacing, StatusColors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import { useCancellationReasons } from '@/src/hooks/useReasonTemplateQueries';
 import type { ReasonTemplate } from '@/src/types/models';
 
@@ -53,7 +53,7 @@ interface ReasonItemProps {
 }
 
 function ReasonItem({ reason, isSelected, onSelect }: ReasonItemProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   return (
@@ -99,7 +99,7 @@ export function CancelOrderModal({
   onCancel,
   testID = 'cancel-order-modal',
 }: CancelOrderModalProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   const [selectedReason, setSelectedReason] = useState<ReasonTemplate | null>(null);

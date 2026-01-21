@@ -33,7 +33,7 @@ import Animated, {
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/Button';
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import type { Extra, MenuItem, OrderItemExtra, Translation } from '@/src/types/models';
 
 // ============================================================================
@@ -201,7 +201,7 @@ export function OrderSummaryItem({
   confirmBeforeRemove = false,
   testID,
 }: OrderSummaryItemProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   const scale = useSharedValue(1);
@@ -375,7 +375,7 @@ interface OrderSummaryEmptyProps {
 }
 
 function OrderSummaryEmpty({ message, testID }: OrderSummaryEmptyProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   return (
@@ -420,7 +420,7 @@ function OrderSummaryTotals({
   disabled = false,
   testID,
 }: OrderSummaryTotalsProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   const hasServiceFee = serviceFee && serviceFee.amount > 0;
@@ -504,7 +504,7 @@ export function OrderSummary({
   emptyMessage,
   testID,
 }: OrderSummaryProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const [_listHeight, setListHeight] = useState(0);
 

@@ -26,7 +26,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Badge, type BadgeVariant } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { BorderRadius, Colors, Spacing, StatusColors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import { OrderItemStatus as OrderItemStatusEnum } from '@/src/types/enums';
 
 // ============================================================================
@@ -176,7 +176,7 @@ export function OrderItemStatus({
   size = 'md',
   testID,
 }: OrderItemStatusProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   // Animation for press feedback

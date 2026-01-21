@@ -24,7 +24,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 
 // ============================================================================
 // Types
@@ -57,7 +57,7 @@ export function EditNotesModal({
   maxLength = DEFAULT_MAX_LENGTH,
   testID = 'edit-notes-modal',
 }: EditNotesModalProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   const [notes, setNotes] = useState(currentNotes ?? '');

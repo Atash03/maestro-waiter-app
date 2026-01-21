@@ -15,7 +15,7 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { ThemedText } from '@/components/themed-text';
 import { BorderRadius, Colors, Spacing, StatusColors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import type { TableStatus } from './TableItem';
 
 // ============================================================================
@@ -63,7 +63,7 @@ export function StatusLegend({
   testID = 'status-legend',
 }: StatusLegendProps) {
   const [isExpanded, setIsExpanded] = useState(initialExpanded);
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   // Animation values

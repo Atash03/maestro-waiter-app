@@ -20,13 +20,13 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import Toast from 'react-native-toast-message';
+import { toast } from 'sonner-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { BorderRadius, BrandColors, Colors, Spacing, StatusColors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import { PaymentMethod } from '@/src/types/enums';
 
 // ============================================================================
@@ -162,17 +162,15 @@ export function PaymentSuccessModal({
   onAddAnotherPayment,
   testID,
 }: PaymentSuccessModalProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   const handleViewReceipt = useCallback(() => {
     if (onViewReceipt) {
       onViewReceipt();
     } else {
-      Toast.show({
-        type: 'info',
-        text1: 'Coming Soon',
-        text2: 'Receipt printing will be available in a future update',
+      toast.info('Coming Soon', {
+        description: 'Receipt printing will be available in a future update',
       });
     }
   }, [onViewReceipt]);

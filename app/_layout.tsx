@@ -7,12 +7,12 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import ToastMessage from 'react-native-toast-message';
+import { Toaster } from 'sonner-native';
 
 import { OfflineBanner } from '@/components/common/OfflineBanner';
 import { OfflineIndicator } from '@/components/common/OfflineIndicator';
 import { ErrorBoundary } from '@/components/errors/ErrorBoundary';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import { useOfflineCacheSync, useOfflineInit } from '@/src/hooks/useOfflineSupport';
 import { useAuthCallbacks, useProtectedRoute } from '@/src/hooks/useProtectedRoute';
 import { initializeApiClient } from '@/src/services/api/client';
@@ -39,7 +39,7 @@ initializeApiClient({
 });
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const { isInitializing, initialize: initializeAuth } = useAuthStore();
   const { initialize: initializeSettings } = useSettingsStore();
   const { initialize: initializeNetwork, cleanup: cleanupNetwork } = useNetworkStore();
@@ -94,7 +94,7 @@ function RootLayoutNav() {
         </Stack>
         <OfflineBanner />
         <OfflineIndicator />
-        <ToastMessage />
+        <Toaster position="top-center" />
         <StatusBar style="auto" />
       </ThemeProvider>
     </ErrorBoundary>

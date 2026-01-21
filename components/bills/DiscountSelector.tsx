@@ -21,14 +21,14 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown, SlideInRight } from 'react-native-reanimated';
-import Toast from 'react-native-toast-message';
+import { toast } from 'sonner-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Skeleton, SkeletonGroup } from '@/components/ui/Skeleton';
 import { BorderRadius, BrandColors, Colors, Spacing, StatusColors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import { useActiveDiscounts, useDiscountCalculation } from '@/src/hooks/useDiscountQueries';
 import { DiscountValueType } from '@/src/types/enums';
 import type { Discount, Translation } from '@/src/types/models';
@@ -83,7 +83,7 @@ interface DiscountItemProps {
 }
 
 function DiscountItem({ discount, isSelected, onToggle, testID }: DiscountItemProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   const handlePress = useCallback(() => {
@@ -209,7 +209,7 @@ export function DiscountSelector({
   isApplying = false,
   testID,
 }: DiscountSelectorProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   // Local state for selections
@@ -266,10 +266,8 @@ export function DiscountSelector({
   const handleApply = useCallback(() => {
     const customAmount = Number.parseFloat(localCustomAmount) || 0;
     if (localSelectedIds.length === 0 && customAmount <= 0) {
-      Toast.show({
-        type: 'error',
-        text1: 'No Discounts Selected',
-        text2: 'Please select at least one discount or enter a custom amount',
+      toast.error('No Discounts Selected', {
+        description: 'Please select at least one discount or enter a custom amount',
       });
       return;
     }

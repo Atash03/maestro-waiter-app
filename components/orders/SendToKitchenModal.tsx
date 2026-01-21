@@ -27,7 +27,7 @@ import Animated, {
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/Button';
 import { BorderRadius, BrandColors, Colors, Spacing, StatusColors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 
 // ============================================================================
 // Types
@@ -116,7 +116,7 @@ export function SendToKitchenModal({
   isAddingToExistingOrder = false,
   testID = 'send-to-kitchen-modal',
 }: SendToKitchenModalProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   // Auto-dismiss success state

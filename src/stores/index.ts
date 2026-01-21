@@ -104,13 +104,11 @@ export {
   type SettingsState,
   THEME_NAMES,
   type ThemeMode,
-  useFloorPlanZoom,
   useLanguage,
   useSettingsActions,
   useSettingsInitialized,
   useSettingsStore,
   useTheme,
-  ZOOM_CONSTRAINTS,
 } from './settingsStore';
 export {
   type TableState,

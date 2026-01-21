@@ -45,12 +45,18 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   default: mockAsyncStorage,
 }));
 
-// Mock react-native-toast-message
-jest.mock('react-native-toast-message', () => ({
-  default: {
-    show: jest.fn(),
-    hide: jest.fn(),
-  },
+// Mock sonner-native
+jest.mock('sonner-native', () => ({
+  toast: Object.assign(jest.fn(), {
+    success: jest.fn(),
+    error: jest.fn(),
+    info: jest.fn(),
+    warning: jest.fn(),
+    loading: jest.fn(),
+    promise: jest.fn(),
+    dismiss: jest.fn(),
+  }),
+  Toaster: () => null,
 }));
 
 // Mock react-native-sse (uses ESM that Jest can't parse directly)

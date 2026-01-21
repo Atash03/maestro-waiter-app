@@ -11,7 +11,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Badge, type BadgeVariant } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { BorderRadius, Colors, Spacing, StatusColors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import { OrderItemStatus, OrderStatus, OrderType } from '@/src/types/enums';
 import type { Order, Translation } from '@/src/types/models';
 
@@ -172,7 +172,7 @@ export function getItemCount(order: Order): number {
 // ============================================================================
 
 export function OrderCard({ order, onPress, testID }: OrderCardProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   const handlePress = () => {

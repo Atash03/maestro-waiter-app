@@ -19,7 +19,7 @@ import { FlatList, StyleSheet, TouchableOpacity, useWindowDimensions, View } fro
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { ThemedText } from '@/components/themed-text';
 import { BorderRadius, BrandColors, Colors, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import type { MenuItem, Translation } from '@/src/types/models';
 
 // ============================================================================
@@ -145,7 +145,7 @@ export function MenuItemCard({
   showImage = true,
   testID,
 }: MenuItemCardProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   const scale = useSharedValue(1);
@@ -340,7 +340,7 @@ interface EmptyStateProps {
 }
 
 function EmptyState({ message, testID }: EmptyStateProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   return (
@@ -371,7 +371,7 @@ export function MenuItemList({
   refreshing = false,
 }: MenuItemListProps) {
   const { width } = useWindowDimensions();
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   // Determine if tablet or phone

@@ -35,7 +35,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { BorderRadius, BrandColors, CategoryColors, Colors, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import { MenuCategoryType } from '@/src/types/enums';
 import type { Extra, MenuItem, OrderItemExtra, Translation } from '@/src/types/models';
 
@@ -192,7 +192,7 @@ function ExtraItem({
   onQuantityChange,
   testID,
 }: ExtraItemProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   return (
@@ -276,7 +276,7 @@ export function MenuItemModal({
   isEditing = false,
   testID = 'menu-item-modal',
 }: MenuItemModalProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   // Animation values

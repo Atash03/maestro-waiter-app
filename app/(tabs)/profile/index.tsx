@@ -32,7 +32,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Skeleton, SkeletonGroup } from '@/components/ui/Skeleton';
 import { Spinner } from '@/components/ui/Spinner';
 import { BorderRadius, BrandColors, Colors, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import { getActiveOrders, useHapticRefresh, useOrders, useWaiterCalls } from '@/src/hooks';
 import { useAccount, useAuthLoading, useAuthStore } from '@/src/stores/authStore';
 import { OrderStatus } from '@/src/types/enums';
@@ -152,7 +152,7 @@ function getRoleDisplayName(role: string): string {
 // ============================================================================
 
 function StatCard({ title, value, subtitle, icon, testID }: StatCardProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   return (
@@ -215,7 +215,7 @@ function ProfileSkeleton() {
 // ============================================================================
 
 export default function ProfileScreen() {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const router = useRouter();
   const insets = useSafeAreaInsets();

@@ -11,7 +11,7 @@
 
 import * as Haptics from 'expo-haptics';
 import { useCallback } from 'react';
-import ToastMessage from 'react-native-toast-message';
+import { toast } from 'sonner-native';
 import { createOfflineError, type DisplayError, transformError } from '../services/errorHandler';
 import { selectIsOffline, useNetworkStore } from '../stores/networkStore';
 
@@ -41,21 +41,18 @@ export function useErrorHandler(): ErrorHandlerResult {
    */
   const showErrorToast = useCallback(
     (error: DisplayError, onRetry?: () => void | Promise<void>) => {
-      const toastType = error.severity === 'warning' ? 'info' : 'error';
+      const toastFn = error.severity === 'warning' ? toast.info : toast.error;
 
-      ToastMessage.show({
-        type: toastType,
-        text1: error.title,
-        text2: error.message,
-        visibilityTime: error.isRetryable ? 5000 : 4000,
-        autoHide: true,
-        topOffset: 50,
-        onPress: () => {
-          if (error.isRetryable && onRetry) {
-            onRetry();
-          }
-          ToastMessage.hide();
-        },
+      toastFn(error.title, {
+        description: error.message,
+        duration: error.isRetryable ? 5000 : 4000,
+        action:
+          error.isRetryable && onRetry
+            ? {
+                label: 'Retry',
+                onClick: () => onRetry(),
+              }
+            : undefined,
       });
     },
     []
@@ -66,13 +63,9 @@ export function useErrorHandler(): ErrorHandlerResult {
    */
   const showOfflineToast = useCallback(() => {
     const offlineError = createOfflineError();
-    ToastMessage.show({
-      type: 'info',
-      text1: offlineError.title,
-      text2: offlineError.message,
-      visibilityTime: 4000,
-      autoHide: true,
-      topOffset: 50,
+    toast.info(offlineError.title, {
+      description: offlineError.message,
+      duration: 4000,
     });
   }, []);
 
@@ -80,7 +73,7 @@ export function useErrorHandler(): ErrorHandlerResult {
    * Clear current toast
    */
   const clearToast = useCallback(() => {
-    ToastMessage.hide();
+    toast.dismiss();
   }, []);
 
   /**
@@ -142,13 +135,10 @@ export function useErrorHandler(): ErrorHandlerResult {
 export function handleErrorSimple(error: unknown): DisplayError {
   const displayError = transformError(error);
 
-  ToastMessage.show({
-    type: displayError.severity === 'warning' ? 'info' : 'error',
-    text1: displayError.title,
-    text2: displayError.message,
-    visibilityTime: 4000,
-    autoHide: true,
-    topOffset: 50,
+  const toastFn = displayError.severity === 'warning' ? toast.info : toast.error;
+  toastFn(displayError.title, {
+    description: displayError.message,
+    duration: 4000,
   });
 
   return displayError;

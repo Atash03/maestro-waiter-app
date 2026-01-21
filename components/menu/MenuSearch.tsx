@@ -34,7 +34,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { ThemedText } from '@/components/themed-text';
 import { BorderRadius, BrandColors, Colors, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 
 // ============================================================================
 // Constants
@@ -322,7 +322,7 @@ export function MenuSearch({
   testID = 'menu-search',
   inputProps,
 }: MenuSearchProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   // State

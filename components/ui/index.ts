@@ -22,4 +22,3 @@ export {
   type SkeletonVariant,
 } from './Skeleton';
 export { Spinner, type SpinnerProps, type SpinnerSize } from './Spinner';
-export { Toast, type ToastProps, type ToastType } from './Toast';

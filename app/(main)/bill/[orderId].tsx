@@ -22,7 +22,7 @@ import {
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown, SlideInRight } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
+import { toast } from 'sonner-native';
 
 import { DiscountSelector } from '@/components/bills/DiscountSelector';
 import { PaymentForm, type PaymentFormData } from '@/components/bills/PaymentForm';
@@ -33,7 +33,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Skeleton, SkeletonGroup } from '@/components/ui/Skeleton';
 import { BorderRadius, BrandColors, Colors, Spacing, StatusColors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import { useHapticRefresh } from '@/src/hooks';
 import {
   useBillByOrder,
@@ -187,7 +187,7 @@ interface BillItemRowProps {
 }
 
 function BillItemRow({ item, testID }: BillItemRowProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   const quantity = Number.parseInt(item.quantity, 10) || 0;
@@ -237,7 +237,7 @@ interface PaymentRowProps {
 }
 
 function PaymentRow({ payment, testID }: PaymentRowProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   return (
@@ -281,7 +281,7 @@ function BillCalculationPreviewModal({
   onCancel,
   isCreating,
 }: BillCalculationPreviewProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   return (
@@ -418,7 +418,7 @@ function BillSkeleton() {
 export default function BillScreen() {
   const router = useRouter();
   const { orderId } = useLocalSearchParams<{ orderId: string }>();
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const insets = useSafeAreaInsets();
 
@@ -495,10 +495,8 @@ export default function BillScreen() {
 
     const billableItems = getBillableItems(order.orderItems);
     if (billableItems.length === 0) {
-      Toast.show({
-        type: 'error',
-        text1: 'Cannot Create Bill',
-        text2: 'No billable items in this order',
+      toast.error('Cannot Create Bill', {
+        description: 'No billable items in this order',
       });
       return;
     }
@@ -572,10 +570,8 @@ export default function BillScreen() {
         setShowSuccessModal(true);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to process payment';
-        Toast.show({
-          type: 'error',
-          text1: 'Payment Failed',
-          text2: errorMessage,
+        toast.error('Payment Failed', {
+          description: errorMessage,
         });
         throw err; // Re-throw to let the form handle the error state
       } finally {
@@ -614,20 +610,16 @@ export default function BillScreen() {
           customDiscountAmount: customAmount,
         });
 
-        Toast.show({
-          type: 'success',
-          text1: 'Discounts Applied',
-          text2: 'Bill has been updated with selected discounts',
+        toast.success('Discounts Applied', {
+          description: 'Bill has been updated with selected discounts',
         });
 
         setShowDiscountModal(false);
         invalidateBillByOrder(orderId ?? '');
         await refetchBill();
       } catch (err) {
-        Toast.show({
-          type: 'error',
-          text1: 'Error',
-          text2: err instanceof Error ? err.message : 'Failed to apply discounts',
+        toast.error('Error', {
+          description: err instanceof Error ? err.message : 'Failed to apply discounts',
         });
       } finally {
         setIsApplyingDiscounts(false);
@@ -642,10 +634,8 @@ export default function BillScreen() {
 
     const billableItems = getBillableItems(order.orderItems);
     if (billableItems.length === 0) {
-      Toast.show({
-        type: 'error',
-        text1: 'Cannot Create Bill',
-        text2: 'No billable items in this order',
+      toast.error('Cannot Create Bill', {
+        description: 'No billable items in this order',
       });
       return;
     }
@@ -665,20 +655,16 @@ export default function BillScreen() {
         customerId: order.customerId ?? undefined,
       });
 
-      Toast.show({
-        type: 'success',
-        text1: 'Bill Created',
-        text2: 'Bill has been created successfully',
+      toast.success('Bill Created', {
+        description: 'Bill has been created successfully',
       });
 
       setShowPreviewModal(false);
       invalidateBillByOrder(orderId);
       await refetchBill();
     } catch (err) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: err instanceof Error ? err.message : 'Failed to create bill',
+      toast.error('Error', {
+        description: err instanceof Error ? err.message : 'Failed to create bill',
       });
     } finally {
       setIsCreatingBill(false);
@@ -987,10 +973,8 @@ export default function BillScreen() {
             <Button
               variant="outline"
               onPress={() => {
-                Toast.show({
-                  type: 'info',
-                  text1: 'Coming Soon',
-                  text2: 'Receipt printing will be implemented in a future update',
+                toast.info('Coming Soon', {
+                  description: 'Receipt printing will be implemented in a future update',
                 });
               }}
               style={styles.actionButton}

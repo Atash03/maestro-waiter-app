@@ -4,7 +4,6 @@
  * Features:
  * - Theme selection (light/dark/system)
  * - Language selection (en/ru/tm)
- * - Default floor plan zoom level
  * - Persistence using AsyncStorage
  */
 
@@ -16,7 +15,6 @@ import { useShallow } from 'zustand/react/shallow';
 const STORAGE_KEYS = {
   THEME: 'maestro_theme',
   LANGUAGE: 'maestro_language',
-  FLOOR_PLAN_ZOOM: 'maestro_floor_plan_zoom',
 } as const;
 
 /**
@@ -48,30 +46,18 @@ export const THEME_NAMES: Record<ThemeMode, string> = {
 };
 
 /**
- * Floor plan zoom level constraints
- */
-export const ZOOM_CONSTRAINTS = {
-  MIN: 0.5,
-  MAX: 2.0,
-  DEFAULT: 1.0,
-  STEP: 0.1,
-} as const;
-
-/**
  * Settings state interface
  */
 export interface SettingsState {
   // State
   theme: ThemeMode;
   language: Language;
-  floorPlanZoom: number;
   isInitialized: boolean;
 
   // Actions
   initialize: () => Promise<void>;
   setTheme: (theme: ThemeMode) => Promise<void>;
   setLanguage: (language: Language) => Promise<void>;
-  setFloorPlanZoom: (zoom: number) => Promise<void>;
   resetToDefaults: () => Promise<void>;
 }
 
@@ -81,26 +67,22 @@ export interface SettingsState {
 async function loadSettings(): Promise<{
   theme: ThemeMode;
   language: Language;
-  floorPlanZoom: number;
 }> {
   try {
-    const [themeStr, languageStr, zoomStr] = await Promise.all([
+    const [themeStr, languageStr] = await Promise.all([
       AsyncStorage.getItem(STORAGE_KEYS.THEME),
       AsyncStorage.getItem(STORAGE_KEYS.LANGUAGE),
-      AsyncStorage.getItem(STORAGE_KEYS.FLOOR_PLAN_ZOOM),
     ]);
 
     return {
       theme: (themeStr as ThemeMode) ?? 'system',
       language: (languageStr as Language) ?? 'en',
-      floorPlanZoom: zoomStr ? Number.parseFloat(zoomStr) : ZOOM_CONSTRAINTS.DEFAULT,
     };
   } catch {
     // Return defaults on error
     return {
       theme: 'system',
       language: 'en',
-      floorPlanZoom: ZOOM_CONSTRAINTS.DEFAULT,
     };
   }
 }
@@ -124,18 +106,10 @@ async function clearSettings(): Promise<void> {
     await Promise.all([
       AsyncStorage.removeItem(STORAGE_KEYS.THEME),
       AsyncStorage.removeItem(STORAGE_KEYS.LANGUAGE),
-      AsyncStorage.removeItem(STORAGE_KEYS.FLOOR_PLAN_ZOOM),
     ]);
   } catch {
     // Ignore storage errors
   }
-}
-
-/**
- * Clamp zoom value to valid range
- */
-function clampZoom(zoom: number): number {
-  return Math.max(ZOOM_CONSTRAINTS.MIN, Math.min(ZOOM_CONSTRAINTS.MAX, zoom));
 }
 
 /**
@@ -145,7 +119,6 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   // Initial state
   theme: 'system',
   language: 'en',
-  floorPlanZoom: ZOOM_CONSTRAINTS.DEFAULT,
   isInitialized: false,
 
   /**
@@ -159,7 +132,6 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     set({
       theme: settings.theme,
       language: settings.language,
-      floorPlanZoom: settings.floorPlanZoom,
       isInitialized: true,
     });
   },
@@ -181,15 +153,6 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   },
 
   /**
-   * Set floor plan zoom level
-   */
-  setFloorPlanZoom: async (zoom: number) => {
-    const clampedZoom = clampZoom(zoom);
-    await saveSetting(STORAGE_KEYS.FLOOR_PLAN_ZOOM, clampedZoom.toString());
-    set({ floorPlanZoom: clampedZoom });
-  },
-
-  /**
    * Reset all settings to defaults
    */
   resetToDefaults: async () => {
@@ -197,7 +160,6 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     set({
       theme: 'system',
       language: 'en',
-      floorPlanZoom: ZOOM_CONSTRAINTS.DEFAULT,
     });
   },
 }));
@@ -217,11 +179,6 @@ export const useTheme = () => useSettingsStore((state) => state.theme);
 export const useLanguage = () => useSettingsStore((state) => state.language);
 
 /**
- * Hook to get floor plan zoom level
- */
-export const useFloorPlanZoom = () => useSettingsStore((state) => state.floorPlanZoom);
-
-/**
  * Hook to check if settings are initialized
  */
 export const useSettingsInitialized = () => useSettingsStore((state) => state.isInitialized);
@@ -235,7 +192,6 @@ export const useSettingsActions = () =>
       initialize: state.initialize,
       setTheme: state.setTheme,
       setLanguage: state.setLanguage,
-      setFloorPlanZoom: state.setFloorPlanZoom,
       resetToDefaults: state.resetToDefaults,
     }))
   );

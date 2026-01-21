@@ -29,7 +29,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
+import { toast } from 'sonner-native';
 
 import { CancelItemModal } from '@/components/orders/CancelItemModal';
 import { CancelOrderModal } from '@/components/orders/CancelOrderModal';
@@ -41,7 +41,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Skeleton, SkeletonGroup } from '@/components/ui/Skeleton';
 import { BorderRadius, BrandColors, Colors, Spacing, StatusColors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import { useHapticRefresh } from '@/src/hooks';
 import { useOrder, useOrderCacheActions } from '@/src/hooks/useOrderQueries';
 import { batchUpdateOrderItemStatus } from '@/src/services/api/orderItems';
@@ -293,7 +293,7 @@ export function getTotalQuantity(items: OrderItem[] | undefined): number {
 // ============================================================================
 
 function OrderItemRow({ item, onMarkServed, onCancelItem, testID }: OrderItemRowProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const scale = useSharedValue(1);
 
@@ -463,7 +463,7 @@ function OrderDetailSkeleton() {
 export default function OrderDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const insets = useSafeAreaInsets();
 
@@ -501,18 +501,14 @@ export default function OrderDetailScreen() {
                   ids: [item.id],
                   status: OrderItemStatus.SERVED,
                 });
-                Toast.show({
-                  type: 'success',
-                  text1: 'Item Served',
-                  text2: `${getTranslatedText(item.itemTitle, 'Item')} marked as served`,
+                toast.success('Item Served', {
+                  description: `${getTranslatedText(item.itemTitle, 'Item')} marked as served`,
                 });
                 invalidateOrder(id ?? '');
                 refetch();
               } catch (err) {
-                Toast.show({
-                  type: 'error',
-                  text1: 'Error',
-                  text2: err instanceof Error ? err.message : 'Failed to update item status',
+                toast.error('Error', {
+                  description: err instanceof Error ? err.message : 'Failed to update item status',
                 });
               }
             },
@@ -541,10 +537,8 @@ export default function OrderDetailScreen() {
           cancelReason: reason,
           cancelReasonId: reasonId,
         });
-        Toast.show({
-          type: 'success',
-          text1: 'Item Cancelled',
-          text2: `${getTranslatedText(itemToCancel.itemTitle, 'Item')} has been cancelled`,
+        toast.success('Item Cancelled', {
+          description: `${getTranslatedText(itemToCancel.itemTitle, 'Item')} has been cancelled`,
         });
         setShowCancelItemModal(false);
         setItemToCancel(null);
@@ -594,10 +588,8 @@ export default function OrderDetailScreen() {
         invalidateOrders();
         await refetch();
         setShowChangeTableModal(false);
-        Toast.show({
-          type: 'success',
-          text1: 'Table Changed',
-          text2: 'Order has been moved to the new table',
+        toast.success('Table Changed', {
+          description: 'Order has been moved to the new table',
         });
       } catch (err) {
         throw new Error(err instanceof Error ? err.message : 'Failed to change table');
@@ -616,10 +608,8 @@ export default function OrderDetailScreen() {
         invalidateOrder(order.id);
         await refetch();
         setShowEditNotesModal(false);
-        Toast.show({
-          type: 'success',
-          text1: 'Notes Updated',
-          text2: notes ? 'Order notes have been saved' : 'Order notes have been cleared',
+        toast.success('Notes Updated', {
+          description: notes ? 'Order notes have been saved' : 'Order notes have been cleared',
         });
       } catch (err) {
         throw new Error(err instanceof Error ? err.message : 'Failed to update notes');
@@ -642,10 +632,8 @@ export default function OrderDetailScreen() {
         invalidateOrders();
         await refetch();
         setShowCancelOrderModal(false);
-        Toast.show({
-          type: 'success',
-          text1: 'Order Cancelled',
-          text2: `Order ${order.orderCode} has been cancelled`,
+        toast.success('Order Cancelled', {
+          description: `Order ${order.orderCode} has been cancelled`,
         });
       } catch (err) {
         throw new Error(err instanceof Error ? err.message : 'Failed to cancel order');

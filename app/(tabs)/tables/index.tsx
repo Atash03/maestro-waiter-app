@@ -30,6 +30,8 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { toast } from 'sonner-native';
 import { NotificationBell } from '@/components/common';
 import type { TableItemData, TableStatus } from '@/components/tables';
 import { getStatusColor, StatusLegend } from '@/components/tables';
@@ -39,10 +41,13 @@ import { Badge } from '@/components/ui/Badge';
 import { Skeleton, SkeletonGroup } from '@/components/ui/Skeleton';
 import { Spinner } from '@/components/ui/Spinner';
 import { BorderRadius, Colors, Spacing, StatusColors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import { useHapticRefresh } from '@/src/hooks';
+import { useOrders } from '@/src/hooks/useOrderQueries';
+import { createOrder } from '@/src/services/api/orders';
 import { useTablesAndZones, useTablesByZone } from '@/src/hooks/useTableQueries';
 import { useTableStore } from '@/src/stores/tableStore';
+import { OrderStatus, OrderType } from '@/src/types/enums';
 import type { Table, Translation, Zone } from '@/src/types/models';
 import { useEffect } from 'react';
 
@@ -95,7 +100,7 @@ interface ZoneTabsProps {
 }
 
 function ZoneTabs({ zones, selectedZoneId, onSelectZone }: ZoneTabsProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   const activeZones = useMemo(() => zones.filter((zone) => zone.isActive), [zones]);
@@ -396,7 +401,7 @@ interface ErrorStateProps {
 }
 
 function ErrorState({ message, onRetry }: ErrorStateProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   return (
@@ -435,9 +440,10 @@ function EmptyState() {
 // ============================================================================
 
 export default function TablesScreen() {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   // Table store for selection
   const { selectedZoneId, selectZone, selectTable } =
@@ -447,6 +453,9 @@ export default function TablesScreen() {
   const { tables, zones, isLoading, error, refetchAll } = useTablesAndZones({
     zoneParams: { isActive: true },
   });
+
+  // Fetch active orders to check for existing table orders
+  const { data: ordersData } = useOrders();
 
   // Get tables data
   const tablesData = tables.data?.data ?? [];
@@ -465,6 +474,20 @@ export default function TablesScreen() {
     [tablesFilteredByZone]
   );
 
+  // Get active order for a table (Pending or InProgress)
+  const getActiveOrderForTable = useCallback(
+    (tableId: string) => {
+      const orders = ordersData?.data ?? [];
+      return orders.find(
+        (order) =>
+          order.tableId === tableId &&
+          (order.orderStatus === OrderStatus.PENDING ||
+            order.orderStatus === OrderStatus.IN_PROGRESS)
+      );
+    },
+    [ordersData]
+  );
+
   // Haptic refresh
   const { isRefreshing, handleRefresh } = useHapticRefresh({
     onRefresh: async () => {
@@ -476,9 +499,40 @@ export default function TablesScreen() {
   const handleTablePress = useCallback(
     (table: Table) => {
       selectTable(table.id);
-      // TODO: Navigate to table detail or show info popup in Phase 2.5
+
+      // Check for existing active order on this table
+      const existingOrder = getActiveOrderForTable(table.id);
+
+      if (existingOrder) {
+        // Navigate to existing order detail
+        router.push({
+          pathname: '/(main)/order/[id]',
+          params: { id: existingOrder.id },
+        });
+        return;
+      }
+
+      // Create new order with promise toast
+      const orderPromise = createOrder({
+        orderType: OrderType.DINE_IN,
+        tableId: table.id,
+      });
+
+      toast.promise(orderPromise, {
+        loading: 'Creating order...',
+        success: (order) => {
+          router.push({
+            pathname: '/(main)/order/new',
+            params: { tableId: table.id, orderId: order.id },
+          });
+          return `Order ${order.orderCode} created!`;
+        },
+        error: (err) => {
+          return err instanceof Error ? err.message : 'Failed to create order';
+        },
+      });
     },
-    [selectTable]
+    [selectTable, router, getActiveOrderForTable]
   );
 
   const handleTableLongPress = useCallback(

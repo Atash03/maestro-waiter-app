@@ -5,7 +5,6 @@
  * - Notification preferences (sound, vibration)
  * - Theme selection (light/dark/system)
  * - Language selection (en/ru/tm)
- * - Default floor plan zoom level
  * - About/version info
  */
 
@@ -20,20 +19,18 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Card } from '@/components/ui/Card';
 import { BorderRadius, BrandColors, Colors, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import {
   LANGUAGE_NAMES,
   type Language,
   THEME_NAMES,
   type ThemeMode,
-  useFloorPlanZoom,
   useLanguage,
   useNotificationPreferences,
   useNotificationStore,
   useSettingsActions,
   useSettingsInitialized,
   useTheme,
-  ZOOM_CONSTRAINTS,
 } from '@/src/stores';
 
 // ============================================================================
@@ -68,7 +65,7 @@ const BUILD_NUMBER = String(
 // ============================================================================
 
 function SettingsSection({ title, children, delay = 0 }: SettingsSectionProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   return (
@@ -84,7 +81,7 @@ function SettingsSection({ title, children, delay = 0 }: SettingsSectionProps) {
 }
 
 function SettingsRow({ label, value, onPress, rightElement, testID }: SettingsRowProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   const content = (
@@ -117,7 +114,7 @@ function SettingsRow({ label, value, onPress, rightElement, testID }: SettingsRo
 }
 
 function SettingsDivider() {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   return <View style={[styles.divider, { backgroundColor: colors.border }]} />;
@@ -136,7 +133,7 @@ function SelectionModal({
   onSelect: (value: string) => void;
   onClose: () => void;
 }) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   return (
@@ -183,7 +180,7 @@ function SelectionModal({
 // ============================================================================
 
 export default function SettingsScreen() {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -191,13 +188,11 @@ export default function SettingsScreen() {
   // Settings state
   const theme = useTheme();
   const language = useLanguage();
-  const floorPlanZoom = useFloorPlanZoom();
   const isSettingsInitialized = useSettingsInitialized();
   const {
     initialize: initializeSettings,
     setTheme,
     setLanguage,
-    setFloorPlanZoom,
   } = useSettingsActions();
 
   // Notification preferences
@@ -247,16 +242,6 @@ export default function SettingsScreen() {
     },
     [notificationStore]
   );
-
-  const handleZoomDecrease = useCallback(async () => {
-    const newZoom = Math.max(ZOOM_CONSTRAINTS.MIN, floorPlanZoom - ZOOM_CONSTRAINTS.STEP);
-    await setFloorPlanZoom(newZoom);
-  }, [floorPlanZoom, setFloorPlanZoom]);
-
-  const handleZoomIncrease = useCallback(async () => {
-    const newZoom = Math.min(ZOOM_CONSTRAINTS.MAX, floorPlanZoom + ZOOM_CONSTRAINTS.STEP);
-    await setFloorPlanZoom(newZoom);
-  }, [floorPlanZoom, setFloorPlanZoom]);
 
   // Theme options
   const themeOptions = Object.entries(THEME_NAMES).map(([value, label]) => ({
@@ -334,53 +319,15 @@ export default function SettingsScreen() {
           />
         </SettingsSection>
 
-        {/* Floor Plan Section */}
-        <SettingsSection title="FLOOR PLAN" delay={200}>
-          <View style={styles.zoomRow}>
-            <ThemedText style={[styles.rowLabel, { color: colors.text }]}>
-              Default Zoom Level
-            </ThemedText>
-            <View style={styles.zoomControls}>
-              <TouchableOpacity
-                style={[
-                  styles.zoomButton,
-                  { backgroundColor: colors.backgroundSecondary },
-                  floorPlanZoom <= ZOOM_CONSTRAINTS.MIN && styles.zoomButtonDisabled,
-                ]}
-                onPress={handleZoomDecrease}
-                disabled={floorPlanZoom <= ZOOM_CONSTRAINTS.MIN}
-                testID="zoom-decrease"
-              >
-                <ThemedText style={[styles.zoomButtonText, { color: colors.text }]}>−</ThemedText>
-              </TouchableOpacity>
-              <ThemedText style={[styles.zoomValue, { color: colors.text }]}>
-                {Math.round(floorPlanZoom * 100)}%
-              </ThemedText>
-              <TouchableOpacity
-                style={[
-                  styles.zoomButton,
-                  { backgroundColor: colors.backgroundSecondary },
-                  floorPlanZoom >= ZOOM_CONSTRAINTS.MAX && styles.zoomButtonDisabled,
-                ]}
-                onPress={handleZoomIncrease}
-                disabled={floorPlanZoom >= ZOOM_CONSTRAINTS.MAX}
-                testID="zoom-increase"
-              >
-                <ThemedText style={[styles.zoomButtonText, { color: colors.text }]}>+</ThemedText>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </SettingsSection>
-
         {/* About Section */}
-        <SettingsSection title="ABOUT" delay={300}>
+        <SettingsSection title="ABOUT" delay={200}>
           <SettingsRow label="Version" value={APP_VERSION} testID="version-info" />
           <SettingsDivider />
           <SettingsRow label="Build" value={BUILD_NUMBER} testID="build-info" />
         </SettingsSection>
 
         {/* Footer */}
-        <Animated.View entering={FadeIn.duration(300).delay(400)} style={styles.footer}>
+        <Animated.View entering={FadeIn.duration(300).delay(300)} style={styles.footer}>
           <ThemedText style={[styles.footerText, { color: colors.textMuted }]}>
             Maestro Waiter App
           </ThemedText>
@@ -496,39 +443,6 @@ const styles = StyleSheet.create({
   divider: {
     height: StyleSheet.hairlineWidth,
     marginLeft: Spacing.lg,
-  },
-  zoomRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    minHeight: 48,
-  },
-  zoomControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-  },
-  zoomButton: {
-    width: 36,
-    height: 36,
-    borderRadius: BorderRadius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  zoomButtonDisabled: {
-    opacity: 0.4,
-  },
-  zoomButtonText: {
-    fontSize: 20,
-    fontWeight: '500',
-  },
-  zoomValue: {
-    fontSize: 16,
-    fontWeight: '500',
-    minWidth: 50,
-    textAlign: 'center',
   },
   footer: {
     alignItems: 'center',

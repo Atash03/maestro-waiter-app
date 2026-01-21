@@ -24,13 +24,13 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
-import Toast from 'react-native-toast-message';
+import { toast } from 'sonner-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { BorderRadius, BrandColors, Colors, Spacing, StatusColors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import { PaymentMethod } from '@/src/types/enums';
 
 // ============================================================================
@@ -85,7 +85,7 @@ function PaymentMethodOption({
   onSelect,
   testID,
 }: PaymentMethodOptionProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   const handlePress = useCallback(() => {
@@ -190,7 +190,7 @@ export function PaymentForm({
   isSubmitting = false,
   testID,
 }: PaymentFormProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   // Form state
@@ -284,10 +284,8 @@ export function PaymentForm({
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to process payment';
       setError(errorMessage);
-      Toast.show({
-        type: 'error',
-        text1: 'Payment Failed',
-        text2: errorMessage,
+      toast.error('Payment Failed', {
+        description: errorMessage,
       });
     }
   }, [amountValue, selectedMethod, remainingBalance, transactionId, notes, billId, onSubmit]);

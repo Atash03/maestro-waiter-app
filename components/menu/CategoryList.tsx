@@ -32,7 +32,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { ThemedText } from '@/components/themed-text';
 import { BorderRadius, CategoryColors, Colors, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import type { MenuCategory, Translation } from '@/src/types/models';
 
 // Enable LayoutAnimation on Android
@@ -150,7 +150,7 @@ export function CategoryChip({
   size = 'md',
   testID,
 }: CategoryChipProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   const scale = useSharedValue(1);
@@ -223,7 +223,7 @@ export function CollapsibleCategory({
   depth = 0,
   testID,
 }: CollapsibleCategoryProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -321,7 +321,7 @@ export function CategoryList({
   showSubcategories = true,
   testID = 'category-list',
 }: CategoryListProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const scrollViewRef = useRef<ScrollView>(null);
 

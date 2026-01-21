@@ -80,10 +80,11 @@ describe('Phase 1 Dependencies', () => {
     });
   });
 
-  describe('React Native Toast Message', () => {
-    it('should import react-native-toast-message', () => {
-      const Toast = require('react-native-toast-message').default;
-      expect(Toast).toBeDefined();
+  describe('Sonner Native', () => {
+    it('should import sonner-native', () => {
+      const { toast, Toaster } = require('sonner-native');
+      expect(toast).toBeDefined();
+      expect(Toaster).toBeDefined();
     });
   });
 

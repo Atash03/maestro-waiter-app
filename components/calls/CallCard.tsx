@@ -19,7 +19,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Badge } from '@/components/ui/Badge';
 import { Spinner } from '@/components/ui/Spinner';
 import { BorderRadius, BrandColors, Colors, Spacing, StatusColors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import { formatCallElapsedTime, getCallUrgency } from '@/src/hooks';
 import { WaiterCallStatus } from '@/src/types/enums';
 import type { WaiterCall } from '@/src/types/models';
@@ -64,7 +64,7 @@ export function CallCard({
   isCancelling = false,
   testID,
 }: CallCardProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const [elapsedTime, setElapsedTime] = useState(formatCallElapsedTime(call.createdAt));
 

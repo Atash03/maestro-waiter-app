@@ -23,7 +23,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Skeleton, SkeletonGroup } from '@/components/ui/Skeleton';
 import { Spinner } from '@/components/ui/Spinner';
 import { BorderRadius, BrandColors, Colors, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import {
   filterCallsByStatus,
   sortCallsByDate,
@@ -71,7 +71,7 @@ const STATUS_FILTERS: { label: string; value: StatusFilter }[] = [
 // ============================================================================
 
 function FilterTab({ label, isActive, onPress, count, testID }: FilterTabProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   return (
@@ -130,7 +130,7 @@ function CallsListSkeleton() {
 }
 
 function EmptyState({ statusFilter }: { statusFilter: StatusFilter }) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   const getMessage = () => {
@@ -170,7 +170,7 @@ function EmptyState({ statusFilter }: { statusFilter: StatusFilter }) {
 }
 
 function ErrorState({ onRetry }: { onRetry: () => void }) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   return (
@@ -198,7 +198,7 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
 // ============================================================================
 
 export default function CallsScreen() {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const router = useRouter();
   const insets = useSafeAreaInsets();

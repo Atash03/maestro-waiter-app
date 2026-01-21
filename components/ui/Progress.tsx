@@ -21,7 +21,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { BorderRadius, BrandColors, Colors, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import { ThemedText } from '../themed-text';
 
 // ============================================================================
@@ -123,7 +123,7 @@ export function ProgressBar({
   style,
   testID,
 }: ProgressBarProps) {
-  const colorScheme = useColorScheme() ?? 'light';
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme];
 
   const isIndeterminate = value === undefined;
@@ -222,7 +222,7 @@ export function CircularProgress({
   style,
   testID,
 }: CircularProgressProps) {
-  const colorScheme = useColorScheme() ?? 'light';
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme];
 
   const isIndeterminate = value === undefined;
@@ -428,7 +428,7 @@ export function LoadingOverlay({
   style,
   testID,
 }: LoadingOverlayProps) {
-  const colorScheme = useColorScheme() ?? 'light';
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme];
 
   if (!visible) return null;

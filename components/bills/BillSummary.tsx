@@ -14,12 +14,12 @@
 import { useCallback, useMemo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, SlideInRight } from 'react-native-reanimated';
-import Toast from 'react-native-toast-message';
+import { toast } from 'sonner-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Card } from '@/components/ui/Card';
 import { BorderRadius, BrandColors, Colors, Spacing, StatusColors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import { BillStatus, PaymentMethod } from '@/src/types/enums';
 import type { Bill, BillDiscount, Payment, Translation } from '@/src/types/models';
 
@@ -171,7 +171,7 @@ interface DiscountItemProps {
 }
 
 function DiscountItem({ discount, index }: DiscountItemProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   const discountName = discount.discount
@@ -205,7 +205,7 @@ interface PaymentItemProps {
 }
 
 function PaymentItem({ payment, index }: PaymentItemProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   return (
@@ -247,7 +247,7 @@ export function BillSummary({
   compact = false,
   testID,
 }: BillSummaryProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   // Computed values
@@ -274,10 +274,8 @@ export function BillSummary({
     if (onPrintReceipt) {
       onPrintReceipt();
     } else {
-      Toast.show({
-        type: 'info',
-        text1: 'Coming Soon',
-        text2: 'Receipt printing will be available in a future update',
+      toast.info('Coming Soon', {
+        description: 'Receipt printing will be available in a future update',
       });
     }
   }, [onPrintReceipt]);
@@ -286,10 +284,8 @@ export function BillSummary({
     if (onShareReceipt) {
       onShareReceipt();
     } else {
-      Toast.show({
-        type: 'info',
-        text1: 'Coming Soon',
-        text2: 'Receipt sharing will be available in a future update',
+      toast.info('Coming Soon', {
+        description: 'Receipt sharing will be available in a future update',
       });
     }
   }, [onShareReceipt]);

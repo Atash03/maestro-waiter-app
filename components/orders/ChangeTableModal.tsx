@@ -16,7 +16,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { BorderRadius, BrandColors, Colors, Spacing, StatusColors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import { useTables } from '@/src/hooks/useTableQueries';
 import type { Table } from '@/src/types/models';
 
@@ -44,7 +44,7 @@ interface TableItemProps {
 }
 
 function TableItem({ table, isSelected, isCurrent, onSelect }: TableItemProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   return (
@@ -93,7 +93,7 @@ export function ChangeTableModal({
   onCancel,
   testID = 'change-table-modal',
 }: ChangeTableModalProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);

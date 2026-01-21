@@ -40,7 +40,7 @@ import { Button } from '@/components/ui/Button';
 import { Skeleton, SkeletonGroup } from '@/components/ui/Skeleton';
 import { Spinner } from '@/components/ui/Spinner';
 import { BorderRadius, BrandColors, Colors, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import { useMenuData } from '@/src/hooks/useMenuQueries';
 import { useSendToKitchen } from '@/src/hooks/useSendToKitchen';
 import { useTable } from '@/src/hooks/useTableQueries';
@@ -120,7 +120,7 @@ interface MenuSearchProps {
 }
 
 function MenuSearch({ value, onChangeText }: MenuSearchProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   return (
@@ -168,7 +168,7 @@ interface MenuItemCardProps {
 }
 
 function MenuItemCard({ item, quantity, onPress }: MenuItemCardProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   const scale = useSharedValue(1);
@@ -309,7 +309,7 @@ function OrderSummaryItem({
   onRemove,
   onUpdateQuantity,
 }: Omit<OrderSummaryItemProps, 'onEdit'>) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   return (
@@ -410,7 +410,7 @@ function OrderSummary({
   isTablet,
   isAddingToExistingOrder = false,
 }: OrderSummaryProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   if (items.length === 0) {
@@ -510,7 +510,7 @@ function OrderEntrySkeleton() {
 // ============================================================================
 
 export default function OrderEntryScreen() {
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();

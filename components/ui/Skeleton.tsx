@@ -8,7 +8,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { BorderRadius, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 
 export type SkeletonVariant = 'text' | 'circular' | 'rectangular' | 'rounded';
@@ -31,7 +31,7 @@ export function Skeleton({
   testID,
 }: SkeletonProps) {
   const shimmerPosition = useSharedValue(0);
-  const colorScheme = useColorScheme();
+  const colorScheme = useEffectiveColorScheme();
 
   // Theme colors
   const baseColor = useThemeColor({}, 'backgroundSecondary');
