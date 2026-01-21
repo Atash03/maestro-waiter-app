@@ -16,36 +16,12 @@ jest.mock('expo-router', () => ({
   }),
 }));
 
-// Mock react-native-reanimated before importing it
-jest.mock('react-native-reanimated', () => {
-  const { View } = require('react-native');
-  return {
-    __esModule: true,
-    default: {
-      View,
-      createAnimatedComponent: (Component: React.ComponentType) => Component || View,
-      call: () => {},
-    },
-    createAnimatedComponent: (Component: React.ComponentType) => Component || View,
-    useSharedValue: jest.fn((init) => ({ value: init })),
-    useAnimatedStyle: jest.fn(() => ({})),
-    withTiming: jest.fn((val) => val),
-    withSpring: jest.fn((val) => val),
-    withRepeat: jest.fn((val) => val),
-    withSequence: jest.fn((...vals) => vals[vals.length - 1]),
-    runOnJS: jest.fn((fn) => fn),
-    View,
-  };
-});
-
 // Mock the auth store with configurable state
 const mockLogin = jest.fn();
 const mockClearError = jest.fn();
 let mockIsLoggingIn = false;
 let mockIsAuthenticated = false;
 let mockError: string | null = null;
-let mockRememberMe = false;
-let mockSavedUsername: string | null = null;
 
 const mockUseAuthStore = jest.fn(() => ({
   login: mockLogin,
@@ -55,14 +31,8 @@ const mockUseAuthStore = jest.fn(() => ({
   isAuthenticated: mockIsAuthenticated,
 }));
 
-const mockUseRememberMe = jest.fn(() => ({
-  rememberMe: mockRememberMe,
-  savedUsername: mockSavedUsername,
-}));
-
 jest.mock('@/src/stores/authStore', () => ({
   useAuthStore: mockUseAuthStore,
-  useRememberMe: mockUseRememberMe,
 }));
 
 // Mock API client error
@@ -86,8 +56,6 @@ beforeEach(() => {
   mockIsLoggingIn = false;
   mockIsAuthenticated = false;
   mockError = null;
-  mockRememberMe = false;
-  mockSavedUsername = null;
 
   // Update mock implementations to use current values
   mockUseAuthStore.mockImplementation(() => ({
@@ -97,11 +65,6 @@ beforeEach(() => {
     error: mockError,
     isAuthenticated: mockIsAuthenticated,
   }));
-
-  mockUseRememberMe.mockImplementation(() => ({
-    rememberMe: mockRememberMe,
-    savedUsername: mockSavedUsername,
-  }));
 });
 
 describe('LoginScreen', () => {
@@ -109,16 +72,12 @@ describe('LoginScreen', () => {
     it('uses the auth store hooks', () => {
       // Verify auth store hooks are properly exported and can be called
       expect(mockUseAuthStore).toBeDefined();
-      expect(mockUseRememberMe).toBeDefined();
 
       // Call the mocks to simulate hook usage
       const authResult = mockUseAuthStore();
-      const rememberResult = mockUseRememberMe();
 
       expect(authResult.login).toBe(mockLogin);
       expect(authResult.clearError).toBe(mockClearError);
-      expect(rememberResult.rememberMe).toBe(false);
-      expect(rememberResult.savedUsername).toBeNull();
     });
 
     it('provides authentication state', () => {
@@ -163,53 +122,13 @@ describe('LoginScreen', () => {
     });
   });
 
-  describe('Remember Me Feature', () => {
-    it('provides saved username from store', () => {
-      mockRememberMe = true;
-      mockSavedUsername = 'testuser';
-
-      mockUseRememberMe.mockImplementation(() => ({
-        rememberMe: true,
-        savedUsername: 'testuser',
-      }));
-
-      const result = mockUseRememberMe();
-
-      expect(result.rememberMe).toBe(true);
-      expect(result.savedUsername).toBe('testuser');
-    });
-
-    it('provides empty username when remember me is disabled', () => {
-      mockRememberMe = false;
-      mockSavedUsername = null;
-
-      mockUseRememberMe.mockImplementation(() => ({
-        rememberMe: false,
-        savedUsername: null,
-      }));
-
-      const result = mockUseRememberMe();
-
-      expect(result.rememberMe).toBe(false);
-      expect(result.savedUsername).toBeNull();
-    });
-  });
-
   describe('Login Function', () => {
     it('login function can be called with credentials', async () => {
       mockLogin.mockResolvedValueOnce({ sessionId: 'test-session', account: {} });
 
-      await mockLogin({ username: 'testuser', password: 'testpass' }, false);
+      await mockLogin({ username: 'testuser', password: 'testpass' });
 
-      expect(mockLogin).toHaveBeenCalledWith({ username: 'testuser', password: 'testpass' }, false);
-    });
-
-    it('login function can be called with remember me flag', async () => {
-      mockLogin.mockResolvedValueOnce({ sessionId: 'test-session', account: {} });
-
-      await mockLogin({ username: 'testuser', password: 'testpass' }, true);
-
-      expect(mockLogin).toHaveBeenCalledWith({ username: 'testuser', password: 'testpass' }, true);
+      expect(mockLogin).toHaveBeenCalledWith({ username: 'testuser', password: 'testpass' });
     });
 
     it('login function rejects with error', async () => {

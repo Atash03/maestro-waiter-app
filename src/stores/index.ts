@@ -9,7 +9,6 @@ export {
   useAuthLoading,
   useAuthStore,
   useIsAuthenticated,
-  useRememberMe,
 } from './authStore';
 export {
   getTranslatedText,

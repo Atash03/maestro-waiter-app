@@ -31,8 +31,6 @@ import type { Account } from '../types/models';
 const STORAGE_KEYS = {
   DEVICE_ID: 'maestro_device_id',
   SESSION_ID: 'maestro_session_id',
-  REMEMBER_ME: 'maestro_remember_me',
-  SAVED_USERNAME: 'maestro_saved_username',
 } as const;
 
 /**
@@ -48,16 +46,13 @@ export interface AuthState {
   isLoggingIn: boolean;
   isLoggingOut: boolean;
   error: string | null;
-  rememberMe: boolean;
-  savedUsername: string | null;
 
   // Actions
   initialize: () => Promise<void>;
-  login: (request: LoginRequest, rememberMe?: boolean) => Promise<LoginResponse>;
+  login: (request: LoginRequest) => Promise<LoginResponse>;
   logout: () => Promise<void>;
   validateSession: () => Promise<boolean>;
   clearError: () => void;
-  setRememberMe: (value: boolean) => void;
 }
 
 /**
@@ -129,32 +124,6 @@ async function clearSessionId(): Promise<void> {
 }
 
 /**
- * Save remember me preference and username
- */
-async function saveRememberMeData(rememberMe: boolean, username: string | null): Promise<void> {
-  await AsyncStorage.setItem(STORAGE_KEYS.REMEMBER_ME, JSON.stringify(rememberMe));
-  if (rememberMe && username) {
-    await AsyncStorage.setItem(STORAGE_KEYS.SAVED_USERNAME, username);
-  } else {
-    await AsyncStorage.removeItem(STORAGE_KEYS.SAVED_USERNAME);
-  }
-}
-
-/**
- * Get remember me preference
- */
-async function getRememberMeData(): Promise<{
-  rememberMe: boolean;
-  savedUsername: string | null;
-}> {
-  const rememberMeStr = await AsyncStorage.getItem(STORAGE_KEYS.REMEMBER_ME);
-  const rememberMe = rememberMeStr ? JSON.parse(rememberMeStr) : false;
-  const savedUsername = rememberMe ? await AsyncStorage.getItem(STORAGE_KEYS.SAVED_USERNAME) : null;
-
-  return { rememberMe, savedUsername };
-}
-
-/**
  * Update API client session info
  */
 function updateApiClientSession(sessionId: string | null, deviceId: string): void {
@@ -186,8 +155,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isLoggingIn: false,
   isLoggingOut: false,
   error: null,
-  rememberMe: false,
-  savedUsername: null,
 
   /**
    * Initialize the auth store
@@ -200,10 +167,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Get or create device ID
       const deviceId = await getOrCreateDeviceId();
       set({ deviceId });
-
-      // Get remember me preference
-      const { rememberMe, savedUsername } = await getRememberMeData();
-      set({ rememberMe, savedUsername });
 
       // Get saved session ID
       const sessionId = await getSavedSessionId();
@@ -247,7 +210,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   /**
    * Login with username and password
    */
-  login: async (request: LoginRequest, rememberMe = false) => {
+  login: async (request: LoginRequest) => {
     const { deviceId } = get();
 
     if (!deviceId) {
@@ -266,9 +229,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Save session ID securely
       await saveSessionId(response.sessionId);
 
-      // Save remember me preference
-      await saveRememberMeData(rememberMe, rememberMe ? request.username : null);
-
       // Update API client with new session info
       updateApiClientSession(response.sessionId, deviceId);
 
@@ -277,8 +237,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         account: response.account,
         isAuthenticated: true,
         isLoggingIn: false,
-        rememberMe,
-        savedUsername: rememberMe ? request.username : null,
       });
 
       return response;
@@ -372,13 +330,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   clearError: () => {
     set({ error: null });
   },
-
-  /**
-   * Set remember me preference
-   */
-  setRememberMe: (value: boolean) => {
-    set({ rememberMe: value });
-  },
 }));
 
 /**
@@ -407,14 +358,3 @@ export const useAuthLoading = () =>
  * Hook to get auth error
  */
 export const useAuthError = () => useAuthStore((state) => state.error);
-
-/**
- * Hook to get remember me data
- */
-export const useRememberMe = () =>
-  useAuthStore(
-    useShallow((state) => ({
-      rememberMe: state.rememberMe,
-      savedUsername: state.savedUsername,
-    }))
-  );

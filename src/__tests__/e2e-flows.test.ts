@@ -243,8 +243,6 @@ describe('End-to-End Flow: Login', () => {
       isLoggingIn: false,
       isLoggingOut: false,
       error: null,
-      rememberMe: false,
-      savedUsername: null,
     });
   });
 
@@ -304,20 +302,6 @@ describe('End-to-End Flow: Login', () => {
       expect(state.isAuthenticated).toBe(false);
       expect(state.sessionId).toBeNull();
       expect(state.error).toBe('Invalid credentials');
-    });
-
-    it('should handle login with remember me option', async () => {
-      await useAuthStore.getState().initialize();
-
-      const loginResponse = createMockLoginResponse();
-      mockApiLogin.mockResolvedValueOnce(loginResponse);
-
-      const { login } = useAuthStore.getState();
-      await login({ username: 'testwaiter', password: 'password123' }, true);
-
-      const state = useAuthStore.getState();
-      expect(state.rememberMe).toBe(true);
-      expect(state.savedUsername).toBe('testwaiter');
     });
 
     it('should restore session on app restart', async () => {
@@ -899,8 +883,6 @@ describe('End-to-End Flow: Integration Scenarios', () => {
       isLoggingIn: false,
       isLoggingOut: false,
       error: null,
-      rememberMe: false,
-      savedUsername: null,
     });
   });
 

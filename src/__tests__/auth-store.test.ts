@@ -42,7 +42,6 @@ import {
   useAuthLoading,
   useAuthStore,
   useIsAuthenticated,
-  useRememberMe,
 } from '../stores/authStore';
 
 // Test data
@@ -73,8 +72,6 @@ describe('AuthStore', () => {
       isLoggingIn: false,
       isLoggingOut: false,
       error: null,
-      rememberMe: false,
-      savedUsername: null,
     });
 
     // Reset mock implementations for SecureStore
@@ -100,8 +97,6 @@ describe('AuthStore', () => {
       expect(state.isLoggingIn).toBe(false);
       expect(state.isLoggingOut).toBe(false);
       expect(state.error).toBeNull();
-      expect(state.rememberMe).toBe(false);
-      expect(state.savedUsername).toBeNull();
     });
   });
 
@@ -171,21 +166,6 @@ describe('AuthStore', () => {
       expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith('maestro_session_id');
     });
 
-    it('should load remember me preference on initialize', async () => {
-      (mockedAsyncStorage.getItem as jest.Mock).mockImplementation(async (key: string) => {
-        if (key === 'maestro_remember_me') return 'true';
-        if (key === 'maestro_saved_username') return 'saveduser';
-        return null;
-      });
-
-      const { initialize } = useAuthStore.getState();
-      await initialize();
-
-      const state = useAuthStore.getState();
-      expect(state.rememberMe).toBe(true);
-      expect(state.savedUsername).toBe('saveduser');
-    });
-
     it('should fall back to AsyncStorage if SecureStore fails', async () => {
       (mockedSecureStore.getItemAsync as jest.Mock).mockRejectedValue(
         new Error('SecureStore error')
@@ -248,33 +228,6 @@ describe('AuthStore', () => {
 
       // Check that isLoggingIn is false after completion
       expect(useAuthStore.getState().isLoggingIn).toBe(false);
-    });
-
-    it('should save username when remember me is true', async () => {
-      mockApiLogin.mockResolvedValueOnce(testLoginResponse);
-
-      const { login } = useAuthStore.getState();
-      await login({ username: 'testwaiter', password: 'password123' }, true);
-
-      const state = useAuthStore.getState();
-      expect(state.rememberMe).toBe(true);
-      expect(state.savedUsername).toBe('testwaiter');
-      expect(mockedAsyncStorage.setItem).toHaveBeenCalledWith('maestro_remember_me', 'true');
-      expect(mockedAsyncStorage.setItem).toHaveBeenCalledWith(
-        'maestro_saved_username',
-        'testwaiter'
-      );
-    });
-
-    it('should not save username when remember me is false', async () => {
-      mockApiLogin.mockResolvedValueOnce(testLoginResponse);
-
-      const { login } = useAuthStore.getState();
-      await login({ username: 'testwaiter', password: 'password123' }, false);
-
-      const state = useAuthStore.getState();
-      expect(state.rememberMe).toBe(false);
-      expect(state.savedUsername).toBeNull();
     });
 
     it('should handle login failure', async () => {
@@ -445,18 +398,6 @@ describe('AuthStore', () => {
       expect(useAuthStore.getState().error).toBeNull();
     });
   });
-
-  describe('setRememberMe', () => {
-    it('should set remember me preference', () => {
-      const { setRememberMe } = useAuthStore.getState();
-      setRememberMe(true);
-
-      expect(useAuthStore.getState().rememberMe).toBe(true);
-
-      setRememberMe(false);
-      expect(useAuthStore.getState().rememberMe).toBe(false);
-    });
-  });
 });
 
 describe('Auth Store Hooks', () => {
@@ -470,8 +411,6 @@ describe('Auth Store Hooks', () => {
       isLoggingIn: false,
       isLoggingOut: true,
       error: 'Test error',
-      rememberMe: true,
-      savedUsername: 'testuser',
     });
   });
 
@@ -503,13 +442,6 @@ describe('Auth Store Hooks', () => {
       expect(typeof useAuthError).toBe('function');
     });
   });
-
-  describe('useRememberMe', () => {
-    it('should return remember me data', () => {
-      expect(useRememberMe).toBeDefined();
-      expect(typeof useRememberMe).toBe('function');
-    });
-  });
 });
 
 describe('AuthState type export', () => {
@@ -526,14 +458,11 @@ describe('AuthState type export', () => {
     expect(state).toHaveProperty('isLoggingIn');
     expect(state).toHaveProperty('isLoggingOut');
     expect(state).toHaveProperty('error');
-    expect(state).toHaveProperty('rememberMe');
-    expect(state).toHaveProperty('savedUsername');
     expect(state).toHaveProperty('initialize');
     expect(state).toHaveProperty('login');
     expect(state).toHaveProperty('logout');
     expect(state).toHaveProperty('validateSession');
     expect(state).toHaveProperty('clearError');
-    expect(state).toHaveProperty('setRememberMe');
   });
 });
 
@@ -546,6 +475,5 @@ describe('Store Index Export', () => {
     expect(storeIndex.useAccount).toBeDefined();
     expect(storeIndex.useAuthLoading).toBeDefined();
     expect(storeIndex.useAuthError).toBeDefined();
-    expect(storeIndex.useRememberMe).toBeDefined();
   });
 });

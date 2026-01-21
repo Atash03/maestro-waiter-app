@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -9,75 +9,22 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withSequence,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
 import { ApiClientError } from '@/src/services/api/client';
-import { useAuthStore, useRememberMe } from '@/src/stores/authStore';
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+import { useAuthStore } from '@/src/stores/authStore';
 
 export default function LoginScreen() {
-  const { rememberMe: savedRememberMe, savedUsername } = useRememberMe();
-
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(savedRememberMe);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const { login, isLoggingIn, clearError, error: storeError } = useAuthStore();
 
-  // Animation values
-  const logoScale = useSharedValue(0.8);
-  const logoOpacity = useSharedValue(0);
-  const formTranslateY = useSharedValue(50);
-  const formOpacity = useSharedValue(0);
-  const buttonScale = useSharedValue(1);
-  const shakeX = useSharedValue(0);
-
-  // Initialize with saved username if remember me was enabled
-  useEffect(() => {
-    if (savedUsername) {
-      setUsername(savedUsername);
-    }
-  }, [savedUsername]);
-
-  // Entry animations
-  useEffect(() => {
-    logoOpacity.value = withTiming(1, { duration: 600 });
-    logoScale.value = withSpring(1, { damping: 12, stiffness: 100 });
-
-    formOpacity.value = withTiming(1, { duration: 600 });
-    formTranslateY.value = withSpring(0, { damping: 15, stiffness: 100 });
-  }, [logoOpacity, logoScale, formOpacity, formTranslateY]);
-
   // Show store errors
-  useEffect(() => {
-    if (storeError) {
-      setErrorMessage(storeError);
-    }
-  }, [storeError]);
-
-  const logoAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: logoScale.value }],
-    opacity: logoOpacity.value,
-  }));
-
-  const formAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: formTranslateY.value }, { translateX: shakeX.value }],
-    opacity: formOpacity.value,
-  }));
-
-  const buttonAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: buttonScale.value }],
-  }));
+  if (storeError && !errorMessage) {
+    setErrorMessage(storeError);
+  }
 
   const validateForm = (): boolean => {
     let isValid = true;
@@ -95,15 +42,6 @@ export default function LoginScreen() {
       isValid = false;
     }
 
-    if (!isValid) {
-      // Shake animation for validation error
-      shakeX.value = withSequence(
-        withTiming(-10, { duration: 50 }),
-        withRepeat(withTiming(10, { duration: 100 }), 3, true),
-        withTiming(0, { duration: 50 })
-      );
-    }
-
     return isValid;
   };
 
@@ -116,7 +54,7 @@ export default function LoginScreen() {
     setErrorMessage(null);
 
     try {
-      await login({ username: username.trim(), password }, rememberMe);
+      await login({ username: username.trim(), password });
       // Navigation happens via useEffect watching isAuthenticated
     } catch (error) {
       let message = 'Login failed. Please try again.';
@@ -139,22 +77,7 @@ export default function LoginScreen() {
       }
 
       setErrorMessage(message);
-
-      // Shake animation for error
-      shakeX.value = withSequence(
-        withTiming(-10, { duration: 50 }),
-        withRepeat(withTiming(10, { duration: 100 }), 3, true),
-        withTiming(0, { duration: 50 })
-      );
     }
-  };
-
-  const handlePressIn = () => {
-    buttonScale.value = withSpring(0.95, { damping: 15, stiffness: 400 });
-  };
-
-  const handlePressOut = () => {
-    buttonScale.value = withSpring(1, { damping: 15, stiffness: 400 });
   };
 
   return (
@@ -164,16 +87,16 @@ export default function LoginScreen() {
     >
       <View style={styles.content}>
         {/* Logo and Welcome Section */}
-        <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
+        <View style={styles.logoContainer}>
           <View style={styles.logoPlaceholder}>
             <Text style={styles.logoText}>M</Text>
           </View>
           <Text style={styles.welcomeTitle}>Maestro</Text>
           <Text style={styles.welcomeSubtitle}>Waiter App</Text>
-        </Animated.View>
+        </View>
 
         {/* Login Form */}
-        <Animated.View style={[styles.formContainer, formAnimatedStyle]}>
+        <View style={styles.formContainer}>
           {/* Error Message */}
           {errorMessage && (
             <View style={styles.errorContainer}>
@@ -220,32 +143,13 @@ export default function LoginScreen() {
             {passwordError && <Text style={styles.fieldError}>{passwordError}</Text>}
           </View>
 
-          {/* Remember Me */}
-          <Pressable
-            style={styles.rememberMeContainer}
-            onPress={() => setRememberMe(!rememberMe)}
-            disabled={isLoggingIn}
-            testID="remember-me-checkbox"
-            accessibilityRole="checkbox"
-            accessibilityState={{ checked: rememberMe }}
-            accessibilityLabel="Remember me"
-          >
-            <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
-              {rememberMe && <Text style={styles.checkmark}>✓</Text>}
-            </View>
-            <Text style={styles.rememberMeText}>Remember me</Text>
-          </Pressable>
-
           {/* Login Button */}
-          <AnimatedPressable
+          <Pressable
             style={[
               styles.loginButton,
-              buttonAnimatedStyle,
               isLoggingIn && styles.loginButtonDisabled,
             ]}
             onPress={handleLogin}
-            onPressIn={handlePressIn}
-            onPressOut={handlePressOut}
             disabled={isLoggingIn}
             testID="login-button"
           >
@@ -254,8 +158,8 @@ export default function LoginScreen() {
             ) : (
               <Text style={styles.loginButtonText}>Sign In</Text>
             )}
-          </AnimatedPressable>
-        </Animated.View>
+          </Pressable>
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
@@ -340,34 +244,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 4,
   },
-  rememberMeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: '#D1D5DB',
-    marginRight: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkboxChecked: {
-    backgroundColor: '#F94623',
-    borderColor: '#F94623',
-  },
-  checkmark: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  rememberMeText: {
-    fontSize: 14,
-    color: '#374151',
-  },
   loginButton: {
     backgroundColor: '#F94623',
     borderRadius: 8,
@@ -375,6 +251,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 48,
+    marginTop: 8,
   },
   loginButtonDisabled: {
     backgroundColor: '#FB9A89',
