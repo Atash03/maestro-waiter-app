@@ -593,6 +593,7 @@ const styles = StyleSheet.create({
   },
   statIcon: {
     fontSize: 28,
+    lineHeight: 34,
     marginRight: Spacing.md,
   },
   statTextContainer: {
@@ -643,6 +644,7 @@ const styles = StyleSheet.create({
   },
   settingsIcon: {
     fontSize: 20,
+    lineHeight: 26,
     marginRight: Spacing.md,
   },
   settingsText: {
