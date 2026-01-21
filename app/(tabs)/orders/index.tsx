@@ -323,7 +323,12 @@ export default function OrdersListScreen() {
   if (isLoading && !data?.data?.length) {
     return (
       <ThemedView style={styles.container}>
-        <View style={[styles.header, { borderBottomColor: colors.border, paddingTop: insets.top + Spacing.md }]}>
+        <View
+          style={[
+            styles.header,
+            { borderBottomColor: colors.border, paddingTop: insets.top + Spacing.md },
+          ]}
+        >
           <ThemedText style={styles.headerTitle}>Orders</ThemedText>
         </View>
         <OrdersListSkeleton />
@@ -335,7 +340,12 @@ export default function OrdersListScreen() {
   if (error && !data?.data?.length) {
     return (
       <ThemedView style={styles.container}>
-        <View style={[styles.header, { borderBottomColor: colors.border, paddingTop: insets.top + Spacing.md }]}>
+        <View
+          style={[
+            styles.header,
+            { borderBottomColor: colors.border, paddingTop: insets.top + Spacing.md },
+          ]}
+        >
           <ThemedText style={styles.headerTitle}>Orders</ThemedText>
         </View>
         <ErrorState onRetry={handleRefresh} />
@@ -346,7 +356,12 @@ export default function OrdersListScreen() {
   return (
     <ThemedView style={styles.container}>
       {/* Header */}
-      <View style={[styles.header, { borderBottomColor: colors.border, paddingTop: insets.top + Spacing.md }]}>
+      <View
+        style={[
+          styles.header,
+          { borderBottomColor: colors.border, paddingTop: insets.top + Spacing.md },
+        ]}
+      >
         <View style={styles.headerLeft}>
           <ThemedText style={styles.headerTitle}>Orders</ThemedText>
           {readyOrdersCount > 0 && (
@@ -490,12 +505,14 @@ const styles = StyleSheet.create({
   },
   filterScrollView: {
     flexGrow: 0,
+    flexShrink: 0,
   },
   filterRow: {
     flexDirection: 'row',
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     gap: Spacing.sm,
+    flexShrink: 0,
   },
   filterTab: {
     flexDirection: 'row',
@@ -525,12 +542,14 @@ const styles = StyleSheet.create({
   typeFilterScrollView: {
     flexGrow: 0,
     borderBottomWidth: 1,
+    flexShrink: 0,
   },
   typeFilterRow: {
     flexDirection: 'row',
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.sm,
     gap: Spacing.sm,
+    flexShrink: 0,
   },
   typeFilterChip: {
     paddingHorizontal: Spacing.md,
