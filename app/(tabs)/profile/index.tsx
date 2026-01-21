@@ -21,6 +21,7 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Avatar } from '@/components/ui/Avatar';
@@ -217,6 +218,7 @@ export default function ProfileScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   // Auth state
   const account = useAccount();
@@ -313,7 +315,7 @@ export default function ProfileScreen() {
   if (isLoading && !ordersData?.data?.length) {
     return (
       <ThemedView style={styles.container}>
-        <View style={[styles.header, { borderBottomColor: colors.border }]}>
+        <View style={[styles.header, { borderBottomColor: colors.border, paddingTop: insets.top + Spacing.md }]}>
           <ThemedText style={styles.headerTitle}>Profile</ThemedText>
         </View>
         <ProfileSkeleton />
@@ -324,7 +326,7 @@ export default function ProfileScreen() {
   return (
     <ThemedView style={styles.container}>
       {/* Header */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { borderBottomColor: colors.border, paddingTop: insets.top + Spacing.md }]}>
         <ThemedText style={styles.headerTitle}>Profile</ThemedText>
       </View>
 
@@ -539,7 +541,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing['2xl'] + 20,
     paddingBottom: Spacing.md,
     borderBottomWidth: 1,
   },

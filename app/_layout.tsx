@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import 'react-native-reanimated';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ToastMessage from 'react-native-toast-message';
 
 import { OfflineBanner } from '@/components/common/OfflineBanner';
@@ -34,7 +35,7 @@ const queryClient = new QueryClient({
 
 // Initialize API client
 initializeApiClient({
-  baseURL: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api/v1',
+  baseURL: process.env.EXPO_PUBLIC_API_URL || 'https://ybady.com.tm/maestro/api/v1',
 });
 
 function RootLayoutNav() {
@@ -90,7 +91,6 @@ function RootLayoutNav() {
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="(main)" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
         </Stack>
         <OfflineBanner />
         <OfflineIndicator />
@@ -103,9 +103,11 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <RootLayoutNav />
-    </QueryClientProvider>
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>
+        <RootLayoutNav />
+      </QueryClientProvider>
+    </SafeAreaProvider>
   );
 }
 

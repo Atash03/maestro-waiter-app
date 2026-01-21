@@ -30,6 +30,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CategoryList } from '@/components/menu';
 import { SendToKitchenModal, type SendToKitchenModalState } from '@/components/orders';
 import { ThemedText } from '@/components/themed-text';
@@ -512,6 +513,7 @@ export default function OrderEntryScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
 
   // Get tableId and orderId from route params
   // orderId is present when adding items to an existing order (Task 4.5)
@@ -756,7 +758,7 @@ export default function OrderEntryScreen() {
   return (
     <ThemedView style={styles.container} testID="order-entry-screen">
       {/* Header with table info */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { borderBottomColor: colors.border, paddingTop: insets.top + Spacing.sm }]}>
         <View style={styles.headerLeft}>
           <TouchableOpacity
             testID="close-button"

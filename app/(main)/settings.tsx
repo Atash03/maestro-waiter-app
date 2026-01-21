@@ -15,6 +15,7 @@ import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { Platform, ScrollView, StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Card } from '@/components/ui/Card';
@@ -185,6 +186,7 @@ export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   // Settings state
   const theme = useTheme();
@@ -271,7 +273,7 @@ export default function SettingsScreen() {
   return (
     <ThemedView style={styles.container}>
       {/* Header */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { borderBottomColor: colors.border, paddingTop: insets.top + Spacing.md }]}>
         <TouchableOpacity onPress={handleBack} style={styles.backButton} testID="back-button">
           <ThemedText style={[styles.backText, { color: BrandColors.primary }]}>‹ Back</ThemedText>
         </TouchableOpacity>
@@ -426,7 +428,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing['2xl'] + 20,
     paddingBottom: Spacing.md,
     borderBottomWidth: 1,
   },

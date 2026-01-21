@@ -21,6 +21,7 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NotificationBell } from '@/components/common';
 import { OrderCard } from '@/components/orders/OrderCard';
 import { ThemedText } from '@/components/themed-text';
@@ -208,6 +209,7 @@ export default function OrdersListScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   // State
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -321,7 +323,7 @@ export default function OrdersListScreen() {
   if (isLoading && !data?.data?.length) {
     return (
       <ThemedView style={styles.container}>
-        <View style={[styles.header, { borderBottomColor: colors.border }]}>
+        <View style={[styles.header, { borderBottomColor: colors.border, paddingTop: insets.top + Spacing.md }]}>
           <ThemedText style={styles.headerTitle}>Orders</ThemedText>
         </View>
         <OrdersListSkeleton />
@@ -333,7 +335,7 @@ export default function OrdersListScreen() {
   if (error && !data?.data?.length) {
     return (
       <ThemedView style={styles.container}>
-        <View style={[styles.header, { borderBottomColor: colors.border }]}>
+        <View style={[styles.header, { borderBottomColor: colors.border, paddingTop: insets.top + Spacing.md }]}>
           <ThemedText style={styles.headerTitle}>Orders</ThemedText>
         </View>
         <ErrorState onRetry={handleRefresh} />
@@ -344,7 +346,7 @@ export default function OrdersListScreen() {
   return (
     <ThemedView style={styles.container}>
       {/* Header */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { borderBottomColor: colors.border, paddingTop: insets.top + Spacing.md }]}>
         <View style={styles.headerLeft}>
           <ThemedText style={styles.headerTitle}>Orders</ThemedText>
           {readyOrdersCount > 0 && (
@@ -469,7 +471,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing['2xl'] + 20,
     paddingBottom: Spacing.md,
     borderBottomWidth: 1,
   },

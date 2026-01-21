@@ -14,6 +14,7 @@ import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CallCard } from '@/components/calls';
 import { NotificationBell } from '@/components/common';
 import { ThemedText } from '@/components/themed-text';
@@ -200,6 +201,7 @@ export default function CallsScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   // State
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -342,7 +344,7 @@ export default function CallsScreen() {
   if (isLoading && !data?.data?.length) {
     return (
       <ThemedView style={styles.container}>
-        <View style={[styles.header, { borderBottomColor: colors.border }]}>
+        <View style={[styles.header, { borderBottomColor: colors.border, paddingTop: insets.top + Spacing.md }]}>
           <ThemedText style={styles.headerTitle}>Calls</ThemedText>
         </View>
         <CallsListSkeleton />
@@ -354,7 +356,7 @@ export default function CallsScreen() {
   if (error && !data?.data?.length) {
     return (
       <ThemedView style={styles.container}>
-        <View style={[styles.header, { borderBottomColor: colors.border }]}>
+        <View style={[styles.header, { borderBottomColor: colors.border, paddingTop: insets.top + Spacing.md }]}>
           <ThemedText style={styles.headerTitle}>Calls</ThemedText>
         </View>
         <ErrorState onRetry={handleRefresh} />
@@ -367,7 +369,7 @@ export default function CallsScreen() {
   return (
     <ThemedView style={styles.container}>
       {/* Header */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { borderBottomColor: colors.border, paddingTop: insets.top + Spacing.md }]}>
         <View style={styles.headerLeft}>
           <ThemedText style={styles.headerTitle}>Calls</ThemedText>
           {pendingCount > 0 && (
@@ -450,7 +452,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing['2xl'] + 20,
     paddingBottom: Spacing.md,
     borderBottomWidth: 1,
   },

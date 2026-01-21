@@ -21,6 +21,7 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown, SlideInRight } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
 import { DiscountSelector } from '@/components/bills/DiscountSelector';
@@ -419,6 +420,7 @@ export default function BillScreen() {
   const { orderId } = useLocalSearchParams<{ orderId: string }>();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const insets = useSafeAreaInsets();
 
   // Data fetching
   const {
@@ -770,7 +772,7 @@ export default function BillScreen() {
       <View
         style={[
           styles.header,
-          { backgroundColor: colors.background, borderBottomColor: colors.border },
+          { backgroundColor: colors.background, borderBottomColor: colors.border, paddingTop: insets.top + Spacing.sm },
         ]}
       >
         <Pressable onPress={() => router.back()} style={styles.backButton} testID="bill-back-btn">

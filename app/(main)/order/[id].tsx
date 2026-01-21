@@ -28,6 +28,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
 import { CancelItemModal } from '@/components/orders/CancelItemModal';
@@ -464,6 +465,7 @@ export default function OrderDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const insets = useSafeAreaInsets();
 
   // Data fetching
   const { data: order, isLoading, error, refetch, isRefetching } = useOrder({ id: id ?? '' });
@@ -726,7 +728,7 @@ export default function OrderDetailScreen() {
       <View
         style={[
           styles.header,
-          { backgroundColor: colors.background, borderBottomColor: colors.border },
+          { backgroundColor: colors.background, borderBottomColor: colors.border, paddingTop: insets.top + Spacing.sm },
         ]}
       >
         {/* Back Button */}

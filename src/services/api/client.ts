@@ -86,6 +86,8 @@ export class ApiClient {
     this.maxRetries = config.maxRetries ?? MAX_RETRIES;
     this.retryDelay = config.retryDelay ?? RETRY_DELAY;
 
+    console.log('config', config);
+
     this.client = axios.create({
       baseURL: config.baseURL,
       timeout: config.timeout ?? DEFAULT_TIMEOUT,
@@ -333,7 +335,7 @@ export function getDeviceType(): DeviceType {
 }
 
 // Default API configuration
-const DEFAULT_BASE_URL = 'http://localhost:3000/api/v1';
+const DEFAULT_BASE_URL = 'http://ybady.com.tm/maestro/api/v1';
 
 // Singleton instance
 let apiClientInstance: ApiClient | null = null;

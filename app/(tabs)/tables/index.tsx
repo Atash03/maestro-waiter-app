@@ -21,6 +21,7 @@ import {
 } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NotificationBell } from '@/components/common';
 import type { TableItemData, TableStatus } from '@/components/tables';
 import { StatusLegend, TableItem } from '@/components/tables';
@@ -432,6 +433,7 @@ function MySectionEmptyState({ onShowAll }: MySectionEmptyStateProps) {
 export default function FloorPlanScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const insets = useSafeAreaInsets();
 
   // Table store for selection and view mode
   const { selectedZoneId, selectZone, selectTable, viewMode, toggleViewMode, assignedTableIds } =
@@ -522,7 +524,7 @@ export default function FloorPlanScreen() {
     <GestureHandlerRootView style={styles.gestureRoot}>
       <ThemedView style={styles.container} testID="floor-plan-screen">
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + Spacing.sm }]}>
           <ThemedText style={styles.headerTitle}>Floor Plan</ThemedText>
           <View style={styles.headerRight}>
             <Badge variant="default" size="sm" testID="table-count-badge">
@@ -615,7 +617,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.lg,
     paddingBottom: Spacing.md,
   },
   headerTitle: {
