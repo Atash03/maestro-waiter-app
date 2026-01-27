@@ -67,10 +67,31 @@ function getTranslatedText(translation: Translation, lang: 'en' | 'ru' | 'tm' = 
 }
 
 /**
- * Get table status based on whether the table has an active order
+ * Check whether an order was created today
+ */
+function isOrderFromToday(order: { createdAt: string }): boolean {
+  const orderDate = new Date(order.createdAt);
+  const today = new Date();
+  return (
+    orderDate.getFullYear() === today.getFullYear() &&
+    orderDate.getMonth() === today.getMonth() &&
+    orderDate.getDate() === today.getDate()
+  );
+}
+
+/**
+ * Get the active order for a table, only if it was created today
+ */
+function getActiveOrder(table: Table): Table['latestActiveOrder'] {
+  if (!table.latestActiveOrder) return undefined;
+  return isOrderFromToday(table.latestActiveOrder) ? table.latestActiveOrder : undefined;
+}
+
+/**
+ * Get table status based on whether the table has an active order created today
  */
 function getTableStatus(table: Table): TableStatus {
-  if (table.latestActiveOrder) {
+  if (getActiveOrder(table)) {
     return 'occupied';
   }
   return 'available';
@@ -462,7 +483,7 @@ export default function TablesScreen() {
       tablesFilteredByZone.map((table) => ({
         ...table,
         status: getTableStatus(table),
-        hasActiveOrder: Boolean(table.latestActiveOrder),
+        hasActiveOrder: Boolean(getActiveOrder(table)),
       })),
     [tablesFilteredByZone]
   );
@@ -479,11 +500,12 @@ export default function TablesScreen() {
     (table: Table) => {
       selectTable(table.id);
 
-      if (table.latestActiveOrder) {
+      const activeOrder = getActiveOrder(table);
+      if (activeOrder) {
         // Navigate to existing order detail
         router.push({
           pathname: '/(main)/order/[id]',
-          params: { id: table.latestActiveOrder.id },
+          params: { id: activeOrder.id },
         });
         return;
       }
