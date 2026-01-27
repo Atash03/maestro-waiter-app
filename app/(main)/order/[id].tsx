@@ -9,6 +9,8 @@
  * - Order modification actions: Change Table, Edit Notes, Cancel Order
  */
 
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import {
@@ -20,14 +22,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import Animated, {
-  FadeIn,
-  FadeOut,
-  SlideInRight,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -35,15 +30,18 @@ import { CancelItemModal } from '@/components/orders/CancelItemModal';
 import { CancelOrderModal } from '@/components/orders/CancelOrderModal';
 import { ChangeTableModal } from '@/components/orders/ChangeTableModal';
 import { EditNotesModal } from '@/components/orders/EditNotesModal';
+import { formatOrderDate } from '@/components/orders/OrderCard';
 import { ThemedText } from '@/components/themed-text';
 import { Badge, type BadgeVariant } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { LocationInfo } from '@/components/ui/LocationInfo';
 import { Skeleton, SkeletonGroup } from '@/components/ui/Skeleton';
 import { BorderRadius, BrandColors, Colors, Spacing, StatusColors } from '@/constants/theme';
 import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import { useHapticRefresh } from '@/src/hooks';
 import { useOrder, useOrderCacheActions } from '@/src/hooks/useOrderQueries';
+import { getImageUrl } from '@/src/services/api/client';
 import { batchUpdateOrderItemStatus } from '@/src/services/api/orderItems';
 import { updateOrder } from '@/src/services/api/orders';
 import { OrderItemStatus, OrderStatus, OrderType } from '@/src/types/enums';
@@ -86,21 +84,6 @@ export function formatPrice(price: string | undefined): string {
   const num = Number.parseFloat(price);
   if (Number.isNaN(num)) return '$0.00';
   return `$${num.toFixed(2)}`;
-}
-
-/**
- * Format date time for display
- */
-export function formatDateTime(dateString: string): string {
-  const date = new Date(dateString);
-  if (Number.isNaN(date.getTime())) return '';
-  return date.toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  });
 }
 
 /**
@@ -277,17 +260,6 @@ export function countItemsByStatus(
   return items.filter((item) => item.status === status).length;
 }
 
-/**
- * Get total quantity of items
- */
-export function getTotalQuantity(items: OrderItem[] | undefined): number {
-  if (!items) return 0;
-  return items.reduce((sum, item) => {
-    const qty = Number.parseInt(item.quantity, 10);
-    return sum + (Number.isNaN(qty) ? 0 : qty);
-  }, 0);
-}
-
 // ============================================================================
 // Order Item Row Component
 // ============================================================================
@@ -295,135 +267,132 @@ export function getTotalQuantity(items: OrderItem[] | undefined): number {
 function OrderItemRow({ item, onMarkServed, onCancelItem, testID }: OrderItemRowProps) {
   const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
-  const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  const handlePressIn = () => {
-    scale.value = withSpring(0.98, { damping: 15, stiffness: 400 });
-  };
-
-  const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 15, stiffness: 400 });
-  };
+  const isDark = colorScheme === 'dark';
 
   const isCancelled = isItemCancelled(item.status);
   const canServe = canMarkAsServed(item.status);
   const canCancel = canCancelItem(item.status);
-  const isReady = item.status === OrderItemStatus.READY;
 
   const quantity = Number.parseInt(item.quantity, 10) || 0;
-  const extrasText = item.extras
-    ?.map((extra) => {
-      const name = getTranslatedText(extra.extraTitle, 'Extra');
-      return extra.quantity > 1 ? `${extra.quantity}x ${name}` : name;
-    })
-    .join(', ');
+  const hasExtras = item.extras && item.extras.length > 0;
+  const hasBottomRow = hasExtras || item.notes;
+
+  const borderColor = isDark ? colors.border : '#e0e0e0';
+  const bgColor = isDark ? colors.backgroundSecondary : '#fff';
+  const secondaryText = isDark ? colors.textSecondary : '#646464';
 
   return (
-    <Animated.View
-      entering={SlideInRight.duration(300)}
-      exiting={FadeOut.duration(200)}
-      style={animatedStyle}
-    >
-      <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut} testID={testID}>
-        <Card
-          padding="md"
-          style={[
-            styles.itemCard,
-            isReady && styles.itemCardReady,
-            isCancelled && styles.itemCardCancelled,
-          ]}
-        >
-          {/* Item Header: Name + Status */}
-          <View style={styles.itemHeader}>
-            <View style={styles.itemNameContainer}>
-              <ThemedText
-                style={[styles.itemName, isCancelled && styles.itemNameCancelled]}
-                numberOfLines={1}
-              >
-                {getTranslatedText(item.itemTitle, 'Unknown Item')}
-              </ThemedText>
-              <ThemedText style={[styles.itemQuantity, { color: colors.textSecondary }]}>
-                x{quantity}
-              </ThemedText>
-            </View>
+      <View
+        style={[styles.itemContainer, { borderBottomColor: borderColor, backgroundColor: bgColor }]}
+        testID={testID}
+      >
+        {/* Top Row: Image + Info + Actions */}
+        <View style={styles.itemTopRow}>
+          {item.menuItem?.imagePath && (
+            <Image
+              source={{ uri: getImageUrl(item.menuItem.imagePath)! }}
+              style={[styles.itemImage, isCancelled && styles.itemOpacity]}
+              contentFit="cover"
+              transition={200}
+            />
+          )}
+
+          <View style={styles.itemInfoCol}>
+            <ThemedText
+              style={[styles.itemName, isCancelled && styles.itemNameCancelled]}
+              numberOfLines={2}
+            >
+              {getTranslatedText(item.itemTitle, 'Unknown Item')}
+              {quantity > 1 ? ` x${quantity}` : ''}
+            </ThemedText>
+            <ThemedText style={[styles.itemPrice, { color: secondaryText }]}>
+              {formatPrice(item.subtotal)}
+            </ThemedText>
             <Badge variant={getOrderItemBadgeVariant(item.status)} size="sm">
               {getOrderItemStatusLabel(item.status)}
             </Badge>
           </View>
 
-          {/* Extras */}
-          {extrasText && (
-            <ThemedText
-              style={[
-                styles.itemExtras,
-                { color: colors.textMuted },
-                isCancelled && styles.textMuted,
-              ]}
-              numberOfLines={1}
-            >
-              {extrasText}
-            </ThemedText>
-          )}
-
-          {/* Notes */}
-          {item.notes && (
-            <ThemedText
-              style={[
-                styles.itemNotes,
-                { color: colors.textSecondary },
-                isCancelled && styles.textMuted,
-              ]}
-              numberOfLines={2}
-            >
-              Note: {item.notes}
-            </ThemedText>
-          )}
-
-          {/* Decline/Cancel Reason */}
-          {(item.declineReason || item.cancelReason) && (
-            <ThemedText style={styles.declineReason} numberOfLines={2}>
-              {item.declineReason
-                ? `Declined: ${item.declineReason}`
-                : `Cancelled: ${item.cancelReason}`}
-            </ThemedText>
-          )}
-
-          {/* Footer: Price + Actions */}
-          <View style={styles.itemFooter}>
-            <ThemedText style={[styles.itemPrice, isCancelled && styles.itemPriceCancelled]}>
-              {formatPrice(item.subtotal)}
-            </ThemedText>
-
-            <View style={styles.itemActions}>
-              {canServe && onMarkServed && (
-                <Button
-                  size="sm"
-                  variant="primary"
-                  onPress={() => onMarkServed(item)}
-                  testID={`${testID}-serve-btn`}
-                >
-                  Mark Served
-                </Button>
-              )}
-              {canCancel && onCancelItem && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onPress={() => onCancelItem(item)}
-                  testID={`${testID}-cancel-btn`}
-                >
-                  Cancel
-                </Button>
-              )}
-            </View>
+          {/* Action buttons */}
+          <View style={styles.itemActions}>
+            {canServe && onMarkServed && (
+              <Pressable
+                style={[styles.itemActionBtn, styles.itemServeBtn]}
+                onPress={() => onMarkServed(item)}
+                testID={`${testID}-serve-btn`}
+              >
+                <MaterialIcons name="check" size={24} color="#2B9A66" />
+              </Pressable>
+            )}
+            {canCancel && onCancelItem && (
+              <Pressable
+                style={[styles.itemActionBtn, styles.itemCancelBtn]}
+                onPress={() => onCancelItem(item)}
+                testID={`${testID}-cancel-btn`}
+              >
+                <MaterialIcons name="delete-outline" size={24} color="#CE2C31" />
+              </Pressable>
+            )}
           </View>
-        </Card>
-      </Pressable>
-    </Animated.View>
+        </View>
+
+        {/* Decline/Cancel Reason */}
+        {(item.declineReason || item.cancelReason) && (
+          <ThemedText style={styles.declineReason} numberOfLines={2}>
+            {item.declineReason
+              ? `Declined: ${item.declineReason}`
+              : `Cancelled: ${item.cancelReason}`}
+          </ThemedText>
+        )}
+
+        {/* Bottom Row: Extras + Notes */}
+        {hasBottomRow && (
+          <View style={styles.itemBottomRow}>
+            {hasExtras && (
+              <View style={styles.itemExtrasCol}>
+                {item.extras!.map((extra) => (
+                  <View key={extra.extraId} style={styles.itemExtraRow}>
+                    <ThemedText style={styles.itemExtraName}>
+                      {getTranslatedText(extra.extraTitle, 'Extra')}
+                      {extra.quantity > 1 ? ` x${extra.quantity}` : ''}:
+                    </ThemedText>
+                    {extra.totalPrice && (
+                      <View
+                        style={[
+                          styles.itemExtraPricePill,
+                          { backgroundColor: isDark ? colors.border : '#f0f0f0' },
+                        ]}
+                      >
+                        <ThemedText style={styles.itemExtraPriceText}>
+                          {formatPrice(extra.totalPrice)}
+                        </ThemedText>
+                      </View>
+                    )}
+                  </View>
+                ))}
+              </View>
+            )}
+            {item.notes && (
+              <View
+                style={[
+                  styles.itemNotesCol,
+                  hasExtras && {
+                    borderLeftWidth: 1,
+                    borderLeftColor: isDark ? colors.border : '#e8e8e8',
+                  },
+                ]}
+              >
+                <ThemedText
+                  style={[styles.itemNotesText, { color: secondaryText }]}
+                  numberOfLines={3}
+                >
+                  {item.notes}
+                </ThemedText>
+              </View>
+            )}
+          </View>
+        )}
+      </View>
   );
 }
 
@@ -648,13 +617,8 @@ export default function OrderDetailScreen() {
     [order?.orderItems]
   );
 
-  const totalQuantity = useMemo(() => getTotalQuantity(order?.orderItems), [order?.orderItems]);
-
   const locationDisplay = useMemo(() => {
     if (!order) return '';
-    if (order.orderType === OrderType.DINE_IN) {
-      return order.table?.title ? `Table ${order.table.title}` : 'Table N/A';
-    }
     const customerName = order.customer
       ? `${order.customer.firstName ?? ''} ${order.customer.lastName ?? ''}`.trim()
       : null;
@@ -732,8 +696,13 @@ export default function OrderDetailScreen() {
           <ThemedText style={styles.backButtonText}>{'<'} Back</ThemedText>
         </Pressable>
 
-        {/* Title */}
-        <ThemedText style={styles.headerTitle}>{order.orderCode}</ThemedText>
+        {/* Title + Status */}
+        <View style={styles.headerTitleRow}>
+          <ThemedText style={styles.headerTitle}>Order #{order.orderNumber}</ThemedText>
+          <Badge variant={getOrderStatusBadgeVariant(order.orderStatus)} size="sm">
+            {getOrderStatusLabel(order.orderStatus)}
+          </Badge>
+        </View>
 
         {/* Empty spacer for alignment */}
         <View style={styles.headerSpacer} />
@@ -747,26 +716,40 @@ export default function OrderDetailScreen() {
       >
         {/* Order Info Card */}
         <Animated.View entering={FadeIn.duration(300)}>
-          <Card padding="md" elevated style={styles.infoCard}>
-            {/* Status Row */}
-            <View style={styles.statusRow}>
-              <Badge variant={getOrderStatusBadgeVariant(order.orderStatus)} size="md">
-                {getOrderStatusLabel(order.orderStatus)}
-              </Badge>
-              <Badge variant={getOrderTypeBadgeVariant(order.orderType)} size="md">
-                {getOrderTypeLabel(order.orderType)}
-              </Badge>
-              {readyCount > 0 && (
-                <View style={[styles.readyBadge, { backgroundColor: StatusColors.ready }]}>
-                  <ThemedText style={styles.readyBadgeText}>{readyCount} ready</ThemedText>
-                </View>
-              )}
-            </View>
+          <Card padding="none" elevated style={styles.infoCard}>
+            {/* Status Row: order type badge (non-DINE_IN) + ready count */}
+            {(order.orderType !== OrderType.DINE_IN || readyCount > 0) && (
+              <View style={styles.statusRow}>
+                {order.orderType !== OrderType.DINE_IN && (
+                  <Badge variant={getOrderTypeBadgeVariant(order.orderType)} size="md">
+                    {getOrderTypeLabel(order.orderType)}
+                  </Badge>
+                )}
+                {readyCount > 0 && (
+                  <View style={[styles.readyBadge, { backgroundColor: StatusColors.ready }]}>
+                    <ThemedText style={styles.readyBadgeText}>{readyCount} ready</ThemedText>
+                  </View>
+                )}
+              </View>
+            )}
 
-            {/* Location/Customer */}
-            <ThemedText style={[styles.locationText, { color: colors.text }]}>
-              {locationDisplay}
-            </ThemedText>
+            {/* Location + Date */}
+            <View style={styles.locationDateRow}>
+              {order.orderType === OrderType.DINE_IN && order.table ? (
+                <LocationInfo
+                  zoneTitle={order.table.zone?.title}
+                  tableTitle={order.table.title}
+                  testID="order-detail-location"
+                />
+              ) : (
+                <ThemedText style={[styles.locationText, { color: colors.text }]}>
+                  {locationDisplay}
+                </ThemedText>
+              )}
+              <ThemedText style={[styles.metaText, { color: colors.textMuted }]}>
+                {formatOrderDate(order.createdAt)}
+              </ThemedText>
+            </View>
 
             {/* Customer Info (for delivery/to-go) */}
             {order.customer && order.orderType !== OrderType.DINE_IN && (
@@ -784,30 +767,12 @@ export default function OrderDetailScreen() {
               </View>
             )}
 
-            {/* Order Notes */}
-            {order.notes && (
-              <View style={[styles.orderNotes, { borderTopColor: colors.border }]}>
-                <ThemedText style={[styles.orderNotesLabel, { color: colors.textMuted }]}>
-                  Notes:
-                </ThemedText>
-                <ThemedText style={[styles.orderNotesText, { color: colors.textSecondary }]}>
-                  {order.notes}
-                </ThemedText>
-              </View>
-            )}
-
-            {/* Meta Info */}
-            <View style={[styles.metaRow, { borderTopColor: colors.border }]}>
+            {/* Waiter Info */}
+            {order.waiter && (
               <ThemedText style={[styles.metaText, { color: colors.textMuted }]}>
-                {totalQuantity} {totalQuantity === 1 ? 'item' : 'items'} •{' '}
-                {formatDateTime(order.createdAt)}
+                Waiter: {order.waiter.username}
               </ThemedText>
-              {order.waiter && (
-                <ThemedText style={[styles.metaText, { color: colors.textMuted }]}>
-                  Waiter: {order.waiter.username}
-                </ThemedText>
-              )}
-            </View>
+            )}
           </Card>
         </Animated.View>
 
@@ -994,6 +959,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: BrandColors.primary,
   },
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
@@ -1048,24 +1018,10 @@ const styles = StyleSheet.create({
   customerAddress: {
     fontSize: 14,
   },
-  orderNotes: {
-    marginTop: Spacing.md,
-    paddingTop: Spacing.md,
-    borderTopWidth: 1,
-  },
-  orderNotesLabel: {
-    fontSize: 12,
-    marginBottom: 4,
-  },
-  orderNotesText: {
-    fontSize: 14,
-  },
-  metaRow: {
+  locationDateRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: Spacing.md,
-    paddingTop: Spacing.md,
-    borderTopWidth: 1,
+    alignItems: 'center',
+    gap: Spacing.sm,
   },
   metaText: {
     fontSize: 12,
@@ -1078,74 +1034,97 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: Spacing.sm,
   },
-  itemCard: {
-    marginBottom: Spacing.sm,
+  itemContainer: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderBottomWidth: 1,
+    gap: 10,
   },
-  itemCardReady: {
-    borderLeftWidth: 4,
-    borderLeftColor: StatusColors.ready,
-  },
-  itemCardCancelled: {
-    opacity: 0.7,
-  },
-  itemHeader: {
+  itemTopRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.xs,
+    alignItems: 'flex-start',
+    gap: Spacing.sm,
   },
-  itemNameContainer: {
+  itemImage: {
+    width: 76,
+    height: 64,
+    borderRadius: BorderRadius.md,
+  },
+  itemOpacity: {
+    opacity: 0.5,
+  },
+  itemInfoCol: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: Spacing.sm,
+    gap: 2,
   },
   itemName: {
-    fontSize: 15,
-    fontWeight: '600',
-    flex: 1,
+    fontSize: 14,
+    fontWeight: '500',
+    lineHeight: 20,
   },
   itemNameCancelled: {
     textDecorationLine: 'line-through',
+    opacity: 0.6,
   },
-  itemQuantity: {
+  itemPrice: {
     fontSize: 14,
-    marginLeft: Spacing.xs,
-  },
-  itemExtras: {
-    fontSize: 13,
-    marginBottom: 4,
-  },
-  itemNotes: {
-    fontSize: 13,
-    fontStyle: 'italic',
-    marginBottom: 4,
+    fontWeight: '500',
+    lineHeight: 20,
   },
   declineReason: {
     fontSize: 12,
     color: '#EF4444',
-    marginBottom: 4,
-  },
-  itemFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: Spacing.sm,
-  },
-  itemPrice: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  itemPriceCancelled: {
-    textDecorationLine: 'line-through',
-    color: '#9CA3AF',
   },
   itemActions: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
+    flexDirection: 'column',
+    gap: 5,
   },
-  textMuted: {
-    opacity: 0.6,
+  itemActionBtn: {
+    padding: 6,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  itemServeBtn: {
+    backgroundColor: '#e6f6eb',
+  },
+  itemCancelBtn: {
+    backgroundColor: '#ffdbdc',
+  },
+  itemBottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  itemExtrasCol: {
+    gap: 3,
+  },
+  itemExtraRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  itemExtraName: {
+    fontSize: 14,
+    fontWeight: '500',
+    lineHeight: 20,
+  },
+  itemExtraPricePill: {
+    borderRadius: BorderRadius.sm,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+  },
+  itemExtraPriceText: {
+    fontSize: 14,
+    fontWeight: '500',
+    lineHeight: 20,
+  },
+  itemNotesCol: {
+    flex: 1,
+    paddingHorizontal: 6,
+  },
+  itemNotesText: {
+    fontSize: 14,
+    lineHeight: 20,
   },
   emptyCard: {
     alignItems: 'center',

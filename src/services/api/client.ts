@@ -76,6 +76,7 @@ export class ApiClientError extends Error {
  */
 export class ApiClient {
   private readonly client: AxiosInstance;
+  public readonly baseURL: string;
   private sessionInfo: SessionInfo | null = null;
   private _onUnauthorized: AuthErrorCallback | null = null;
   private _onForbidden: ((message: string) => void) | null = null;
@@ -83,6 +84,7 @@ export class ApiClient {
   private readonly retryDelay: number;
 
   constructor(config: ApiClientConfig) {
+    this.baseURL = config.baseURL;
     this.maxRetries = config.maxRetries ?? MAX_RETRIES;
     this.retryDelay = config.retryDelay ?? RETRY_DELAY;
 
@@ -369,6 +371,17 @@ export function getApiClient(): ApiClient {
  */
 export function isApiClientInitialized(): boolean {
   return apiClientInstance !== null;
+}
+
+/**
+ * Build a full image URL from a relative imagePath.
+ * Returns null if path is empty/null.
+ */
+export function getImageUrl(imagePath: string | null | undefined): string | null {
+  if (!imagePath) return null;
+  const base = apiClientInstance?.baseURL ?? DEFAULT_BASE_URL;
+  const origin = base.replace(/\/api\/v\d+\/?$/, '');
+  return `${origin}/${imagePath}`;
 }
 
 /**

@@ -21,4 +21,5 @@ export {
   type SkeletonProps,
   type SkeletonVariant,
 } from './Skeleton';
+export { LocationInfo, type LocationInfoProps } from './LocationInfo';
 export { Spinner, type SpinnerProps, type SpinnerSize } from './Spinner';
