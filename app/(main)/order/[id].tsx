@@ -44,6 +44,7 @@ import { useOrder, useOrderCacheActions } from '@/src/hooks/useOrderQueries';
 import { getImageUrl } from '@/src/services/api/client';
 import { batchUpdateOrderItemStatus } from '@/src/services/api/orderItems';
 import { updateOrder } from '@/src/services/api/orders';
+import { useTranslation } from '@/src/hooks/useTranslation';
 import { OrderItemStatus, OrderStatus, OrderType } from '@/src/types/enums';
 import type { OrderItem, Translation } from '@/src/types/models';
 
@@ -105,9 +106,22 @@ export function getOrderStatusBadgeVariant(status: OrderStatus): BadgeVariant {
 }
 
 /**
+ * Order status translation key mapping
+ */
+const ORDER_STATUS_KEYS: Record<string, string> = {
+  [OrderStatus.PENDING]: 'orderStatus.pending',
+  [OrderStatus.IN_PROGRESS]: 'orderStatus.inProgress',
+  [OrderStatus.COMPLETED]: 'orderStatus.completed',
+  [OrderStatus.CANCELLED]: 'orderStatus.cancelled',
+};
+
+/**
  * Get human-readable label for order status
  */
-export function getOrderStatusLabel(status: OrderStatus): string {
+export function getOrderStatusLabel(status: OrderStatus, tUI?: (key: string) => string): string {
+  if (tUI) {
+    return tUI(ORDER_STATUS_KEYS[status] ?? 'orderStatus.pending');
+  }
   switch (status) {
     case OrderStatus.PENDING:
       return 'Pending';
@@ -139,9 +153,21 @@ export function getOrderTypeBadgeVariant(orderType: OrderType): BadgeVariant {
 }
 
 /**
+ * Order type translation key mapping
+ */
+const ORDER_TYPE_KEYS: Record<string, string> = {
+  [OrderType.DINE_IN]: 'orderType.dineIn',
+  [OrderType.DELIVERY]: 'orderType.delivery',
+  [OrderType.TO_GO]: 'orderType.toGo',
+};
+
+/**
  * Get human-readable label for order type
  */
-export function getOrderTypeLabel(orderType: OrderType): string {
+export function getOrderTypeLabel(orderType: OrderType, tUI?: (key: string) => string): string {
+  if (tUI) {
+    return tUI(ORDER_TYPE_KEYS[orderType] ?? 'orderType.dineIn');
+  }
   switch (orderType) {
     case OrderType.DINE_IN:
       return 'Dine-in';
@@ -178,9 +204,25 @@ export function getOrderItemBadgeVariant(status: OrderItemStatus): BadgeVariant 
 }
 
 /**
+ * Order item status translation key mapping
+ */
+const ORDER_ITEM_STATUS_KEYS: Record<string, string> = {
+  [OrderItemStatus.PENDING]: 'orderItemStatus.pending',
+  [OrderItemStatus.SENT_TO_PREPARE]: 'orderItemStatus.sentToPrepare',
+  [OrderItemStatus.PREPARING]: 'orderItemStatus.preparing',
+  [OrderItemStatus.READY]: 'orderItemStatus.ready',
+  [OrderItemStatus.SERVED]: 'orderItemStatus.served',
+  [OrderItemStatus.DECLINED]: 'orderItemStatus.declined',
+  [OrderItemStatus.CANCELED]: 'orderItemStatus.canceled',
+};
+
+/**
  * Get human-readable label for order item status
  */
-export function getOrderItemStatusLabel(status: OrderItemStatus): string {
+export function getOrderItemStatusLabel(status: OrderItemStatus, tUI?: (key: string) => string): string {
+  if (tUI) {
+    return tUI(ORDER_ITEM_STATUS_KEYS[status] ?? 'orderItemStatus.pending');
+  }
   switch (status) {
     case OrderItemStatus.PENDING:
       return 'Pending';
@@ -268,6 +310,7 @@ function OrderItemRow({ item, onMarkServed, onCancelItem, testID }: OrderItemRow
   const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const isDark = colorScheme === 'dark';
+  const { tUI } = useTranslation();
 
   const isCancelled = isItemCancelled(item.status);
   const canServe = canMarkAsServed(item.status);
@@ -302,14 +345,14 @@ function OrderItemRow({ item, onMarkServed, onCancelItem, testID }: OrderItemRow
             style={[styles.itemName, isCancelled && styles.itemNameCancelled]}
             numberOfLines={2}
           >
-            {getTranslatedText(item.itemTitle, 'Unknown Item')}
+            {getTranslatedText(item.itemTitle, tUI('orderDetail.unknownItem'))}
             {quantity > 1 ? ` x${quantity}` : ''}
           </ThemedText>
           <ThemedText style={[styles.itemPrice, { color: secondaryText }]}>
             {formatPrice(item.subtotal)}
           </ThemedText>
           <Badge variant={getOrderItemBadgeVariant(item.status)} size="sm">
-            {getOrderItemStatusLabel(item.status)}
+            {getOrderItemStatusLabel(item.status, tUI)}
           </Badge>
         </View>
 
@@ -426,6 +469,7 @@ export default function OrderDetailScreen() {
   const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const insets = useSafeAreaInsets();
+  const { tUI } = useTranslation();
 
   // Data fetching
   const { data: order, isLoading, error, refetch, isRefetching } = useOrder({ id: id ?? '' });
@@ -447,27 +491,28 @@ export default function OrderDetailScreen() {
   // Mark item as served
   const handleMarkServed = useCallback(
     (item: OrderItem) => {
+      const itemName = getTranslatedText(item.itemTitle, tUI('orderDetail.item'));
       Alert.alert(
-        'Mark as Served',
-        `Mark "${getTranslatedText(item.itemTitle, 'Item')}" as served?`,
+        tUI('orderDetail.markAsServed'),
+        tUI('orderDetail.markServedConfirm').replace('{item}', itemName),
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: tUI('orderDetail.cancel'), style: 'cancel' },
           {
-            text: 'Mark Served',
+            text: tUI('orderDetail.markServed'),
             onPress: async () => {
               try {
                 await batchUpdateOrderItemStatus({
                   ids: [item.id],
                   status: OrderItemStatus.SERVED,
                 });
-                toast.success('Item Served', {
-                  description: `${getTranslatedText(item.itemTitle, 'Item')} marked as served`,
+                toast.success(tUI('orderDetail.itemServed'), {
+                  description: tUI('orderDetail.itemServedDesc').replace('{item}', itemName),
                 });
                 invalidateOrder(id ?? '');
                 refetch();
               } catch (err) {
-                toast.error('Error', {
-                  description: err instanceof Error ? err.message : 'Failed to update item status',
+                toast.error(tUI('orderDetail.error'), {
+                  description: err instanceof Error ? err.message : tUI('orderDetail.failedToUpdateItem'),
                 });
               }
             },
@@ -475,7 +520,7 @@ export default function OrderDetailScreen() {
         ]
       );
     },
-    [id, invalidateOrder, refetch]
+    [id, invalidateOrder, refetch, tUI]
   );
 
   // Open cancel item modal
@@ -496,18 +541,19 @@ export default function OrderDetailScreen() {
           cancelReason: reason,
           cancelReasonId: reasonId,
         });
-        toast.success('Item Cancelled', {
-          description: `${getTranslatedText(itemToCancel.itemTitle, 'Item')} has been cancelled`,
+        const itemName = getTranslatedText(itemToCancel.itemTitle, tUI('orderDetail.item'));
+        toast.success(tUI('orderDetail.itemCancelled'), {
+          description: tUI('orderDetail.itemCancelledDesc').replace('{item}', itemName),
         });
         setShowCancelItemModal(false);
         setItemToCancel(null);
         invalidateOrder(id ?? '');
         refetch();
       } catch (err) {
-        throw new Error(err instanceof Error ? err.message : 'Failed to cancel item');
+        throw new Error(err instanceof Error ? err.message : tUI('orderDetail.failedToCancelItem'));
       }
     },
-    [itemToCancel, id, invalidateOrder, refetch]
+    [itemToCancel, id, invalidateOrder, refetch, tUI]
   );
 
   // Close cancel item modal
@@ -547,14 +593,14 @@ export default function OrderDetailScreen() {
         invalidateOrders();
         await refetch();
         setShowChangeTableModal(false);
-        toast.success('Table Changed', {
-          description: 'Order has been moved to the new table',
+        toast.success(tUI('orderDetail.tableChanged'), {
+          description: tUI('orderDetail.tableChangedDesc'),
         });
       } catch (err) {
-        throw new Error(err instanceof Error ? err.message : 'Failed to change table');
+        throw new Error(err instanceof Error ? err.message : tUI('orderDetail.failedToChangeTable'));
       }
     },
-    [order?.id, invalidateOrder, invalidateOrders, refetch]
+    [order?.id, invalidateOrder, invalidateOrders, refetch, tUI]
   );
 
   // Cancel order handler
@@ -571,14 +617,14 @@ export default function OrderDetailScreen() {
         invalidateOrders();
         await refetch();
         setShowCancelOrderModal(false);
-        toast.success('Order Cancelled', {
-          description: `Order ${order.orderCode} has been cancelled`,
+        toast.success(tUI('orderDetail.orderCancelledToast'), {
+          description: tUI('orderDetail.orderCancelledDesc').replace('{code}', order.orderCode ?? ''),
         });
       } catch (err) {
-        throw new Error(err instanceof Error ? err.message : 'Failed to cancel order');
+        throw new Error(err instanceof Error ? err.message : tUI('orderDetail.failedToCancelOrder'));
       }
     },
-    [order?.id, order?.orderCode, invalidateOrder, invalidateOrders, refetch]
+    [order?.id, order?.orderCode, invalidateOrder, invalidateOrders, refetch, tUI]
   );
 
   // Computed values
@@ -592,8 +638,8 @@ export default function OrderDetailScreen() {
     const customerName = order.customer
       ? `${order.customer.firstName ?? ''} ${order.customer.lastName ?? ''}`.trim()
       : null;
-    return customerName || (order.orderType === OrderType.DELIVERY ? 'Delivery' : 'To Go');
-  }, [order]);
+    return customerName || (order.orderType === OrderType.DELIVERY ? tUI('orderType.delivery') : tUI('orderType.toGo'));
+  }, [order, tUI]);
 
   const isOrderActive = useMemo(() => {
     if (!order) return false;
@@ -618,12 +664,12 @@ export default function OrderDetailScreen() {
       <View
         style={[styles.container, styles.centerContent, { backgroundColor: colors.background }]}
       >
-        <ThemedText style={styles.errorText}>Failed to load order</ThemedText>
+        <ThemedText style={styles.errorText}>{tUI('orderDetail.failedToLoad')}</ThemedText>
         <ThemedText style={[styles.errorSubtext, { color: colors.textMuted }]}>
           {error.message}
         </ThemedText>
         <Button variant="primary" onPress={() => refetch()} style={{ marginTop: Spacing.md }}>
-          Retry
+          {tUI('orderDetail.retry')}
         </Button>
       </View>
     );
@@ -644,9 +690,9 @@ export default function OrderDetailScreen() {
       <View
         style={[styles.container, styles.centerContent, { backgroundColor: colors.background }]}
       >
-        <ThemedText style={styles.errorText}>Order not found</ThemedText>
+        <ThemedText style={styles.errorText}>{tUI('orderDetail.orderNotFound')}</ThemedText>
         <Button variant="outline" onPress={() => router.back()} style={{ marginTop: Spacing.md }}>
-          Go Back
+          {tUI('orderDetail.goBack')}
         </Button>
       </View>
     );
@@ -670,9 +716,11 @@ export default function OrderDetailScreen() {
 
         {/* Title + Status */}
         <View style={styles.headerTitleRow}>
-          <ThemedText style={styles.headerTitle}>Order #{order.orderNumber}</ThemedText>
+          <ThemedText style={styles.headerTitle}>
+            {tUI('orderDetail.orderNumber').replace('{number}', String(order.orderNumber ?? ''))}
+          </ThemedText>
           <Badge variant={getOrderStatusBadgeVariant(order.orderStatus)} size="sm">
-            {getOrderStatusLabel(order.orderStatus)}
+            {getOrderStatusLabel(order.orderStatus, tUI)}
           </Badge>
         </View>
 
@@ -704,12 +752,14 @@ export default function OrderDetailScreen() {
               <View style={styles.statusRow}>
                 {order.orderType !== OrderType.DINE_IN && (
                   <Badge variant={getOrderTypeBadgeVariant(order.orderType)} size="md">
-                    {getOrderTypeLabel(order.orderType)}
+                    {getOrderTypeLabel(order.orderType, tUI)}
                   </Badge>
                 )}
                 {readyCount > 0 && (
                   <View style={[styles.readyBadge, { backgroundColor: StatusColors.ready }]}>
-                    <ThemedText style={styles.readyBadgeText}>{readyCount} ready</ThemedText>
+                    <ThemedText style={styles.readyBadgeText}>
+                      {tUI('orderDetail.readyCount').replace('{count}', String(readyCount))}
+                    </ThemedText>
                   </View>
                 )}
               </View>
@@ -752,7 +802,7 @@ export default function OrderDetailScreen() {
             {/* Waiter Info */}
             {order.waiter && (
               <ThemedText style={[styles.metaText, { color: colors.textMuted }]}>
-                Waiter: {order.waiter.username}
+                {tUI('orderDetail.waiter').replace('{name}', order.waiter.username)}
               </ThemedText>
             )}
           </Card>
@@ -760,7 +810,7 @@ export default function OrderDetailScreen() {
 
         {/* Items Section */}
         <View style={styles.itemsSection}>
-          <ThemedText style={styles.sectionTitle}>Order Items</ThemedText>
+          <ThemedText style={styles.sectionTitle}>{tUI('orderDetail.orderItems')}</ThemedText>
 
           {order.orderItems && order.orderItems.length > 0 ? (
             order.orderItems.map((item, index) => (
@@ -775,7 +825,7 @@ export default function OrderDetailScreen() {
           ) : (
             <Card padding="md" style={styles.emptyCard}>
               <ThemedText style={[styles.emptyText, { color: colors.textMuted }]}>
-                No items in this order
+                {tUI('orderDetail.noItems')}
               </ThemedText>
             </Card>
           )}
@@ -797,7 +847,7 @@ export default function OrderDetailScreen() {
         <View style={styles.bottomTotalSection}>
           <View style={styles.subtotalRow}>
             <ThemedText style={[styles.subtotalLabel, { color: colors.textSecondary }]}>
-              Subtotal
+              {tUI('orderDetail.subtotal')}
             </ThemedText>
             <ThemedText style={[styles.subtotalAmount, { color: colors.textSecondary }]}>
               {formatPrice(itemsSubtotal)}
@@ -807,7 +857,9 @@ export default function OrderDetailScreen() {
           {order.serviceFeeAmount ? (
             <View style={styles.subtotalRow}>
               <ThemedText style={[styles.subtotalLabel, { color: colors.textSecondary }]}>
-                Service Fee{order.serviceFeePercent ? ` (${order.serviceFeePercent}%)` : ''}
+                {order.serviceFeePercent
+                  ? tUI('orderDetail.serviceFeePercent').replace('{percent}', order.serviceFeePercent)
+                  : tUI('orderDetail.serviceFee')}
               </ThemedText>
               <ThemedText style={[styles.subtotalAmount, { color: colors.textSecondary }]}>
                 {formatPrice(order.serviceFeeAmount)}
@@ -826,7 +878,7 @@ export default function OrderDetailScreen() {
               },
             ]}
           >
-            <ThemedText style={styles.totalLabel}>Total</ThemedText>
+            <ThemedText style={styles.totalLabel}>{tUI('orderDetail.total')}</ThemedText>
             <ThemedText style={styles.totalAmount}>
               {formatPrice(
                 (
@@ -841,7 +893,7 @@ export default function OrderDetailScreen() {
         {/* Cancelled Order Message */}
         {order.orderStatus === OrderStatus.CANCELLED && order.cancelReason ? (
           <View style={[styles.cancelledBanner, { backgroundColor: '#FEE2E2' }]}>
-            <ThemedText style={styles.cancelledLabel}>Order Cancelled</ThemedText>
+            <ThemedText style={styles.cancelledLabel}>{tUI('orderDetail.orderCancelled')}</ThemedText>
             <ThemedText style={styles.cancelledReason}>{order.cancelReason}</ThemedText>
           </View>
         ) : null}
@@ -855,7 +907,7 @@ export default function OrderDetailScreen() {
               style={styles.actionButton}
               testID="order-detail-cancel-order-btn"
             >
-              Cancel
+              {tUI('orderDetail.cancel')}
             </Button>
             <Button
               variant="outline"
@@ -863,7 +915,7 @@ export default function OrderDetailScreen() {
               style={styles.actionButton}
               testID="order-detail-add-items-btn"
             >
-              Add Items
+              {tUI('orderDetail.addItems')}
             </Button>
             <Button
               variant="primary"
@@ -871,7 +923,7 @@ export default function OrderDetailScreen() {
               style={styles.actionButton}
               testID="order-detail-create-bill-btn"
             >
-              Create Bill
+              {tUI('orderDetail.createBill')}
             </Button>
           </View>
         ) : null}
@@ -903,7 +955,7 @@ export default function OrderDetailScreen() {
 
       <CancelItemModal
         visible={showCancelItemModal}
-        itemName={itemToCancel?.itemTitle ?? 'Item'}
+        itemName={itemToCancel?.itemTitle ?? tUI('orderDetail.item')}
         quantity={Number.parseInt(itemToCancel?.quantity ?? '1', 10)}
         onConfirm={handleConfirmCancelItem}
         onCancel={handleCloseCancelItemModal}
