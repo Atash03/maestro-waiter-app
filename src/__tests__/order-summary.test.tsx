@@ -121,20 +121,20 @@ describe('OrderSummary Helper Functions', () => {
   });
 
   describe('getFormattedPrice', () => {
-    it('formats number with dollar sign', () => {
-      expect(getFormattedPrice(10.5)).toBe('$10.50');
+    it('formats number with TMT currency', () => {
+      expect(getFormattedPrice(10.5)).toBe('10.50 TMT');
     });
 
-    it('formats string price with dollar sign', () => {
-      expect(getFormattedPrice('15.99')).toBe('$15.99');
+    it('formats string price with TMT currency', () => {
+      expect(getFormattedPrice('15.99')).toBe('15.99 TMT');
     });
 
     it('handles undefined', () => {
-      expect(getFormattedPrice(undefined)).toBe('$0.00');
+      expect(getFormattedPrice(undefined)).toBe('0.00 TMT');
     });
 
     it('handles empty string', () => {
-      expect(getFormattedPrice('')).toBe('$0.00');
+      expect(getFormattedPrice('')).toBe('0.00 TMT');
     });
   });
 
@@ -311,7 +311,7 @@ describe('OrderSummaryItem Component', () => {
       <OrderSummaryItem item={mockItem} onRemove={jest.fn()} onUpdateQuantity={jest.fn()} />
     );
     const jsonOutput = JSON.stringify(toJSON());
-    expect(jsonOutput).toContain('$25.50');
+    expect(jsonOutput).toContain('25.50 TMT');
   });
 
   it('renders extras when present', () => {
@@ -505,7 +505,7 @@ describe('OrderSummary Component', () => {
       />
     );
     const jsonOutput = JSON.stringify(toJSON());
-    expect(jsonOutput).toContain('$25.00');
+    expect(jsonOutput).toContain('25.00 TMT');
   });
 
   it('renders item count', () => {
@@ -576,7 +576,7 @@ describe('OrderSummary Component', () => {
     const jsonOutput = JSON.stringify(toJSON());
     expect(jsonOutput).toContain('Service Fee');
     expect(jsonOutput).toContain('10%');
-    expect(jsonOutput).toContain('$2.50');
+    expect(jsonOutput).toContain('2.50 TMT');
     expect(jsonOutput).toContain('Subtotal');
   });
 

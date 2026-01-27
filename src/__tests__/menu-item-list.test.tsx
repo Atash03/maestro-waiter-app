@@ -184,20 +184,20 @@ describe('MenuItemList Helper Functions', () => {
   });
 
   describe('getFormattedPrice', () => {
-    it('returns formatted price with dollar sign', () => {
-      expect(getFormattedPrice('12.99')).toBe('$12.99');
+    it('returns formatted price with TMT currency', () => {
+      expect(getFormattedPrice('12.99')).toBe('12.99 TMT');
     });
 
     it('handles undefined price', () => {
-      expect(getFormattedPrice(undefined)).toBe('$0.00');
+      expect(getFormattedPrice(undefined)).toBe('0.00 TMT');
     });
 
     it('handles empty price string', () => {
-      expect(getFormattedPrice('')).toBe('$0.00');
+      expect(getFormattedPrice('')).toBe('0.00 TMT');
     });
 
     it('handles integer price', () => {
-      expect(getFormattedPrice('25')).toBe('$25.00');
+      expect(getFormattedPrice('25')).toBe('25.00 TMT');
     });
   });
 });
@@ -229,7 +229,7 @@ describe('MenuItemCard Component', () => {
 
     it('renders item price', () => {
       const { toJSON } = render(<MenuItemCard item={mockMenuItem} variant="grid" />);
-      expect(jsonContains(JSON.stringify(toJSON()), '$12.99')).toBe(true);
+      expect(jsonContains(JSON.stringify(toJSON()), '12.99 TMT')).toBe(true);
     });
 
     it('renders quantity badge when quantity > 0', () => {
@@ -283,7 +283,7 @@ describe('MenuItemCard Component', () => {
 
     it('renders item price in list view', () => {
       const { toJSON } = render(<MenuItemCard item={mockMenuItem} variant="list" />);
-      expect(jsonContains(JSON.stringify(toJSON()), '$12.99')).toBe(true);
+      expect(jsonContains(JSON.stringify(toJSON()), '12.99 TMT')).toBe(true);
     });
 
     it('renders quantity badge in list view', () => {
@@ -365,7 +365,7 @@ describe('MenuItemList Component', () => {
     it('renders item prices', () => {
       const { toJSON } = render(<MenuItemList items={mockItems} />);
       const json = JSON.stringify(toJSON());
-      expect(jsonContains(json, '$12.99')).toBe(true);
+      expect(jsonContains(json, '12.99 TMT')).toBe(true);
     });
   });
 

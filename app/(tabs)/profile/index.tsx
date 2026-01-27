@@ -125,12 +125,7 @@ function calculateActivityStats(
  * Format currency
  */
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'TMT',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(amount);
+  return `${amount.toFixed(2)} TMT`;
 }
 
 /**

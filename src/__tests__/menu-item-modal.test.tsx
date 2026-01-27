@@ -106,16 +106,16 @@ describe('MenuItemModal Helper Functions', () => {
   });
 
   describe('getFormattedPrice', () => {
-    it('returns formatted price with dollar sign', () => {
-      expect(getFormattedPrice('19.99')).toBe('$19.99');
+    it('returns formatted price with TMT currency', () => {
+      expect(getFormattedPrice('19.99')).toBe('19.99 TMT');
     });
 
     it('handles empty price', () => {
-      expect(getFormattedPrice('')).toBe('$0.00');
+      expect(getFormattedPrice('')).toBe('0.00 TMT');
     });
 
     it('handles undefined price', () => {
-      expect(getFormattedPrice(undefined)).toBe('$0.00');
+      expect(getFormattedPrice(undefined)).toBe('0.00 TMT');
     });
   });
 
@@ -269,7 +269,7 @@ describe('MenuItemModal Component', () => {
     });
 
     it('validates item price can be formatted', () => {
-      expect(getFormattedPrice(mockMenuItem.price)).toBe('$12.99');
+      expect(getFormattedPrice(mockMenuItem.price)).toBe('12.99 TMT');
     });
 
     it('validates category color can be determined', () => {
@@ -313,7 +313,7 @@ describe('MenuItemModal Component', () => {
     });
 
     it('handles item with empty price', () => {
-      expect(getFormattedPrice('')).toBe('$0.00');
+      expect(getFormattedPrice('')).toBe('0.00 TMT');
     });
 
     it('handles Bar category type', () => {

@@ -142,10 +142,10 @@ export function formatTimeSince(dateString: string): string {
  * Format price for display
  */
 export function formatPrice(price: string | undefined): string {
-  if (!price) return '$0.00';
+  if (!price) return '0.00 TMT';
   const num = Number.parseFloat(price);
-  if (Number.isNaN(num)) return '$0.00';
-  return `$${num.toFixed(2)}`;
+  if (Number.isNaN(num)) return '0.00 TMT';
+  return `${num.toFixed(2)} TMT`;
 }
 
 /**

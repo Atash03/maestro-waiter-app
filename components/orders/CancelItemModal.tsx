@@ -116,7 +116,9 @@ export function CancelItemModal({
   const [error, setError] = useState<string | null>(null);
 
   // Fetch item cancellation reasons
-  const { data: reasonsData, isLoading } = useCancellationReasons(ReasonTemplateType.ORDER_ITEM_CANCEL);
+  const { data: reasonsData, isLoading } = useCancellationReasons(
+    ReasonTemplateType.ORDER_ITEM_CANCEL
+  );
 
   // Reset state when modal opens
   useEffect(() => {
@@ -237,7 +239,7 @@ export function CancelItemModal({
             testID={`${testID}-backdrop`}
           />
           <Animated.View
-            entering={SlideInDown.duration(300).springify().damping(15)}
+            entering={SlideInDown.duration(300).springify()}
             exiting={SlideOutDown.duration(200)}
             style={[
               styles.container,

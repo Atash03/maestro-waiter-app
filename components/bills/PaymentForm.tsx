@@ -127,7 +127,7 @@ function PaymentMethodOption({
  * Format price for display
  */
 function formatPrice(price: number): string {
-  return `$${price.toFixed(2)}`;
+  return `${price.toFixed(2)} TMT`;
 }
 
 /**
@@ -411,7 +411,7 @@ export function PaymentForm({
                       },
                     ]}
                   >
-                    <ThemedText style={styles.currencySymbol}>$</ThemedText>
+                    <ThemedText style={styles.currencySymbol}>TMT</ThemedText>
                     <TextInput
                       style={[styles.amountInput, { color: colors.text }]}
                       value={amountText}

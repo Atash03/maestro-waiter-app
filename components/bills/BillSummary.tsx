@@ -68,10 +68,10 @@ function getTranslatedText(
  * Format price for display
  */
 function formatPrice(price: string | number | undefined): string {
-  if (price === undefined || price === null) return '$0.00';
+  if (price === undefined || price === null) return '0.00 TMT';
   const num = typeof price === 'string' ? Number.parseFloat(price) : price;
-  if (Number.isNaN(num)) return '$0.00';
-  return `$${num.toFixed(2)}`;
+  if (Number.isNaN(num)) return '0.00 TMT';
+  return `${num.toFixed(2)} TMT`;
 }
 
 /**

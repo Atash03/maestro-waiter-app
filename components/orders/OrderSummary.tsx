@@ -145,7 +145,7 @@ export function formatPrice(price: number): string {
  */
 export function getFormattedPrice(price: number | string | undefined): string {
   const numPrice = typeof price === 'number' ? price : parsePrice(price as string);
-  return `$${formatPrice(numPrice)}`;
+  return `${formatPrice(numPrice)} TMT`;
 }
 
 /**

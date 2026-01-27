@@ -118,7 +118,7 @@ export function EditNotesModal({
             testID={`${testID}-backdrop`}
           />
           <Animated.View
-            entering={SlideInDown.duration(300).springify().damping(15)}
+            entering={SlideInDown.duration(300).springify()}
             exiting={SlideOutDown.duration(200)}
             style={[
               styles.container,

@@ -127,16 +127,16 @@ describe('Order Store Helper Functions', () => {
   });
 
   describe('getFormattedPrice', () => {
-    it('should format number with dollar sign', () => {
-      expect(getFormattedPrice(10.5)).toBe('$10.50');
+    it('should format number with TMT currency', () => {
+      expect(getFormattedPrice(10.5)).toBe('10.50 TMT');
     });
 
     it('should parse and format string price', () => {
-      expect(getFormattedPrice('10.50')).toBe('$10.50');
+      expect(getFormattedPrice('10.50')).toBe('10.50 TMT');
     });
 
     it('should handle undefined', () => {
-      expect(getFormattedPrice(undefined)).toBe('$0.00');
+      expect(getFormattedPrice(undefined)).toBe('0.00 TMT');
     });
   });
 

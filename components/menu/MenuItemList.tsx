@@ -128,7 +128,7 @@ export function formatPrice(price: number): string {
  * Get the display price formatted
  */
 export function getFormattedPrice(price: string | undefined): string {
-  return `$${formatPrice(parsePrice(price))}`;
+  return `${formatPrice(parsePrice(price))} TMT`;
 }
 
 // ============================================================================

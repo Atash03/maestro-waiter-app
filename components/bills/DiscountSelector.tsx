@@ -59,7 +59,7 @@ function formatDiscountValue(discount: Discount): string {
   if (discount.discountValueType === DiscountValueType.PERCENTAGE) {
     return `${value}%`;
   }
-  return `$${value.toFixed(2)}`;
+  return `${value.toFixed(2)} TMT`;
 }
 
 /**
@@ -67,8 +67,8 @@ function formatDiscountValue(discount: Discount): string {
  */
 function formatPrice(price: string | number): string {
   const num = typeof price === 'string' ? Number.parseFloat(price) : price;
-  if (Number.isNaN(num)) return '$0.00';
-  return `$${num.toFixed(2)}`;
+  if (Number.isNaN(num)) return '0.00 TMT';
+  return `${num.toFixed(2)} TMT`;
 }
 
 // ============================================================================
@@ -390,7 +390,7 @@ export function DiscountSelector({
                   { borderColor: colors.border, backgroundColor: colors.backgroundSecondary },
                 ]}
               >
-                <ThemedText style={styles.currencySymbol}>$</ThemedText>
+                <ThemedText style={styles.currencySymbol}>TMT</ThemedText>
                 <TextInput
                   style={[styles.customDiscountInput, { color: colors.text }]}
                   value={localCustomAmount}

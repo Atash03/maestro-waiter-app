@@ -131,7 +131,7 @@ export function formatPrice(price: number): string {
  * Get formatted price with currency symbol
  */
 export function getFormattedPrice(price: string | undefined): string {
-  return `$${formatPrice(parsePrice(price))}`;
+  return `${formatPrice(parsePrice(price))} TMT`;
 }
 
 /**
