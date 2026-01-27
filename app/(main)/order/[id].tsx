@@ -282,117 +282,108 @@ function OrderItemRow({ item, onMarkServed, onCancelItem, testID }: OrderItemRow
   const secondaryText = isDark ? colors.textSecondary : '#646464';
 
   return (
-      <View
-        style={[styles.itemContainer, { borderBottomColor: borderColor, backgroundColor: bgColor }]}
-        testID={testID}
-      >
-        {/* Top Row: Image + Info + Actions */}
-        <View style={styles.itemTopRow}>
-          {item.menuItem?.imagePath && (
-            <Image
-              source={{ uri: getImageUrl(item.menuItem.imagePath)! }}
-              style={[styles.itemImage, isCancelled && styles.itemOpacity]}
-              contentFit="cover"
-              transition={200}
-            />
-          )}
+    <View
+      style={[styles.itemContainer, { borderBottomColor: borderColor, backgroundColor: bgColor }]}
+      testID={testID}
+    >
+      {/* Top Row: Image + Info + Actions */}
+      <View style={styles.itemTopRow}>
+        {item.menuItem?.imagePath && (
+          <Image
+            source={{ uri: getImageUrl(item.menuItem.imagePath)! }}
+            style={[styles.itemImage, isCancelled && styles.itemOpacity]}
+            contentFit="cover"
+            transition={200}
+          />
+        )}
 
-          <View style={styles.itemInfoCol}>
-            <ThemedText
-              style={[styles.itemName, isCancelled && styles.itemNameCancelled]}
-              numberOfLines={2}
-            >
-              {getTranslatedText(item.itemTitle, 'Unknown Item')}
-              {quantity > 1 ? ` x${quantity}` : ''}
-            </ThemedText>
-            <ThemedText style={[styles.itemPrice, { color: secondaryText }]}>
-              {formatPrice(item.subtotal)}
-            </ThemedText>
-            <Badge variant={getOrderItemBadgeVariant(item.status)} size="sm">
-              {getOrderItemStatusLabel(item.status)}
-            </Badge>
-          </View>
-
-          {/* Action buttons */}
-          <View style={styles.itemActions}>
-            {canServe && onMarkServed && (
-              <Pressable
-                style={[styles.itemActionBtn, styles.itemServeBtn]}
-                onPress={() => onMarkServed(item)}
-                testID={`${testID}-serve-btn`}
-              >
-                <MaterialIcons name="check" size={24} color="#2B9A66" />
-              </Pressable>
-            )}
-            {canCancel && onCancelItem && (
-              <Pressable
-                style={[styles.itemActionBtn, styles.itemCancelBtn]}
-                onPress={() => onCancelItem(item)}
-                testID={`${testID}-cancel-btn`}
-              >
-                <MaterialIcons name="delete-outline" size={24} color="#CE2C31" />
-              </Pressable>
-            )}
-          </View>
+        <View style={styles.itemInfoCol}>
+          <ThemedText
+            style={[styles.itemName, isCancelled && styles.itemNameCancelled]}
+            numberOfLines={2}
+          >
+            {getTranslatedText(item.itemTitle, 'Unknown Item')}
+            {quantity > 1 ? ` x${quantity}` : ''}
+          </ThemedText>
+          <ThemedText style={[styles.itemPrice, { color: secondaryText }]}>
+            {formatPrice(item.subtotal)}
+          </ThemedText>
+          <Badge variant={getOrderItemBadgeVariant(item.status)} size="sm">
+            {getOrderItemStatusLabel(item.status)}
+          </Badge>
         </View>
 
-        {/* Decline/Cancel Reason */}
-        {(item.declineReason || item.cancelReason) && (
-          <ThemedText style={styles.declineReason} numberOfLines={2}>
-            {item.declineReason
-              ? `Declined: ${item.declineReason}`
-              : `Cancelled: ${item.cancelReason}`}
-          </ThemedText>
-        )}
-
-        {/* Bottom Row: Extras + Notes */}
-        {hasBottomRow && (
-          <View style={styles.itemBottomRow}>
-            {hasExtras && (
-              <View style={styles.itemExtrasCol}>
-                {item.extras!.map((extra) => (
-                  <View key={extra.extraId} style={styles.itemExtraRow}>
-                    <ThemedText style={styles.itemExtraName}>
-                      {getTranslatedText(extra.extraTitle, 'Extra')}
-                      {extra.quantity > 1 ? ` x${extra.quantity}` : ''}:
-                    </ThemedText>
-                    {extra.totalPrice && (
-                      <View
-                        style={[
-                          styles.itemExtraPricePill,
-                          { backgroundColor: isDark ? colors.border : '#f0f0f0' },
-                        ]}
-                      >
-                        <ThemedText style={styles.itemExtraPriceText}>
-                          {formatPrice(extra.totalPrice)}
-                        </ThemedText>
-                      </View>
-                    )}
-                  </View>
-                ))}
-              </View>
-            )}
-            {item.notes && (
-              <View
-                style={[
-                  styles.itemNotesCol,
-                  hasExtras && {
-                    borderLeftWidth: 1,
-                    borderLeftColor: isDark ? colors.border : '#e8e8e8',
-                  },
-                ]}
-              >
-                <ThemedText
-                  style={[styles.itemNotesText, { color: secondaryText }]}
-                  numberOfLines={3}
-                >
-                  {item.notes}
-                </ThemedText>
-              </View>
-            )}
-          </View>
-        )}
+        {/* Action buttons */}
+        <View style={styles.itemActions}>
+          {canServe && onMarkServed && (
+            <Pressable
+              style={[styles.itemActionBtn, styles.itemServeBtn]}
+              onPress={() => onMarkServed(item)}
+              testID={`${testID}-serve-btn`}
+            >
+              <MaterialIcons name="check" size={24} color="#2B9A66" />
+            </Pressable>
+          )}
+          {canCancel && onCancelItem && (
+            <Pressable
+              style={[styles.itemActionBtn, styles.itemCancelBtn]}
+              onPress={() => onCancelItem(item)}
+              testID={`${testID}-cancel-btn`}
+            >
+              <MaterialIcons name="delete-outline" size={24} color="#CE2C31" />
+            </Pressable>
+          )}
+        </View>
       </View>
+
+      {/* Bottom Row: Extras + Notes */}
+      {hasBottomRow && (
+        <View style={styles.itemBottomRow}>
+          {hasExtras && (
+            <View style={styles.itemExtrasCol}>
+              {item.extras!.map((extra) => (
+                <View key={extra.extraId} style={styles.itemExtraRow}>
+                  <ThemedText style={styles.itemExtraName}>
+                    {getTranslatedText(extra.extraTitle, 'Extra')}
+                    {extra.quantity > 1 ? ` x${extra.quantity}` : ''}:
+                  </ThemedText>
+                  {extra.totalPrice && (
+                    <View
+                      style={[
+                        styles.itemExtraPricePill,
+                        { backgroundColor: isDark ? colors.border : '#f0f0f0' },
+                      ]}
+                    >
+                      <ThemedText style={styles.itemExtraPriceText}>
+                        {formatPrice(extra.totalPrice)}
+                      </ThemedText>
+                    </View>
+                  )}
+                </View>
+              ))}
+            </View>
+          )}
+          {item.notes && (
+            <View
+              style={[
+                styles.itemNotesCol,
+                hasExtras && {
+                  borderLeftWidth: 1,
+                  borderLeftColor: isDark ? colors.border : '#e8e8e8',
+                },
+              ]}
+            >
+              <ThemedText
+                style={[styles.itemNotesText, { color: secondaryText }]}
+                numberOfLines={3}
+              >
+                {item.notes}
+              </ThemedText>
+            </View>
+          )}
+        </View>
+      )}
+    </View>
   );
 }
 
@@ -634,6 +625,14 @@ export default function OrderDetailScreen() {
 
   const isDineIn = order?.orderType === OrderType.DINE_IN;
 
+  const itemsSubtotal = useMemo(() => {
+    if (!order?.orderItems) return '0.00';
+    return order.orderItems
+      .filter((item) => !isItemCancelled(item.status))
+      .reduce((sum, item) => sum + (Number.parseFloat(item.subtotal ?? '0') || 0), 0)
+      .toFixed(2);
+  }, [order?.orderItems]);
+
   // Error state
   if (error && !isLoading) {
     return (
@@ -801,16 +800,37 @@ export default function OrderDetailScreen() {
 
         {/* Total */}
         <Card padding="md" elevated style={styles.totalCard}>
-          <View style={styles.totalRow}>
-            <ThemedText style={styles.totalLabel}>Total</ThemedText>
-            <ThemedText style={styles.totalAmount}>{formatPrice(order.totalAmount)}</ThemedText>
-          </View>
-          {order.serviceFeeAmount && (
-            <ThemedText style={[styles.serviceFeeText, { color: colors.textSecondary }]}>
-              Includes {order.serviceFeePercent ? `${order.serviceFeePercent}%` : ''} service fee:{' '}
-              {formatPrice(order.serviceFeeAmount)}
+          {/* Subtotal */}
+          <View style={styles.subtotalRow}>
+            <ThemedText style={[styles.subtotalLabel, { color: colors.textSecondary }]}>
+              Subtotal
             </ThemedText>
+            <ThemedText style={[styles.subtotalAmount, { color: colors.textSecondary }]}>
+              {formatPrice(itemsSubtotal)}
+            </ThemedText>
+          </View>
+
+          {/* Service Fee */}
+          {order.serviceFeeAmount && (
+            <View style={styles.subtotalRow}>
+              <ThemedText style={[styles.subtotalLabel, { color: colors.textSecondary }]}>
+                Service Fee{order.serviceFeePercent ? ` (${order.serviceFeePercent}%)` : ''}
+              </ThemedText>
+              <ThemedText style={[styles.subtotalAmount, { color: colors.textSecondary }]}>
+                {formatPrice(order.serviceFeeAmount)}
+              </ThemedText>
+            </View>
           )}
+
+          {/* Total */}
+          <View style={[styles.totalRow, { marginTop: Spacing.xs, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: Spacing.xs }]}>
+            <ThemedText style={styles.totalLabel}>Total</ThemedText>
+            <ThemedText style={styles.totalAmount}>
+              {formatPrice(
+                (Number.parseFloat(itemsSubtotal) + (Number.parseFloat(order.serviceFeeAmount ?? '0') || 0)).toFixed(2)
+              )}
+            </ThemedText>
+          </View>
         </Card>
 
         {/* Action Buttons */}
@@ -1135,6 +1155,18 @@ const styles = StyleSheet.create({
   totalCard: {
     marginBottom: Spacing.md,
   },
+  subtotalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  subtotalLabel: {
+    fontSize: 13,
+  },
+  subtotalAmount: {
+    fontSize: 13,
+  },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1148,11 +1180,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: BrandColors.primary,
-  },
-  serviceFeeText: {
-    fontSize: 12,
-    marginTop: Spacing.xs,
-    textAlign: 'right',
   },
   actionButtons: {
     flexDirection: 'row',
