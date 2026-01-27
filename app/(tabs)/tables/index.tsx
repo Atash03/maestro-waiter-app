@@ -9,7 +9,8 @@
  * - Pull-to-refresh for data updates
  */
 
-import { useCallback, useMemo } from 'react';
+import { useRouter } from 'expo-router';
+import { useCallback, useEffect, useMemo } from 'react';
 import {
   Dimensions,
   FlatList,
@@ -30,8 +31,6 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { toast } from 'sonner-native';
 import { NotificationBell } from '@/components/common';
 import type { TableItemData, TableStatus } from '@/components/tables';
 import { getStatusColor, StatusLegend } from '@/components/tables';
@@ -44,12 +43,10 @@ import { BorderRadius, Colors, Spacing, StatusColors } from '@/constants/theme';
 import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import { useHapticRefresh } from '@/src/hooks';
 import { useOrders } from '@/src/hooks/useOrderQueries';
-import { createOrder } from '@/src/services/api/orders';
 import { useTablesAndZones, useTablesByZone } from '@/src/hooks/useTableQueries';
 import { useTableStore } from '@/src/stores/tableStore';
-import { OrderStatus, OrderType } from '@/src/types/enums';
+import { OrderStatus } from '@/src/types/enums';
 import type { Table, Translation, Zone } from '@/src/types/models';
-import { useEffect } from 'react';
 
 // ============================================================================
 // Constants
@@ -161,7 +158,6 @@ function ZoneTabs({ zones, selectedZoneId, onSelectZone }: ZoneTabsProps) {
   );
 }
 
-
 // ============================================================================
 // Table Grid Item Component
 // ============================================================================
@@ -173,12 +169,7 @@ interface TableGridItemProps {
   isSelected?: boolean;
 }
 
-function TableGridItem({
-  table,
-  onPress,
-  onLongPress,
-  isSelected = false,
-}: TableGridItemProps) {
+function TableGridItem({ table, onPress, onLongPress, isSelected = false }: TableGridItemProps) {
   const statusColor = getStatusColor(table.status);
 
   // Animation values
@@ -382,8 +373,16 @@ function TablesGridSkeleton() {
       <View style={styles.gridSkeletonContainer}>
         <SkeletonGroup count={6} direction="vertical" spacing={Spacing.md}>
           <View style={styles.gridSkeletonRow}>
-            <Skeleton variant="rectangular" width={(SCREEN_WIDTH - Spacing.lg * 3) / 2} height={GRID_ITEM_HEIGHT} />
-            <Skeleton variant="rectangular" width={(SCREEN_WIDTH - Spacing.lg * 3) / 2} height={GRID_ITEM_HEIGHT} />
+            <Skeleton
+              variant="rectangular"
+              width={(SCREEN_WIDTH - Spacing.lg * 3) / 2}
+              height={GRID_ITEM_HEIGHT}
+            />
+            <Skeleton
+              variant="rectangular"
+              width={(SCREEN_WIDTH - Spacing.lg * 3) / 2}
+              height={GRID_ITEM_HEIGHT}
+            />
           </View>
         </SkeletonGroup>
       </View>
@@ -434,7 +433,6 @@ function EmptyState() {
   );
 }
 
-
 // ============================================================================
 // Main Tables Screen
 // ============================================================================
@@ -446,8 +444,7 @@ export default function TablesScreen() {
   const router = useRouter();
 
   // Table store for selection
-  const { selectedZoneId, selectZone, selectTable } =
-    useTableStore();
+  const { selectedZoneId, selectZone, selectTable } = useTableStore();
 
   // Fetch tables and zones data
   const { tables, zones, isLoading, error, refetchAll } = useTablesAndZones({
@@ -512,24 +509,10 @@ export default function TablesScreen() {
         return;
       }
 
-      // Create new order with promise toast
-      const orderPromise = createOrder({
-        orderType: OrderType.DINE_IN,
-        tableId: table.id,
-      });
-
-      toast.promise(orderPromise, {
-        loading: 'Creating order...',
-        success: (order) => {
-          router.push({
-            pathname: '/(main)/order/new',
-            params: { tableId: table.id, orderId: order.id },
-          });
-          return `Order ${order.orderCode} created!`;
-        },
-        error: (err) => {
-          return err instanceof Error ? err.message : 'Failed to create order';
-        },
+      // Navigate to new order screen — order will be created when sending to kitchen
+      router.push({
+        pathname: '/(main)/order/new',
+        params: { tableId: table.id },
       });
     },
     [selectTable, router, getActiveOrderForTable]
@@ -554,11 +537,7 @@ export default function TablesScreen() {
   // Render grid item
   const renderGridItem = useCallback(
     ({ item }: { item: TableItemData }) => (
-      <TableGridItem
-        table={item}
-        onPress={handleTablePress}
-        onLongPress={handleTableLongPress}
-      />
+      <TableGridItem table={item} onPress={handleTablePress} onLongPress={handleTableLongPress} />
     ),
     [handleTablePress, handleTableLongPress]
   );
@@ -576,7 +555,6 @@ export default function TablesScreen() {
     []
   );
 
-
   // Show loading skeleton on initial load
   if (isLoading && tablesData.length === 0) {
     return <TablesGridSkeleton />;
@@ -584,9 +562,7 @@ export default function TablesScreen() {
 
   // Show error state
   if (error) {
-    return (
-      <ErrorState message={error.message || 'Failed to load tables'} onRetry={refetchAll} />
-    );
+    return <ErrorState message={error.message || 'Failed to load tables'} onRetry={refetchAll} />;
   }
 
   return (
