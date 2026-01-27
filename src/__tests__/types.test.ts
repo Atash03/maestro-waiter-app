@@ -230,7 +230,7 @@ describe('Enums', () => {
   describe('ServiceFeeType', () => {
     it('should have all required values', () => {
       expect(ServiceFeeTypeEnum.PERCENTAGE).toBe('Percentage');
-      expect(ServiceFeeTypeEnum.FIXED).toBe('Fixed');
+      expect(ServiceFeeTypeEnum.FIXED_AMOUNT).toBe('FixedAmount');
     });
 
     it('should have exactly 2 values', () => {
@@ -243,18 +243,19 @@ describe('Enums', () => {
     it('should have all required values', () => {
       expect(DiscountTypeEnum.MANUAL).toBe('Manual');
       expect(DiscountTypeEnum.AUTOMATIC).toBe('Automatic');
+      expect(DiscountTypeEnum.COUPON).toBe('Coupon');
     });
 
-    it('should have exactly 2 values', () => {
+    it('should have exactly 3 values', () => {
       const values = Object.values(DiscountTypeEnum);
-      expect(values).toHaveLength(2);
+      expect(values).toHaveLength(3);
     });
   });
 
   describe('DiscountValueType', () => {
     it('should have all required values', () => {
       expect(DiscountValueTypeEnum.PERCENTAGE).toBe('Percentage');
-      expect(DiscountValueTypeEnum.FIXED).toBe('Fixed');
+      expect(DiscountValueTypeEnum.FIXED_AMOUNT).toBe('FixedAmount');
     });
 
     it('should have exactly 2 values', () => {
@@ -266,12 +267,13 @@ describe('Enums', () => {
   describe('DiscountApplicableTo', () => {
     it('should have all required values', () => {
       expect(DiscountApplicableToEnum.ORDER).toBe('Order');
-      expect(DiscountApplicableToEnum.ITEM).toBe('Item');
+      expect(DiscountApplicableToEnum.ORDER_ITEM).toBe('OrderItem');
+      expect(DiscountApplicableToEnum.BOTH).toBe('Both');
     });
 
-    it('should have exactly 2 values', () => {
+    it('should have exactly 3 values', () => {
       const values = Object.values(DiscountApplicableToEnum);
-      expect(values).toHaveLength(2);
+      expect(values).toHaveLength(3);
     });
   });
 
@@ -291,9 +293,9 @@ describe('Enums', () => {
 
   describe('ReasonTemplateType', () => {
     it('should have all required values', () => {
-      expect(ReasonTemplateTypeEnum.DISCOUNT).toBe('discount');
-      expect(ReasonTemplateTypeEnum.REFUND).toBe('refund');
-      expect(ReasonTemplateTypeEnum.CANCELLATION).toBe('cancellation');
+      expect(ReasonTemplateTypeEnum.ORDER_CANCEL).toBe('order-cancel');
+      expect(ReasonTemplateTypeEnum.ORDER_ITEM_CANCEL).toBe('order-item-cancel');
+      expect(ReasonTemplateTypeEnum.ORDER_ITEM_DECLINE).toBe('order-item-decline');
     });
 
     it('should have exactly 3 values', () => {

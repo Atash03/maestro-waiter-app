@@ -128,7 +128,7 @@ export enum SortOrder {
  */
 export enum ServiceFeeType {
   PERCENTAGE = 'Percentage',
-  FIXED = 'Fixed',
+  FIXED_AMOUNT = 'FixedAmount',
 }
 
 /**
@@ -137,6 +137,7 @@ export enum ServiceFeeType {
 export enum DiscountType {
   MANUAL = 'Manual',
   AUTOMATIC = 'Automatic',
+  COUPON = 'Coupon',
 }
 
 /**
@@ -144,7 +145,7 @@ export enum DiscountType {
  */
 export enum DiscountValueType {
   PERCENTAGE = 'Percentage',
-  FIXED = 'Fixed',
+  FIXED_AMOUNT = 'FixedAmount',
 }
 
 /**
@@ -152,7 +153,8 @@ export enum DiscountValueType {
  */
 export enum DiscountApplicableTo {
   ORDER = 'Order',
-  ITEM = 'Item',
+  ORDER_ITEM = 'OrderItem',
+  BOTH = 'Both',
 }
 
 /**
@@ -169,9 +171,9 @@ export enum BillStatus {
  * Reason template types
  */
 export enum ReasonTemplateType {
-  DISCOUNT = 'discount',
-  REFUND = 'refund',
-  CANCELLATION = 'cancellation',
+  ORDER_CANCEL = 'order-cancel',
+  ORDER_ITEM_CANCEL = 'order-item-cancel',
+  ORDER_ITEM_DECLINE = 'order-item-decline',
 }
 
 /**
@@ -185,4 +187,21 @@ export enum DayOfWeek {
   FRIDAY = 'Friday',
   SATURDAY = 'Saturday',
   SUNDAY = 'Sunday',
+}
+
+/**
+ * Payment status of a bill item
+ */
+export enum BillItemPaymentStatus {
+  UNPAID = 'Unpaid',
+  PARTIALLY_PAID = 'PartiallyPaid',
+  PAID = 'Paid',
+}
+
+/**
+ * How a discount was applied
+ */
+export enum ApplicationType {
+  AUTOMATIC = 'Automatic',
+  MANUAL = 'Manual',
 }

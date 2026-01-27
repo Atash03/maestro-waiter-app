@@ -193,7 +193,7 @@ function BillItemRow({ item, testID }: BillItemRowProps) {
   const quantity = Number.parseInt(item.quantity, 10) || 0;
   const extrasText = item.extras
     ?.map((extra) => {
-      const name = getTranslatedText(extra.title, 'Extra');
+      const name = getTranslatedText(extra.extraTitle, 'Extra');
       return extra.quantity > 1 ? `${extra.quantity}x ${name}` : name;
     })
     .join(', ');
@@ -921,7 +921,7 @@ export default function BillScreen() {
                       : 'Discount'}
                   </ThemedText>
                   <ThemedText style={[styles.discountAmount, { color: StatusColors.ready }]}>
-                    -{formatPrice(discount.amount)}
+                    -{formatPrice(discount.discountAmount)}
                   </ThemedText>
                 </View>
               ))}

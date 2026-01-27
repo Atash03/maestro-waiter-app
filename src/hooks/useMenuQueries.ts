@@ -392,26 +392,29 @@ export function useMenuData(options?: UseMenuDataOptions): MenuDataResult {
   const items = useMenuItems({ params: itemParams });
   const extras = useExtras({ params: extraParams });
 
-  const menuStore = useMenuStore();
+  // Select only the setter functions (stable references) to avoid infinite loops
+  const setCategories = useMenuStore((state) => state.setCategories);
+  const setItems = useMenuStore((state) => state.setItems);
+  const setExtras = useMenuStore((state) => state.setExtras);
 
   // Sync data to the menu store when data is fetched
   useEffect(() => {
     if (syncToStore && categories.data?.data) {
-      menuStore.setCategories(categories.data.data);
+      setCategories(categories.data.data);
     }
-  }, [syncToStore, categories.data, menuStore]);
+  }, [syncToStore, categories.data, setCategories]);
 
   useEffect(() => {
     if (syncToStore && items.data?.data) {
-      menuStore.setItems(items.data.data);
+      setItems(items.data.data);
     }
-  }, [syncToStore, items.data, menuStore]);
+  }, [syncToStore, items.data, setItems]);
 
   useEffect(() => {
     if (syncToStore && extras.data?.data) {
-      menuStore.setExtras(extras.data.data);
+      setExtras(extras.data.data);
     }
-  }, [syncToStore, extras.data, menuStore]);
+  }, [syncToStore, extras.data, setExtras]);
 
   const isLoading = categories.isLoading || items.isLoading || extras.isLoading;
   const error = categories.error ?? items.error ?? extras.error;

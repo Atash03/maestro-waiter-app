@@ -184,7 +184,7 @@ export function OrderCard({ order, onPress, testID }: OrderCardProps) {
   const itemCount = getItemCount(order);
   const tableTitle = order.table?.title;
   const customerName = order.customer
-    ? `${order.customer.firstName} ${order.customer.lastName}`.trim()
+    ? `${order.customer.firstName ?? ''} ${order.customer.lastName ?? ''}`.trim()
     : null;
 
   // Determine location/customer display

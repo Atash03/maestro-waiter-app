@@ -193,7 +193,7 @@ function DiscountItem({ discount, index }: DiscountItemProps) {
         </ThemedText>
       </View>
       <ThemedText style={[styles.discountAmount, { color: StatusColors.ready }]}>
-        -{formatPrice(discount.amount)}
+        -{formatPrice(discount.discountAmount)}
       </ThemedText>
     </Animated.View>
   );

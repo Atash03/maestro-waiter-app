@@ -28,6 +28,7 @@ import { Card } from '@/components/ui/Card';
 import { BorderRadius, BrandColors, Colors, Spacing, StatusColors } from '@/constants/theme';
 import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import { useCancellationReasons } from '@/src/hooks/useReasonTemplateQueries';
+import { ReasonTemplateType } from '@/src/types/enums';
 import type { ReasonTemplate, Translation } from '@/src/types/models';
 
 // ============================================================================
@@ -82,12 +83,7 @@ function ReasonItem({ reason, isSelected, onSelect }: ReasonItemProps) {
       ]}
     >
       <View style={styles.reasonItemContent}>
-        <ThemedText style={[styles.reasonName, { color: colors.text }]}>{reason.name}</ThemedText>
-        {reason.description && (
-          <ThemedText style={[styles.reasonDescription, { color: colors.textSecondary }]}>
-            {reason.description}
-          </ThemedText>
-        )}
+        <ThemedText style={[styles.reasonName, { color: colors.text }]}>{reason.reason}</ThemedText>
       </View>
       {isSelected && (
         <View style={[styles.selectedIndicator, { backgroundColor: StatusColors.needsAttention }]}>
@@ -119,8 +115,8 @@ export function CancelItemModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch cancellation reasons
-  const { data: reasonsData, isLoading } = useCancellationReasons();
+  // Fetch item cancellation reasons
+  const { data: reasonsData, isLoading } = useCancellationReasons(ReasonTemplateType.ORDER_ITEM_CANCEL);
 
   // Reset state when modal opens
   useEffect(() => {
@@ -161,7 +157,7 @@ export function CancelItemModal({
     if (useCustomReason) {
       return customReason.trim();
     }
-    return selectedReason?.name ?? '';
+    return selectedReason?.reason ?? '';
   }, [useCustomReason, customReason, selectedReason]);
 
   // Get the reason ID if using preset
@@ -487,10 +483,6 @@ const styles = StyleSheet.create({
   reasonName: {
     fontSize: 15,
     fontWeight: '500',
-  },
-  reasonDescription: {
-    fontSize: 13,
-    marginTop: 2,
   },
   selectedIndicator: {
     width: 24,

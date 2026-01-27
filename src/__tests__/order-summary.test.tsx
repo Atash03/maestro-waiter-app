@@ -157,7 +157,7 @@ describe('OrderSummary Helper Functions', () => {
     });
 
     it('ignores extras not in availableExtras but uses price fallback', () => {
-      const extras = [{ extraId: 'e1', quantity: 1, price: '3.00' }];
+      const extras = [{ extraId: 'e1', quantity: 1, pricePerUnit: '3.00' }];
       expect(calculateExtrasTotal(extras, [])).toBe(3);
     });
 
@@ -237,17 +237,17 @@ describe('OrderSummary Helper Functions', () => {
 
     it('joins extras with comma', () => {
       const extras = [
-        { extraId: 'e1', quantity: 1, title: { en: 'Cheese', ru: 'Сыр', tm: 'Peýnir' } },
-        { extraId: 'e2', quantity: 1, title: { en: 'Bacon', ru: 'Бекон', tm: 'Bekon' } },
+        { extraId: 'e1', quantity: 1, extraTitle: { en: 'Cheese', ru: 'Сыр', tm: 'Peýnir' } },
+        { extraId: 'e2', quantity: 1, extraTitle: { en: 'Bacon', ru: 'Бекон', tm: 'Bekon' } },
       ];
       expect(getExtrasText(extras)).toBe('Cheese, Bacon');
     });
 
     it('uses fallback for missing title', () => {
-      const extras = [{ extraId: 'e1', quantity: 1, title: undefined }] as Array<{
+      const extras = [{ extraId: 'e1', quantity: 1, extraTitle: undefined }] as Array<{
         extraId: string;
         quantity: number;
-        title: Translation | undefined;
+        extraTitle: Translation | undefined;
       }>;
       expect(getExtrasText(extras)).toBe('Extra');
     });
@@ -316,7 +316,7 @@ describe('OrderSummaryItem Component', () => {
 
   it('renders extras when present', () => {
     const mockItem = createMockItem({
-      extras: [{ extraId: 'e1', quantity: 1, title: { en: 'Cheese', ru: 'Сыр', tm: 'Peýnir' } }],
+      extras: [{ extraId: 'e1', quantity: 1, extraTitle: { en: 'Cheese', ru: 'Сыр', tm: 'Peýnir' } }],
     });
     const { toJSON } = render(
       <OrderSummaryItem item={mockItem} onRemove={jest.fn()} onUpdateQuantity={jest.fn()} />

@@ -78,8 +78,8 @@ function createMockLocalOrderItem(overrides: Partial<LocalOrderItem> = {}): Loca
       {
         extraId: 'extra-1',
         quantity: 1,
-        title: createMockTranslation('Extra cheese'),
-        price: '2.00',
+        extraTitle: createMockTranslation('Extra cheese'),
+        pricePerUnit: '2.00',
       },
     ],
     unitPrice: 10.0,
@@ -140,14 +140,14 @@ describe('Send to Kitchen Helper Functions', () => {
         {
           extraId: 'extra-1',
           quantity: 2,
-          title: createMockTranslation('Extra cheese'),
-          price: '2.00',
+          extraTitle: createMockTranslation('Extra cheese'),
+          pricePerUnit: '2.00',
         },
         {
           extraId: 'extra-2',
           quantity: 1,
-          title: createMockTranslation('Bacon'),
-          price: '3.00',
+          extraTitle: createMockTranslation('Bacon'),
+          pricePerUnit: '3.00',
         },
       ];
 

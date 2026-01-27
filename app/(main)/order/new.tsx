@@ -340,7 +340,7 @@ function OrderSummaryItem({
             style={[styles.orderItemExtras, { color: colors.textSecondary }]}
             numberOfLines={1}
           >
-            + {item.extras.map((e) => e.title?.en || 'Extra').join(', ')}
+            + {item.extras.map((e) => e.extraTitle?.en || 'Extra').join(', ')}
           </ThemedText>
         )}
 
@@ -758,7 +758,12 @@ export default function OrderEntryScreen() {
   return (
     <ThemedView style={styles.container} testID="order-entry-screen">
       {/* Header with table info */}
-      <View style={[styles.header, { borderBottomColor: colors.border, paddingTop: insets.top + Spacing.sm }]}>
+      <View
+        style={[
+          styles.header,
+          { borderBottomColor: colors.border, paddingTop: insets.top + Spacing.sm },
+        ]}
+      >
         <View style={styles.headerLeft}>
           <TouchableOpacity
             testID="close-button"

@@ -201,7 +201,7 @@ describe('Order Store Helper Functions', () => {
     });
 
     it('should use fallback price from OrderItemExtra', () => {
-      const orderExtras = [{ extraId: 'missing', quantity: 1, price: '3.00' }];
+      const orderExtras = [{ extraId: 'missing', quantity: 1, pricePerUnit: '3.00' }];
       expect(calculateExtrasTotal(orderExtras, [])).toBe(3);
     });
   });
@@ -234,7 +234,7 @@ describe('Order Store Helper Functions', () => {
       expect(result).toHaveLength(1);
       expect(result[0].extraId).toBe('e1');
       expect(result[0].quantity).toBe(2);
-      expect(result[0].price).toBe('2.50');
+      expect(result[0].pricePerUnit).toBe('2.50');
     });
 
     it('should preserve selected extra data if not found in available extras', () => {
@@ -249,8 +249,8 @@ describe('Order Store Helper Functions', () => {
       const result = convertToOrderItemExtras(selected, []);
 
       expect(result[0].extraId).toBe('missing');
-      expect(result[0].title).toEqual(createMockTranslation('Custom'));
-      expect(result[0].price).toBe('5.00');
+      expect(result[0].extraTitle).toEqual(createMockTranslation('Custom'));
+      expect(result[0].pricePerUnit).toBe('5.00');
     });
   });
 });

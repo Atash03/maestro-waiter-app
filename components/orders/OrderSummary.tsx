@@ -158,8 +158,8 @@ export function calculateExtrasTotal(extras: OrderItemExtra[], availableExtras: 
       return total + parsePrice(extra.actualPrice) * orderExtra.quantity;
     }
     // Use the price from the OrderItemExtra if available (fallback)
-    if (orderExtra.price) {
-      return total + parsePrice(orderExtra.price) * orderExtra.quantity;
+    if (orderExtra.pricePerUnit) {
+      return total + parsePrice(orderExtra.pricePerUnit) * orderExtra.quantity;
     }
     return total;
   }, 0);
@@ -186,7 +186,7 @@ export function calculateOrderTotal(items: LocalOrderItem[]): number {
  */
 export function getExtrasText(extras: OrderItemExtra[]): string {
   if (extras.length === 0) return '';
-  return extras.map((e) => getTranslatedText(e.title, 'Extra')).join(', ');
+  return extras.map((e) => getTranslatedText(e.extraTitle, 'Extra')).join(', ');
 }
 
 // ============================================================================

@@ -72,12 +72,7 @@ function ReasonItem({ reason, isSelected, onSelect }: ReasonItemProps) {
       ]}
     >
       <View style={styles.reasonItemContent}>
-        <ThemedText style={[styles.reasonName, { color: colors.text }]}>{reason.name}</ThemedText>
-        {reason.description && (
-          <ThemedText style={[styles.reasonDescription, { color: colors.textSecondary }]}>
-            {reason.description}
-          </ThemedText>
-        )}
+        <ThemedText style={[styles.reasonName, { color: colors.text }]}>{reason.reason}</ThemedText>
       </View>
       {isSelected && (
         <View style={[styles.selectedIndicator, { backgroundColor: StatusColors.needsAttention }]}>
@@ -147,7 +142,7 @@ export function CancelOrderModal({
     if (useCustomReason) {
       return customReason.trim();
     }
-    return selectedReason?.name ?? '';
+    return selectedReason?.reason ?? '';
   }, [useCustomReason, customReason, selectedReason]);
 
   // Check if can submit
@@ -465,10 +460,6 @@ const styles = StyleSheet.create({
   reasonName: {
     fontSize: 15,
     fontWeight: '500',
-  },
-  reasonDescription: {
-    fontSize: 13,
-    marginTop: 2,
   },
   selectedIndicator: {
     width: 24,

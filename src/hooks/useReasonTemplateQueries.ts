@@ -67,9 +67,9 @@ export interface UseReasonTemplatesOptions {
  *
  * @example
  * ```tsx
- * // Fetch all cancellation reasons
+ * // Fetch order cancellation reasons
  * const { data } = useReasonTemplates({
- *   params: { type: ReasonTemplateType.CANCELLATION }
+ *   params: { type: ReasonTemplateType.ORDER_CANCEL }
  * });
  *
  * // Fetch all reason templates
@@ -92,15 +92,18 @@ export function useReasonTemplates(
 
 /**
  * Convenience hook to fetch cancellation reasons
+ *
+ * @param type - The reason template type (defaults to ORDER_CANCEL)
  */
 export function useCancellationReasons(
+  type: ReasonTemplateType = ReasonTemplateType.ORDER_CANCEL,
   queryOptions?: Omit<
     UseQueryOptions<GetReasonTemplatesResponse, Error, GetReasonTemplatesResponse>,
     'queryKey' | 'queryFn'
   >
 ): UseQueryResult<GetReasonTemplatesResponse, Error> {
   return useReasonTemplates({
-    params: { type: ReasonTemplateType.CANCELLATION },
+    params: { type },
     queryOptions,
   });
 }

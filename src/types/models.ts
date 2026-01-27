@@ -4,6 +4,8 @@
  */
 
 import type {
+  ApplicationType,
+  BillItemPaymentStatus,
   BillStatus,
   CustomerType,
   DayOfWeek,
@@ -48,10 +50,14 @@ export interface Account {
  */
 export interface Zone {
   id: string;
+  organizationId: string;
   title: Translation;
   isActive: boolean;
-  x: string;
-  y: string;
+  x: number;
+  y: number;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
   tables?: Table[];
 }
 
@@ -60,15 +66,20 @@ export interface Zone {
  */
 export interface Table {
   id: string;
+  organizationId: string;
+  zoneId: string;
   title: string;
   capacity: number;
-  zoneId: string;
-  x: string;
-  y: string;
-  width: string;
-  height: string;
+  x: number;
+  y: number;
+  height: number;
+  width: number;
   color: string;
-  zone?: Pick<Zone, 'id' | 'title'>;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  zone?: Zone;
+  latestActiveOrder?: Order;
 }
 
 /**
@@ -136,16 +147,11 @@ export interface MenuItem {
   isGroup: boolean;
   timeForPreparation?: string;
   availability?: MenuItemAvailability[];
+  groupItems?: { menuItemId: string; quantity: number }[];
+  groupDiscount?: string;
+  groupDiscountType?: 'PERCENTAGE' | 'FIXED';
   category?: Pick<MenuCategory, 'id' | 'title' | 'type'>;
   extras?: Extra[];
-}
-
-/**
- * Customer address
- */
-export interface CustomerAddress {
-  address: string;
-  isDefault: boolean;
 }
 
 /**
@@ -153,24 +159,28 @@ export interface CustomerAddress {
  */
 export interface Customer {
   id: string;
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
   phoneNumber: string;
   deposit: string;
   credit: string;
   dateOfBirth?: string;
   customerType: CustomerType;
-  addresses?: CustomerAddress[];
+  addresses?: string[];
 }
 
 /**
  * Extra attached to an order item
  */
 export interface OrderItemExtra {
+  id?: string;
+  orderItemId?: string;
   extraId: string;
   quantity: number;
-  title?: Translation;
-  price?: string;
+  extraTitle?: Translation;
+  pricePerUnit?: string;
+  totalPrice?: string;
+  createdAt?: string;
 }
 
 /**
@@ -179,15 +189,19 @@ export interface OrderItemExtra {
 export interface OrderItem {
   id: string;
   orderId: string;
+  billId?: string;
   menuItemId: string | null;
   stockId?: string | null;
   quantity: string;
   status: OrderItemStatus;
   itemTitle: Translation;
+  itemDescription?: Translation;
   itemPrice: string;
   subtotal: string;
+  statusLogs?: Record<string, string>;
   notes?: string;
   menuType?: MenuCategoryType;
+  orderType?: OrderType;
   declineReason?: string;
   cancelReason?: string;
   createdAt: string;
@@ -220,6 +234,9 @@ export interface Order {
   address?: string;
   pickupTime?: string;
   cancelReason?: string;
+  startDate?: string;
+  endDate?: string;
+  validatedAt?: string;
   createdAt: string;
   updatedAt?: string;
   table?: Pick<Table, 'id' | 'title'>;
@@ -232,9 +249,15 @@ export interface Order {
  * Bill item
  */
 export interface BillItem {
+  id?: string;
+  billId?: string;
   orderItemId: string;
   quantity: number;
-  price: string;
+  price?: string;
+  subTotal?: string;
+  paidAmount?: string;
+  paymentStatus?: BillItemPaymentStatus;
+  createdAt?: string;
 }
 
 /**
@@ -244,9 +267,13 @@ export interface Bill {
   id: string;
   orderId: string;
   customerId?: string | null;
+  serviceFeeId?: string;
+  serviceFeeTitle?: Translation;
+  serviceFeeType?: ServiceFeeType;
+  serviceFeePercent?: string;
+  serviceFeeAmount?: string;
   subtotal: string;
   discountAmount: string;
-  serviceFeeAmount?: string;
   totalAmount: string;
   paidAmount: string;
   status?: BillStatus;
@@ -263,8 +290,16 @@ export interface Bill {
  * Discount applied to a bill
  */
 export interface BillDiscount {
+  id: string;
+  billId: string;
   discountId: string;
-  amount: string;
+  customerId?: string;
+  appliedBy?: string;
+  applicationType: ApplicationType;
+  discountAmount: string;
+  discountTitle: Translation;
+  discountDescription?: Translation;
+  createdAt: string;
   discount?: Discount;
 }
 
@@ -276,8 +311,10 @@ export interface Payment {
   billId: string;
   amount: string;
   paymentMethod: PaymentMethod;
+  customerId?: string;
+  refundAmount?: string;
   transactionId?: string;
-  notes?: string;
+  reason?: string;
   createdAt: string;
 }
 
@@ -293,6 +330,8 @@ export interface Discount {
   discountValue: string;
   applicableTo: DiscountApplicableTo;
   isActive: boolean;
+  maxUsageCount?: number;
+  currentUsageCount?: number;
   startDate?: string;
   endDate?: string;
 }
@@ -306,7 +345,7 @@ export interface ServiceFee {
   type: ServiceFeeType;
   percent?: string;
   amount?: string;
-  orderType?: OrderType;
+  orderType: OrderType;
 }
 
 /**
@@ -320,17 +359,16 @@ export interface Reservation {
   numberOfGuests: number;
   tableId: string;
   customerId?: string | null;
-  notes?: string;
   table?: Table;
   customer?: Customer;
 }
 
 /**
- * Reason template for cancellation, refund, or discount
+ * Reason template for order/item cancellation or decline
  */
 export interface ReasonTemplate {
   id: string;
-  name: string;
+  reason: string;
   type: ReasonTemplateType;
-  description?: string;
+  isActive: boolean;
 }

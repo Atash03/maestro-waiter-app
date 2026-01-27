@@ -42,10 +42,8 @@ import { Spinner } from '@/components/ui/Spinner';
 import { BorderRadius, Colors, Spacing, StatusColors } from '@/constants/theme';
 import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import { useHapticRefresh } from '@/src/hooks';
-import { useOrders } from '@/src/hooks/useOrderQueries';
 import { useTablesAndZones, useTablesByZone } from '@/src/hooks/useTableQueries';
 import { useTableStore } from '@/src/stores/tableStore';
-import { OrderStatus } from '@/src/types/enums';
 import type { Table, Translation, Zone } from '@/src/types/models';
 
 // ============================================================================
@@ -69,12 +67,12 @@ function getTranslatedText(translation: Translation, lang: 'en' | 'ru' | 'tm' = 
 }
 
 /**
- * Get table status - for now returns 'available' as we don't have order data yet
- * This will be enhanced in Phase 4 when we integrate with orders
+ * Get table status based on whether the table has an active order
  */
-function getTableStatus(_table: Table): TableStatus {
-  // TODO: Integrate with orders/waiter calls in Phase 4
-  // For now, return 'available' as default
+function getTableStatus(table: Table): TableStatus {
+  if (table.latestActiveOrder) {
+    return 'occupied';
+  }
   return 'available';
 }
 
@@ -451,9 +449,6 @@ export default function TablesScreen() {
     zoneParams: { isActive: true },
   });
 
-  // Fetch active orders to check for existing table orders
-  const { data: ordersData } = useOrders();
-
   // Get tables data
   const tablesData = tables.data?.data ?? [];
   const zonesData = zones.data?.data ?? [];
@@ -467,22 +462,9 @@ export default function TablesScreen() {
       tablesFilteredByZone.map((table) => ({
         ...table,
         status: getTableStatus(table),
+        hasActiveOrder: Boolean(table.latestActiveOrder),
       })),
     [tablesFilteredByZone]
-  );
-
-  // Get active order for a table (Pending or InProgress)
-  const getActiveOrderForTable = useCallback(
-    (tableId: string) => {
-      const orders = ordersData?.data ?? [];
-      return orders.find(
-        (order) =>
-          order.tableId === tableId &&
-          (order.orderStatus === OrderStatus.PENDING ||
-            order.orderStatus === OrderStatus.IN_PROGRESS)
-      );
-    },
-    [ordersData]
   );
 
   // Haptic refresh
@@ -497,14 +479,11 @@ export default function TablesScreen() {
     (table: Table) => {
       selectTable(table.id);
 
-      // Check for existing active order on this table
-      const existingOrder = getActiveOrderForTable(table.id);
-
-      if (existingOrder) {
+      if (table.latestActiveOrder) {
         // Navigate to existing order detail
         router.push({
           pathname: '/(main)/order/[id]',
-          params: { id: existingOrder.id },
+          params: { id: table.latestActiveOrder.id },
         });
         return;
       }
@@ -515,7 +494,7 @@ export default function TablesScreen() {
         params: { tableId: table.id },
       });
     },
-    [selectTable, router, getActiveOrderForTable]
+    [selectTable, router]
   );
 
   const handleTableLongPress = useCallback(

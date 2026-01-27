@@ -386,6 +386,7 @@ export function CategoryList({
         ref={scrollViewRef}
         horizontal
         showsHorizontalScrollIndicator={false}
+        style={styles.horizontalScrollView}
         contentContainerStyle={styles.horizontalContent}
         testID={testID}
       >
@@ -460,6 +461,10 @@ export function CategoryList({
 // ============================================================================
 
 const styles = StyleSheet.create({
+  horizontalScrollView: {
+    flexGrow: 0,
+    flexShrink: 0,
+  },
   horizontalContent: {
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,

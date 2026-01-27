@@ -81,8 +81,9 @@ const SELECTED_SCALE = 1.05;
 /**
  * Parse coordinate string to number, defaulting to provided default value
  */
-function parseCoordinate(value: string | undefined, defaultValue = 0): number {
-  if (!value) return defaultValue;
+function parseCoordinate(value: number | string | undefined, defaultValue = 0): number {
+  if (value == null) return defaultValue;
+  if (typeof value === 'number') return Number.isNaN(value) ? defaultValue : value;
   const parsed = Number.parseFloat(value);
   return Number.isNaN(parsed) ? defaultValue : parsed;
 }

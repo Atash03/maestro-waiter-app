@@ -172,8 +172,8 @@ export function calculateExtrasTotal(extras: OrderItemExtra[], availableExtras: 
       return total + parsePrice(extra.actualPrice) * orderExtra.quantity;
     }
     // Fallback to price from OrderItemExtra if available
-    if (orderExtra.price) {
-      return total + parsePrice(orderExtra.price) * orderExtra.quantity;
+    if (orderExtra.pricePerUnit) {
+      return total + parsePrice(orderExtra.pricePerUnit) * orderExtra.quantity;
     }
     return total;
   }, 0);
@@ -203,10 +203,13 @@ export function convertToOrderItemExtras(
   return selectedExtras.map((selected) => {
     const extra = availableExtras.find((e) => e.id === selected.extraId);
     return {
+      id: '',
+      orderItemId: '',
       extraId: selected.extraId,
       quantity: selected.quantity,
-      title: extra?.title ?? selected.title,
-      price: extra?.actualPrice ?? selected.price,
+      extraTitle: extra?.title ?? selected.title,
+      pricePerUnit: extra?.actualPrice ?? selected.price,
+      createdAt: '',
     };
   });
 }

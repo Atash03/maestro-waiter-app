@@ -317,7 +317,7 @@ function OrderItemRow({ item, onMarkServed, onCancelItem, testID }: OrderItemRow
   const quantity = Number.parseInt(item.quantity, 10) || 0;
   const extrasText = item.extras
     ?.map((extra) => {
-      const name = getTranslatedText(extra.title, 'Extra');
+      const name = getTranslatedText(extra.extraTitle, 'Extra');
       return extra.quantity > 1 ? `${extra.quantity}x ${name}` : name;
     })
     .join(', ');
@@ -656,7 +656,7 @@ export default function OrderDetailScreen() {
       return order.table?.title ? `Table ${order.table.title}` : 'Table N/A';
     }
     const customerName = order.customer
-      ? `${order.customer.firstName} ${order.customer.lastName}`.trim()
+      ? `${order.customer.firstName ?? ''} ${order.customer.lastName ?? ''}`.trim()
       : null;
     return customerName || (order.orderType === OrderType.DELIVERY ? 'Delivery' : 'To Go');
   }, [order]);
