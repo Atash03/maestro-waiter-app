@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { ApiClientError } from '@/src/services/api/client';
 import { useAuthStore } from '@/src/stores/authStore';
+import MaestroLogo from '@/components/common/maestro-logo';
 
 export default function LoginScreen() {
   const [username, setUsername] = useState('');
@@ -86,13 +87,8 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.content}>
-        {/* Logo and Welcome Section */}
         <View style={styles.logoContainer}>
-          <View style={styles.logoPlaceholder}>
-            <Text style={styles.logoText}>M</Text>
-          </View>
-          <Text style={styles.welcomeTitle}>Maestro</Text>
-          <Text style={styles.welcomeSubtitle}>Waiter App</Text>
+          <MaestroLogo />
         </View>
 
         {/* Login Form */}
@@ -178,30 +174,6 @@ const styles = StyleSheet.create({
   logoContainer: {
     alignItems: 'center',
     marginBottom: 48,
-  },
-  logoPlaceholder: {
-    width: 100,
-    height: 100,
-    borderRadius: 24,
-    backgroundColor: '#F94623',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  logoText: {
-    fontSize: 48,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  welcomeTitle: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  welcomeSubtitle: {
-    fontSize: 16,
-    color: '#6B7280',
   },
   formContainer: {
     width: '100%',
