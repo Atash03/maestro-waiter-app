@@ -2,19 +2,18 @@
  * Order Entry Screen
  *
  * Main screen for creating new orders or adding items to existing orders. Features:
- * - Split-screen layout: Menu (left/top) + Order Summary (right/bottom)
- * - Responsive to screen orientation
- * - Menu categories with items
- * - Live order summary with running totals
- * - Table information header
+ * - Full-screen menu with category drill-down
+ * - Bottom card showing item count + subtotal (fixed at bottom)
+ * - Expandable bottom sheet with order items, totals, and send button
+ * - Direct "Send to Kitchen" (no confirmation modal)
  * - Uses orderStore for state management (Task 3.9)
- * - Send to Kitchen flow with confirmation modal (Task 3.10)
  * - Add items to existing order (Task 4.5)
  */
 
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -32,11 +31,11 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CategoryCardGrid, CategoryList } from '@/components/menu';
-import { SendToKitchenModal, type SendToKitchenModalState } from '@/components/orders';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { LocationInfo } from '@/components/ui/LocationInfo';
 import { Skeleton, SkeletonGroup } from '@/components/ui/Skeleton';
 import { Spinner } from '@/components/ui/Spinner';
 import { BorderRadius, BrandColors, Colors, Spacing } from '@/constants/theme';
@@ -61,7 +60,8 @@ import type { Extra, MenuCategory, MenuItem, OrderItemExtra } from '@/src/types/
 // ============================================================================
 
 const TABLET_BREAKPOINT = 768;
-const SIDEBAR_WIDTH = 360;
+const SHEET_HEIGHT = 420;
+const BOTTOM_CARD_HEIGHT = 56;
 
 // ============================================================================
 // Helper Functions
@@ -299,16 +299,11 @@ function MenuItemGrid({ items, orderItems, onItemPress, isTablet }: MenuItemGrid
 
 interface OrderSummaryItemProps {
   item: LocalOrderItem;
-  onEdit: (item: LocalOrderItem) => void;
   onRemove: (itemId: string) => void;
   onUpdateQuantity: (itemId: string, quantity: number) => void;
 }
 
-function OrderSummaryItem({
-  item,
-  onRemove,
-  onUpdateQuantity,
-}: Omit<OrderSummaryItemProps, 'onEdit'>) {
+function OrderSummaryItem({ item, onRemove, onUpdateQuantity }: OrderSummaryItemProps) {
   const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
@@ -384,99 +379,6 @@ function OrderSummaryItem({
 }
 
 // ============================================================================
-// Order Summary Component
-// ============================================================================
-
-interface OrderSummaryProps {
-  items: LocalOrderItem[];
-  total: number;
-  onEditItem: (item: LocalOrderItem) => void;
-  onRemoveItem: (itemId: string) => void;
-  onUpdateQuantity: (itemId: string, quantity: number) => void;
-  onSendOrder: () => void;
-  isSending: boolean;
-  isTablet: boolean;
-  isAddingToExistingOrder?: boolean;
-}
-
-function OrderSummary({
-  items,
-  total,
-  onEditItem: _onEditItem,
-  onRemoveItem,
-  onUpdateQuantity,
-  onSendOrder,
-  isSending,
-  isTablet,
-  isAddingToExistingOrder = false,
-}: OrderSummaryProps) {
-  const colorScheme = useEffectiveColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
-
-  if (items.length === 0) {
-    return (
-      <View
-        style={[styles.orderSummaryEmpty, { backgroundColor: colors.backgroundSecondary }]}
-        testID="order-summary-empty"
-      >
-        <ThemedText style={[styles.orderSummaryEmptyText, { color: colors.textMuted }]}>
-          Tap items to add to order
-        </ThemedText>
-      </View>
-    );
-  }
-
-  return (
-    <View
-      style={[
-        styles.orderSummary,
-        isTablet && styles.orderSummaryTablet,
-        { backgroundColor: colors.background, borderColor: colors.border },
-      ]}
-      testID="order-summary"
-    >
-      {/* Order items list */}
-      <ScrollView
-        style={styles.orderItemsList}
-        showsVerticalScrollIndicator={false}
-        testID="order-items-list"
-      >
-        {items.map((item) => (
-          <OrderSummaryItem
-            key={item.id}
-            item={item}
-            onRemove={onRemoveItem}
-            onUpdateQuantity={onUpdateQuantity}
-          />
-        ))}
-      </ScrollView>
-
-      {/* Order totals and actions */}
-      <View style={[styles.orderTotals, { borderTopColor: colors.border }]}>
-        <View style={styles.totalRow}>
-          <ThemedText style={styles.totalLabel}>
-            Items ({items.reduce((sum, i) => sum + i.quantity, 0)})
-          </ThemedText>
-          <ThemedText style={styles.totalValue}>${formatPrice(total)}</ThemedText>
-        </View>
-
-        <Button
-          testID="send-order-button"
-          variant="primary"
-          size="lg"
-          onPress={onSendOrder}
-          loading={isSending}
-          disabled={isSending || items.length === 0}
-          fullWidth
-        >
-          {isAddingToExistingOrder ? 'Add to Order' : 'Send to Kitchen'}
-        </Button>
-      </View>
-    </View>
-  );
-}
-
-// ============================================================================
 // Loading Skeleton
 // ============================================================================
 
@@ -500,7 +402,7 @@ function OrderEntrySkeleton() {
 export default function OrderEntryScreen() {
   const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
   // Get tableId and orderId from route params
@@ -559,16 +461,44 @@ export default function OrderEntryScreen() {
     isSuccess,
     error: sendError,
     sendToKitchen,
-    retry: retrySend,
     reset: resetSendState,
-    clearError: clearSendError,
   } = useSendToKitchen();
 
   // Local UI state
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [showSendModal, setShowSendModal] = useState(false);
   const [sendDisabledUntil, setSendDisabledUntil] = useState<number | null>(null);
   const [selectedParentCategoryId, setSelectedParentCategoryId] = useState<string | null>(null);
+
+  // Expandable card animation (UI thread via Reanimated)
+  const sheetOpen = useSharedValue(0);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  const sheetExpandedHeight = Math.min(SHEET_HEIGHT, height * 0.6);
+
+  // Card height: collapsed = BOTTOM_CARD_HEIGHT, expanded = full
+  const animatedCardStyle = useAnimatedStyle(() => ({
+    height: BOTTOM_CARD_HEIGHT + sheetOpen.value * sheetExpandedHeight,
+  }));
+
+  const animatedBackdropStyle = useAnimatedStyle(() => ({
+    opacity: sheetOpen.value * 0.4,
+    pointerEvents: sheetOpen.value > 0.5 ? ('auto' as const) : ('none' as const),
+  }));
+
+  const toggleSheet = useCallback(() => {
+    const opening = !isSheetOpen;
+    setIsSheetOpen(opening);
+    sheetOpen.value = withSpring(opening ? 1 : 0, {
+      stiffness: 600,
+    });
+  }, [isSheetOpen, sheetOpen]);
+
+  const closeSheet = useCallback(() => {
+    setIsSheetOpen(false);
+    sheetOpen.value = withSpring(0, {
+      stiffness: 600,
+    });
+  }, [sheetOpen]);
 
   // Derived category data for drill-down navigation
   const parentCategories = useMemo(
@@ -585,14 +515,6 @@ export default function OrderEntryScreen() {
   const isDrilledDown = selectedParentCategoryId !== null;
   const selectedParentHasChildren = childCategories.length > 0;
 
-  // Calculate modal state based on hook state
-  const modalState: SendToKitchenModalState = useMemo(() => {
-    if (isSending) return 'sending';
-    if (isSuccess) return 'success';
-    if (sendError) return 'error';
-    return 'confirm';
-  }, [isSending, isSuccess, sendError]);
-
   // Check if send button should be temporarily disabled
   const isSendTemporarilyDisabled = useMemo(() => {
     if (sendDisabledUntil === null) return false;
@@ -602,10 +524,6 @@ export default function OrderEntryScreen() {
   // Initialize order when screen mounts
   useEffect(() => {
     initializeOrder(tableId);
-    return () => {
-      // Cleanup: clear order when leaving screen (optional - can be kept for persistence)
-      // clearOrder();
-    };
   }, [tableId, initializeOrder]);
 
   // Update available extras when extras data changes
@@ -614,6 +532,15 @@ export default function OrderEntryScreen() {
       setAvailableExtras(extrasData);
     }
   }, [extrasData, setAvailableExtras]);
+
+  // Navigate back on successful send
+  useEffect(() => {
+    if (isSuccess) {
+      clearOrder();
+      resetSendState();
+      router.back();
+    }
+  }, [isSuccess, clearOrder, resetSendState]);
 
   // Filter items by category and search (only when drilled down into a parent category)
   const filteredItems = useMemo(() => {
@@ -707,11 +634,6 @@ export default function OrderEntryScreen() {
     [addItem]
   );
 
-  // Handle edit order item (placeholder for future modal)
-  const handleEditItem = useCallback((_item: LocalOrderItem) => {
-    // TODO: Open MenuItemModal for editing existing item
-  }, []);
-
   // Handle remove order item using orderStore
   const handleRemoveItem = useCallback(
     (itemId: string) => {
@@ -736,17 +658,10 @@ export default function OrderEntryScreen() {
     [duplicateItem]
   );
 
-  // Handle send order button press - show confirmation modal
-  const handleSendOrderPress = useCallback(() => {
-    if (!hasItems || isSendTemporarilyDisabled) return;
-    setShowSendModal(true);
-  }, [hasItems, isSendTemporarilyDisabled]);
+  // Handle send order — fire API call immediately (no modal)
+  const handleSendOrder = useCallback(async () => {
+    if (!hasItems || isSendTemporarilyDisabled || isSending) return;
 
-  // Handle confirmed send to kitchen
-  const handleConfirmSend = useCallback(async () => {
-    if (!hasItems) return;
-
-    // Pass existingOrderId when adding to an existing order (Task 4.5)
     const result = await sendToKitchen(
       tableId,
       orderItems,
@@ -758,35 +673,16 @@ export default function OrderEntryScreen() {
       // Temporarily disable send button for 3 seconds to prevent double-sends
       setSendDisabledUntil(Date.now() + 3000);
     }
-  }, [hasItems, tableId, orderItems, orderNotes, existingOrderId, sendToKitchen]);
-
-  // Handle cancel send modal
-  const handleCancelSend = useCallback(() => {
-    setShowSendModal(false);
-    resetSendState();
-  }, [resetSendState]);
-
-  // Handle retry send
-  const handleRetrySend = useCallback(async () => {
-    clearSendError();
-    await retrySend();
-  }, [clearSendError, retrySend]);
-
-  // Handle dismiss success - clear order and navigate back
-  // When adding to existing order (Task 4.5), navigate back to order detail
-  const handleDismissSuccess = useCallback(() => {
-    setShowSendModal(false);
-    clearOrder();
-    resetSendState();
-
-    if (isAddingToExistingOrder) {
-      // Navigate back to order detail screen
-      router.back();
-    } else {
-      // Navigate back (usually to table selection)
-      router.back();
-    }
-  }, [clearOrder, resetSendState, isAddingToExistingOrder]);
+  }, [
+    hasItems,
+    isSendTemporarilyDisabled,
+    isSending,
+    tableId,
+    orderItems,
+    orderNotes,
+    existingOrderId,
+    sendToKitchen,
+  ]);
 
   // Handle close
   const handleClose = useCallback(() => {
@@ -799,6 +695,8 @@ export default function OrderEntryScreen() {
   if (isLoadingMenu && itemsData.length === 0) {
     return <OrderEntrySkeleton />;
   }
+
+  const bottomInset = Math.max(insets.bottom, Spacing.md);
 
   return (
     <ThemedView style={styles.container} testID="order-entry-screen">
@@ -820,14 +718,14 @@ export default function OrderEntryScreen() {
           </TouchableOpacity>
           <View style={styles.headerTitle}>
             <ThemedText style={styles.headerTitleText}>
-              {isAddingToExistingOrder ? 'Add Items' : table ? `Table ${table.title}` : 'New Order'}
+              {isAddingToExistingOrder ? 'Add Items' : 'New Order'}
             </ThemedText>
-            {table?.zone && (
-              <ThemedText style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-                {isAddingToExistingOrder
-                  ? `Table ${table.title} • ${getTranslatedText(table.zone.title)}`
-                  : getTranslatedText(table.zone.title)}
-              </ThemedText>
+            {table && (
+              <LocationInfo
+                zoneTitle={table.zone?.title}
+                tableTitle={table.title}
+                testID="header-location-info"
+              />
             )}
           </View>
         </View>
@@ -836,71 +734,49 @@ export default function OrderEntryScreen() {
         </Badge>
       </View>
 
-      {/* Main content */}
-      <View style={[styles.content, isTablet && styles.contentTablet]}>
-        {/* Menu section */}
-        <View style={[styles.menuSection, isTablet && styles.menuSectionTablet]}>
-          {isDrilledDown ? (
-            <>
-              {/* Back button + parent category title */}
-              <View style={[styles.drillDownHeader, { borderBottomColor: colors.border }]}>
-                <TouchableOpacity
-                  testID="back-to-categories-button"
-                  onPress={handleBackToParentCategories}
-                  style={styles.backButton}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                >
-                  <ThemedText style={[styles.backButtonText, { color: BrandColors.primary }]}>
-                    {'‹ Back'}
-                  </ThemedText>
-                </TouchableOpacity>
-                <ThemedText style={styles.drillDownTitle} numberOfLines={1}>
-                  {getTranslatedText(
-                    categoriesData.find((c) => c.id === selectedParentCategoryId)?.title
-                  )}
-                </ThemedText>
-              </View>
-
-              {/* Search */}
-              <MenuSearch value={searchQuery} onChangeText={setSearchQuery} />
-
-              {/* Child category tabs (only if parent has children) */}
-              {selectedParentHasChildren && (
-                <CategoryList
-                  categories={childCategories}
-                  selectedCategoryId={selectedCategoryId}
-                  onSelectCategory={handleSelectCategory}
-                  showAllOption={false}
-                />
-              )}
-
-              {/* Menu items */}
-              <ScrollView
-                style={styles.menuScrollView}
-                contentContainerStyle={styles.menuScrollContent}
-                refreshControl={
-                  <RefreshControl
-                    refreshing={isRefreshing}
-                    onRefresh={handleRefresh}
-                    tintColor={colors.tint}
-                  />
-                }
-                showsVerticalScrollIndicator={false}
-                testID="menu-scroll-view"
+      {/* Menu content — full height */}
+      <View style={styles.menuSection}>
+        {isDrilledDown ? (
+          <>
+            {/* Back button + parent category title */}
+            <View style={[styles.drillDownHeader, { borderBottomColor: colors.border }]}>
+              <TouchableOpacity
+                testID="back-to-categories-button"
+                onPress={handleBackToParentCategories}
+                style={styles.backButton}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <MenuItemGrid
-                  items={filteredItems}
-                  orderItems={orderItems}
-                  onItemPress={handleMenuItemPress}
-                  isTablet={isTablet}
-                />
-              </ScrollView>
-            </>
-          ) : (
-            /* Parent category card grid */
+                <ThemedText style={[styles.backButtonText, { color: BrandColors.primary }]}>
+                  {'‹ Back'}
+                </ThemedText>
+              </TouchableOpacity>
+              <ThemedText style={styles.drillDownTitle} numberOfLines={1}>
+                {getTranslatedText(
+                  categoriesData.find((c) => c.id === selectedParentCategoryId)?.title
+                )}
+              </ThemedText>
+            </View>
+
+            {/* Search */}
+            <MenuSearch value={searchQuery} onChangeText={setSearchQuery} />
+
+            {/* Child category tabs (only if parent has children) */}
+            {selectedParentHasChildren && (
+              <CategoryList
+                categories={childCategories}
+                selectedCategoryId={selectedCategoryId}
+                onSelectCategory={handleSelectCategory}
+                showAllOption={false}
+              />
+            )}
+
+            {/* Menu items */}
             <ScrollView
               style={styles.menuScrollView}
-              contentContainerStyle={styles.menuScrollContent}
+              contentContainerStyle={[
+                styles.menuScrollContent,
+                { paddingBottom: BOTTOM_CARD_HEIGHT + bottomInset + Spacing.lg },
+              ]}
               refreshControl={
                 <RefreshControl
                   refreshing={isRefreshing}
@@ -909,47 +785,124 @@ export default function OrderEntryScreen() {
                 />
               }
               showsVerticalScrollIndicator={false}
-              testID="parent-category-scroll-view"
+              testID="menu-scroll-view"
             >
-              <CategoryCardGrid
-                categories={parentCategories}
-                onCategoryPress={handleParentCategoryPress}
+              <MenuItemGrid
+                items={filteredItems}
+                orderItems={orderItems}
+                onItemPress={handleMenuItemPress}
                 isTablet={isTablet}
               />
             </ScrollView>
-          )}
-        </View>
-
-        {/* Order summary section */}
-        <View style={[styles.summarySection, isTablet && styles.summarySectionTablet]}>
-          <OrderSummary
-            items={orderItems}
-            total={orderTotal}
-            onEditItem={handleEditItem}
-            onRemoveItem={handleRemoveItem}
-            onUpdateQuantity={handleUpdateQuantity}
-            onSendOrder={handleSendOrderPress}
-            isSending={isSending || isSendTemporarilyDisabled}
-            isTablet={isTablet}
-            isAddingToExistingOrder={isAddingToExistingOrder}
-          />
-        </View>
+          </>
+        ) : (
+          /* Parent category card grid */
+          <ScrollView
+            style={styles.menuScrollView}
+            contentContainerStyle={[
+              styles.menuScrollContent,
+              { paddingBottom: BOTTOM_CARD_HEIGHT + bottomInset + Spacing.lg },
+            ]}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={handleRefresh}
+                tintColor={colors.tint}
+              />
+            }
+            showsVerticalScrollIndicator={false}
+            testID="parent-category-scroll-view"
+          >
+            <CategoryCardGrid
+              categories={parentCategories}
+              onCategoryPress={handleParentCategoryPress}
+              isTablet={isTablet}
+            />
+          </ScrollView>
+        )}
       </View>
 
-      {/* Send to Kitchen Modal (Task 3.10, Task 4.5) */}
-      <SendToKitchenModal
-        visible={showSendModal}
-        state={modalState}
-        itemCount={itemCount}
-        totalQuantity={totalQuantity}
-        errorMessage={sendError}
-        onConfirm={handleConfirmSend}
-        onCancel={handleCancelSend}
-        onRetry={handleRetrySend}
-        onDismissSuccess={handleDismissSuccess}
-        isAddingToExistingOrder={isAddingToExistingOrder}
-        testID="send-to-kitchen-modal"
-      />
+      {/* Backdrop — dismiss on tap */}
+      <Animated.View style={[styles.sheetBackdrop, animatedBackdropStyle]}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={closeSheet} />
+      </Animated.View>
+
+      {/* Expandable bottom card */}
+      <Animated.View
+        testID="bottom-order-card"
+        style={[
+          styles.expandableCard,
+          {
+            bottom: bottomInset,
+            borderColor: BrandColors.primary,
+            backgroundColor: colors.background,
+          },
+          animatedCardStyle,
+        ]}
+      >
+        {/* Expanded content — order items + totals + send button */}
+        {isSheetOpen && (
+          <View style={styles.expandedContent}>
+            <ScrollView
+              style={styles.orderItemsList}
+              showsVerticalScrollIndicator={false}
+              testID="order-items-list"
+            >
+              {orderItems.map((item) => (
+                <OrderSummaryItem
+                  key={item.id}
+                  item={item}
+                  onRemove={handleRemoveItem}
+                  onUpdateQuantity={handleUpdateQuantity}
+                />
+              ))}
+            </ScrollView>
+
+            <View style={[styles.orderTotals, { borderTopColor: colors.border }]}>
+              <View style={styles.totalRow}>
+                <ThemedText style={styles.totalLabel}>Items ({totalQuantity})</ThemedText>
+                <ThemedText style={styles.totalValue}>${formatPrice(orderTotal)}</ThemedText>
+              </View>
+
+              {sendError && (
+                <ThemedText style={[styles.sendErrorText, { color: colors.error }]}>
+                  {sendError}
+                </ThemedText>
+              )}
+
+              <Button
+                testID="send-order-button"
+                variant="primary"
+                size="lg"
+                onPress={handleSendOrder}
+                loading={isSending}
+                disabled={isSending || !hasItems || isSendTemporarilyDisabled}
+                fullWidth
+              >
+                {isAddingToExistingOrder ? 'Add to Order' : 'Send to Kitchen'}
+              </Button>
+            </View>
+          </View>
+        )}
+
+        {/* Card summary row (always visible at bottom) */}
+        <Pressable style={styles.cardSummaryRow} onPress={hasItems ? toggleSheet : undefined}>
+          {hasItems ? (
+            <View style={styles.bottomCardContent}>
+              <ThemedText style={styles.bottomCardItemCount}>
+                {totalQuantity} {totalQuantity === 1 ? 'item' : 'items'}
+              </ThemedText>
+              <ThemedText style={[styles.bottomCardTotal, { color: BrandColors.primary }]}>
+                ${formatPrice(orderTotal)}
+              </ThemedText>
+            </View>
+          ) : (
+            <ThemedText style={[styles.bottomCardEmpty, { color: colors.textMuted }]}>
+              Tap items to add to order
+            </ThemedText>
+          )}
+        </Pressable>
+      </Animated.View>
 
       {/* Loading overlay */}
       {(categories.isFetching || items.isFetching) && !isRefreshing && (
@@ -990,36 +943,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   headerTitle: {
-    gap: 2,
+    flexDirection: 'row',
+    alignContent: 'center',
+    gap: 10,
   },
   headerTitleText: {
     fontSize: 18,
     fontWeight: '700',
   },
-  headerSubtitle: {
-    fontSize: 12,
-  },
-  content: {
-    flex: 1,
-    flexDirection: 'column',
-  },
-  contentTablet: {
-    flexDirection: 'row',
-  },
   menuSection: {
     flex: 1,
-  },
-  menuSectionTablet: {
-    flex: 1,
-    borderRightWidth: 1,
-    borderRightColor: '#E5E7EB',
-  },
-  summarySection: {
-    height: 280,
-  },
-  summarySectionTablet: {
-    width: SIDEBAR_WIDTH,
-    height: 'auto',
   },
   searchContainer: {
     paddingHorizontal: Spacing.lg,
@@ -1128,24 +1061,49 @@ const styles = StyleSheet.create({
     fontSize: 16,
     opacity: 0.6,
   },
-  orderSummary: {
-    flex: 1,
-    borderTopWidth: 1,
+
+  // Expandable bottom card
+  sheetBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#000',
+    zIndex: 10,
   },
-  orderSummaryTablet: {
-    borderTopWidth: 0,
-    borderLeftWidth: 1,
+  expandableCard: {
+    position: 'absolute',
+    left: Spacing.md,
+    right: Spacing.md,
+    borderWidth: 1.5,
+    borderRadius: BorderRadius.xl,
+    overflow: 'hidden',
+    zIndex: 11,
   },
-  orderSummaryEmpty: {
+  expandedContent: {
     flex: 1,
+  },
+  cardSummaryRow: {
+    height: BOTTOM_CARD_HEIGHT,
     justifyContent: 'center',
-    alignItems: 'center',
-    padding: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
   },
-  orderSummaryEmptyText: {
+  bottomCardContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  bottomCardItemCount: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  bottomCardTotal: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  bottomCardEmpty: {
     fontSize: 14,
     textAlign: 'center',
   },
+
+  // Order items in sheet
   orderItemsList: {
     flex: 1,
   },
@@ -1232,6 +1190,10 @@ const styles = StyleSheet.create({
   totalValue: {
     fontSize: 20,
     fontWeight: '700',
+  },
+  sendErrorText: {
+    fontSize: 13,
+    textAlign: 'center',
   },
   loadingOverlay: {
     position: 'absolute',

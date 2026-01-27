@@ -17,8 +17,7 @@ export default function MainLayout() {
       <Stack.Screen
         name="order/new"
         options={{
-          headerShown: true,
-          title: 'New Order',
+          headerShown: false,
           presentation: 'fullScreenModal',
         }}
       />
