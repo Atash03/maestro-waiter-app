@@ -7,6 +7,7 @@
 // OrderCard - Order card component for orders list
 export {
   countItemsByStatus,
+  formatOrderDate,
   formatPrice as formatOrderPrice,
   formatTimeSince,
   getItemCount,

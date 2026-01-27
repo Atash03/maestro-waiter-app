@@ -2,18 +2,26 @@
  * Order Card Component
  *
  * Displays an order summary in a card format for the orders list.
- * Shows order code, table/customer info, status, type, total amount, and time.
+ * Shows order code, date/time, location (zone + table), and status
+ * with a colored left accent strip indicating order status.
  */
 
 import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Badge, type BadgeVariant } from '@/components/ui/Badge';
+import type { BadgeVariant } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
-import { BorderRadius, Colors, Spacing, StatusColors } from '@/constants/theme';
+import {
+  BorderRadius,
+  Colors,
+  OrderAccentColors,
+  OrderStatusBadgeColors,
+  Spacing,
+} from '@/constants/theme';
 import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
-import { OrderItemStatus, OrderStatus, OrderType } from '@/src/types/enums';
+import { type OrderItemStatus, OrderStatus, OrderType } from '@/src/types/enums';
 import type { Order, Translation } from '@/src/types/models';
+import { getTranslatedText } from '@/src/utils/translations';
 
 // ============================================================================
 // Types
@@ -29,22 +37,14 @@ export interface OrderCardProps {
 }
 
 // ============================================================================
-// Helper Functions
+// Helper Functions (exported for use by other components via index.ts)
 // ============================================================================
 
 /**
  * Get translated text from Translation object
+ * @deprecated Use getTranslatedText from '@/src/utils/translations' instead
  */
-export function getTranslatedText(
-  translation: Translation | undefined,
-  fallback = '',
-  preferredLang: 'en' | 'ru' | 'tm' = 'en'
-): string {
-  if (!translation) return fallback;
-  return (
-    translation[preferredLang] || translation.en || translation.ru || translation.tm || fallback
-  );
-}
+export { getTranslatedText };
 
 /**
  * Get badge variant for order status
@@ -167,74 +167,150 @@ export function getItemCount(order: Order): number {
   }, 0);
 }
 
+/**
+ * Format date for order card display (e.g. "2025.12.04 - 12:04")
+ */
+export function formatOrderDate(dateString: string): string {
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return '';
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+
+  return `${year}.${month}.${day} - ${hours}:${minutes}`;
+}
+
+// ============================================================================
+// Private Helpers
+// ============================================================================
+
+function getAccentColor(status: OrderStatus): string {
+  switch (status) {
+    case OrderStatus.IN_PROGRESS:
+      return OrderAccentColors.inProgress;
+    case OrderStatus.COMPLETED:
+      return OrderAccentColors.completed;
+    case OrderStatus.CANCELLED:
+      return OrderAccentColors.cancelled;
+    case OrderStatus.PENDING:
+    default:
+      return OrderAccentColors.pending;
+  }
+}
+
+function getStatusBadgeColors(
+  status: OrderStatus,
+  scheme: 'light' | 'dark'
+): { text: string; bg: string } {
+  const palette = OrderStatusBadgeColors[scheme];
+  switch (status) {
+    case OrderStatus.IN_PROGRESS:
+      return palette.inProgress;
+    case OrderStatus.COMPLETED:
+      return palette.completed;
+    case OrderStatus.CANCELLED:
+      return palette.cancelled;
+    case OrderStatus.PENDING:
+    default:
+      return palette.pending;
+  }
+}
+
 // ============================================================================
 // Component
 // ============================================================================
 
 export function OrderCard({ order, onPress, testID }: OrderCardProps) {
-  const colorScheme = useEffectiveColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colorScheme = useEffectiveColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
+  const isDark = colorScheme === 'dark';
 
   const handlePress = () => {
     onPress?.(order);
   };
 
-  // Compute display values
-  const readyCount = countItemsByStatus(order, OrderItemStatus.READY);
-  const itemCount = getItemCount(order);
-  const tableTitle = order.table?.title;
-  const customerName = order.customer
-    ? `${order.customer.firstName ?? ''} ${order.customer.lastName ?? ''}`.trim()
-    : null;
+  const accentColor = getAccentColor(order.orderStatus);
+  const badgeColors = getStatusBadgeColors(order.orderStatus, colorScheme);
 
-  // Determine location/customer display
-  const locationDisplay =
-    order.orderType === OrderType.DINE_IN
-      ? tableTitle
-        ? `Table ${tableTitle}`
-        : 'Table N/A'
-      : customerName || (order.orderType === OrderType.DELIVERY ? 'Delivery' : 'To Go');
+  // Build location parts: zone title, table title
+  const zoneTitle = order.table?.zone?.title ? getTranslatedText(order.table.zone.title, '') : '';
+  const tableTitle = order.table?.title ?? '';
+
+  const locationParts: string[] = [];
+  if (zoneTitle) locationParts.push(zoneTitle);
+  if (tableTitle) locationParts.push(tableTitle);
+
+  // Fallback for non-dine-in orders
+  const hasLocation = locationParts.length > 0;
+  const fallbackLocation =
+    order.orderType === OrderType.DELIVERY
+      ? 'Delivery'
+      : order.orderType === OrderType.TO_GO
+        ? 'To Go'
+        : '';
+
+  // Theme-aware colors
+  const cardBg = isDark ? colors.backgroundSecondary : '#fcfcfc';
+  const cardBorder = isDark ? colors.border : '#e8e8e8';
+  const orderCodeColor = isDark ? colors.text : '#000000';
+  const dateColor = isDark ? colors.textMuted : '#838383';
+  const locationColor = isDark ? colors.textSecondary : '#646464';
+  const dotColor = isDark ? colors.textMuted : '#8D8D8D';
 
   return (
-    <Card pressable onPress={handlePress} padding="md" elevated style={styles.card} testID={testID}>
-      {/* Header Row: Order Code + Status */}
-      <View style={styles.headerRow}>
-        <View style={styles.orderCodeContainer}>
-          <ThemedText style={styles.orderCode}>{order.orderCode}</ThemedText>
-          {readyCount > 0 && (
-            <View style={[styles.readyBadge, { backgroundColor: StatusColors.ready }]}>
-              <ThemedText style={styles.readyBadgeText}>{readyCount} ready</ThemedText>
+    <Card
+      pressable
+      onPress={handlePress}
+      padding="none"
+      style={[styles.card, { backgroundColor: cardBg, borderColor: cardBorder, borderWidth: 1 }]}
+      testID={testID}
+    >
+      <View style={styles.cardInner}>
+        {/* Left accent strip */}
+        <View style={[styles.accentStrip, { backgroundColor: accentColor }]} />
+
+        {/* Content */}
+        <View style={styles.content}>
+          {/* Row 1: Order code + date */}
+          <View style={styles.orderInfoRow}>
+            <ThemedText style={[styles.orderCode, { color: orderCodeColor }]}>
+              Order: #{order.orderNumber}
+            </ThemedText>
+            <ThemedText style={[styles.dateText, { color: dateColor }]}>
+              {formatOrderDate(order.createdAt)}
+            </ThemedText>
+          </View>
+
+          {/* Row 2: Location (zone · table) */}
+          {hasLocation ? (
+            <View style={styles.locationRow}>
+              {locationParts.map((part, index) => (
+                <View key={part} style={styles.locationRow}>
+                  {index > 0 && (
+                    <View style={[styles.dotSeparator, { backgroundColor: dotColor }]} />
+                  )}
+                  <ThemedText style={[styles.locationText, { color: locationColor }]}>
+                    {part}
+                  </ThemedText>
+                </View>
+              ))}
             </View>
-          )}
-        </View>
-        <Badge variant={getOrderStatusBadgeVariant(order.orderStatus)} size="sm">
-          {getOrderStatusLabel(order.orderStatus)}
-        </Badge>
-      </View>
+          ) : fallbackLocation ? (
+            <ThemedText style={[styles.locationText, { color: locationColor }]}>
+              {fallbackLocation}
+            </ThemedText>
+          ) : null}
 
-      {/* Info Row: Location/Customer + Order Type */}
-      <View style={styles.infoRow}>
-        <View style={styles.locationContainer}>
-          <ThemedText style={[styles.locationText, { color: colors.text }]}>
-            {locationDisplay}
-          </ThemedText>
+          {/* Row 3: Status badge */}
+          <View style={[styles.statusBadge, { backgroundColor: badgeColors.bg }]}>
+            <ThemedText style={[styles.statusBadgeText, { color: badgeColors.text }]}>
+              {getOrderStatusLabel(order.orderStatus)}
+            </ThemedText>
+          </View>
         </View>
-        <Badge variant={getOrderTypeBadgeVariant(order.orderType)} size="sm">
-          {getOrderTypeLabel(order.orderType)}
-        </Badge>
-      </View>
-
-      {/* Footer Row: Item Count, Total, Time */}
-      <View style={styles.footerRow}>
-        <ThemedText style={[styles.itemCount, { color: colors.textSecondary }]}>
-          {itemCount} {itemCount === 1 ? 'item' : 'items'}
-        </ThemedText>
-        <ThemedText style={[styles.totalAmount, { color: colors.text }]}>
-          {formatPrice(order.totalAmount)}
-        </ThemedText>
-        <ThemedText style={[styles.timeAgo, { color: colors.textMuted }]}>
-          {formatTimeSince(order.createdAt)}
-        </ThemedText>
       </View>
     </Card>
   );
@@ -247,62 +323,65 @@ export function OrderCard({ order, onPress, testID }: OrderCardProps) {
 const styles = StyleSheet.create({
   card: {
     marginBottom: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    overflow: 'hidden',
   },
-  headerRow: {
+  cardInner: {
+    flexDirection: 'row',
+  },
+  accentStrip: {
+    width: 4,
+    alignSelf: 'stretch',
+  },
+  content: {
+    flex: 1,
+    paddingLeft: Spacing.xl,
+    paddingRight: 10,
+    paddingVertical: Spacing.sm,
+    gap: 6,
+  },
+  orderInfoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.sm,
   },
-  orderCodeContainer: {
+  orderCode: {
+    fontSize: 14,
+    fontWeight: '700',
+    lineHeight: 20,
+  },
+  dateText: {
+    fontSize: 12,
+    fontWeight: '500',
+    lineHeight: 16,
+    letterSpacing: 0.04,
+  },
+  locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
   },
-  orderCode: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  readyBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.sm,
-  },
-  readyBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-  },
-  locationContainer: {
-    flex: 1,
-    marginRight: Spacing.sm,
-  },
   locationText: {
     fontSize: 14,
+    fontWeight: '400',
+    lineHeight: 20,
+  },
+  dotSeparator: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+  },
+  statusBadge: {
+    alignSelf: 'flex-start',
+    borderRadius: BorderRadius.sm,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+  },
+  statusBadgeText: {
+    fontSize: 12,
     fontWeight: '500',
-  },
-  footerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  itemCount: {
-    fontSize: 12,
-    flex: 1,
-  },
-  totalAmount: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginHorizontal: Spacing.md,
-  },
-  timeAgo: {
-    fontSize: 12,
+    lineHeight: 16,
+    letterSpacing: 0.04,
   },
 });
 

@@ -239,7 +239,7 @@ export interface Order {
   validatedAt?: string;
   createdAt: string;
   updatedAt?: string;
-  table?: Pick<Table, 'id' | 'title'>;
+  table?: Pick<Table, 'id' | 'title'> & { zone?: Pick<Zone, 'id' | 'title'> };
   waiter?: Pick<Account, 'id' | 'username'>;
   customer?: Customer;
   orderItems?: OrderItem[];

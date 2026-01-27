@@ -23,6 +23,30 @@ export const StatusColors = {
   pending: '#6B7280',
 } as const;
 
+// Accent strip colors for order cards (status-based)
+export const OrderAccentColors = {
+  inProgress: '#FFBA18',
+  completed: '#2B9A66',
+  cancelled: '#CE2C31',
+  pending: '#9CA3AF',
+} as const;
+
+// Order status badge colors (text + background per theme)
+export const OrderStatusBadgeColors = {
+  light: {
+    inProgress: { text: '#E2A336', bg: '#F6EEE7' },
+    completed: { text: '#2B9A66', bg: '#E6F4ED' },
+    cancelled: { text: '#CE2C31', bg: '#FBEAEA' },
+    pending: { text: '#6B7280', bg: '#F3F4F6' },
+  },
+  dark: {
+    inProgress: { text: '#FFBA18', bg: '#3D2E0A' },
+    completed: { text: '#2B9A66', bg: '#0A2E1A' },
+    cancelled: { text: '#CE2C31', bg: '#2E0A0A' },
+    pending: { text: '#9CA3AF', bg: '#2D3133' },
+  },
+} as const;
+
 // Category colors for menu items
 export const CategoryColors = {
   kitchen: '#F97316',

@@ -79,7 +79,7 @@ const TYPE_FILTERS: { label: string; value: TypeFilter }[] = [
 ];
 
 // Performance optimization constants for FlatList
-const ORDER_CARD_HEIGHT = 116; // Estimated height of OrderCard (padding + content)
+const ORDER_CARD_HEIGHT = 82; // Estimated height of redesigned OrderCard (accent strip + 3 rows)
 const ORDER_CARD_MARGIN = 8; // Spacing.sm margin bottom
 
 // ============================================================================
