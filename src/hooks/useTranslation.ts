@@ -8,6 +8,7 @@
 import { useCallback, useMemo } from 'react';
 import { useLanguage } from '../stores/settingsStore';
 import type { Translation } from '../types/models';
+import { getUIString } from '../lib/i18n';
 import {
   getAvailableTranslations,
   getTranslatedText,
@@ -67,12 +68,24 @@ export function useTranslation() {
     return getAvailableTranslations(translation);
   }, []);
 
+  /**
+   * Look up a static UI string by dot-path key
+   */
+  const tUI = useCallback(
+    (key: string): string => {
+      return getUIString(key, language);
+    },
+    [language]
+  );
+
   return useMemo(
     () => ({
       /** Current language code */
       language,
       /** Get translated text using current language */
       t,
+      /** Look up a static UI string by key (e.g. 'tabs.tables') */
+      tUI,
       /** Check if query matches any translation */
       matches,
       /** Check if translation has any content */
@@ -80,7 +93,7 @@ export function useTranslation() {
       /** Get all available translations */
       getAvailable,
     }),
-    [language, t, matches, hasContent, getAvailable]
+    [language, t, tUI, matches, hasContent, getAvailable]
   );
 }
 

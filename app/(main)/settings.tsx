@@ -20,6 +20,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Card } from '@/components/ui/Card';
 import { BorderRadius, BrandColors, Colors, Spacing } from '@/constants/theme';
 import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
+import { useTranslation } from '@/src/hooks/useTranslation';
 import {
   LANGUAGE_NAMES,
   type Language,
@@ -184,6 +185,7 @@ export default function SettingsScreen() {
   const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const insets = useSafeAreaInsets();
+  const { tUI } = useTranslation();
 
   // Settings state
   const theme = useTheme();
@@ -244,18 +246,18 @@ export default function SettingsScreen() {
 
   const handleRediscover = useCallback(() => {
     Alert.alert(
-      'Re-discover Server',
-      'This will disconnect from the current server and search for it again on the network.',
+      tUI('settings.rediscoverServer'),
+      tUI('settings.rediscoverMessage'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: tUI('settings.cancel'), style: 'cancel' },
         {
-          text: 'Re-discover',
+          text: tUI('settings.rediscover'),
           style: 'destructive',
           onPress: () => resetDiscovery(),
         },
       ]
     );
-  }, [resetDiscovery]);
+  }, [resetDiscovery, tUI]);
 
   // Theme options
   const themeOptions = Object.entries(THEME_NAMES).map(([value, label]) => ({
@@ -274,7 +276,7 @@ export default function SettingsScreen() {
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: colors.border, paddingTop: insets.top + Spacing.md }]}>
         <BackButton testID="back-button" />
-        <ThemedText style={styles.headerTitle}>Settings</ThemedText>
+        <ThemedText style={styles.headerTitle}>{tUI('settings.title')}</ThemedText>
         <View style={styles.headerRight} />
       </View>
 
@@ -284,9 +286,9 @@ export default function SettingsScreen() {
         testID="settings-scroll-view"
       >
         {/* Notifications Section */}
-        <SettingsSection title="NOTIFICATIONS" delay={0}>
+        <SettingsSection title={tUI('settings.notifications')} delay={0}>
           <SettingsRow
-            label="Sound"
+            label={tUI('settings.sound')}
             testID="sound-setting"
             rightElement={
               <Switch
@@ -300,7 +302,7 @@ export default function SettingsScreen() {
           />
           <SettingsDivider />
           <SettingsRow
-            label="Vibration"
+            label={tUI('settings.vibration')}
             testID="vibration-setting"
             rightElement={
               <Switch
@@ -315,16 +317,16 @@ export default function SettingsScreen() {
         </SettingsSection>
 
         {/* Appearance Section */}
-        <SettingsSection title="APPEARANCE" delay={100}>
+        <SettingsSection title={tUI('settings.appearance')} delay={100}>
           <SettingsRow
-            label="Theme"
+            label={tUI('settings.theme')}
             value={THEME_NAMES[theme]}
             onPress={() => setShowThemeModal(true)}
             testID="theme-setting"
           />
           <SettingsDivider />
           <SettingsRow
-            label="Language"
+            label={tUI('settings.language')}
             value={LANGUAGE_NAMES[language]}
             onPress={() => setShowLanguageModal(true)}
             testID="language-setting"
@@ -332,16 +334,16 @@ export default function SettingsScreen() {
         </SettingsSection>
 
         {/* About Section */}
-        <SettingsSection title="ABOUT" delay={200}>
-          <SettingsRow label="Version" value={APP_VERSION} testID="version-info" />
+        <SettingsSection title={tUI('settings.about')} delay={200}>
+          <SettingsRow label={tUI('settings.version')} value={APP_VERSION} testID="version-info" />
           <SettingsDivider />
-          <SettingsRow label="Build" value={BUILD_NUMBER} testID="build-info" />
+          <SettingsRow label={tUI('settings.build')} value={BUILD_NUMBER} testID="build-info" />
         </SettingsSection>
 
         {/* Server Section */}
-        <SettingsSection title="SERVER" delay={300}>
+        <SettingsSection title={tUI('settings.server')} delay={300}>
           <SettingsRow
-            label="Re-discover Server"
+            label={tUI('settings.rediscoverServer')}
             onPress={handleRediscover}
             testID="rediscover-server"
           />
@@ -350,10 +352,10 @@ export default function SettingsScreen() {
         {/* Footer */}
         <Animated.View entering={FadeIn.duration(300).delay(400)} style={styles.footer}>
           <ThemedText style={[styles.footerText, { color: colors.textMuted }]}>
-            Maestro Waiter App
+            {tUI('settings.footerTitle')}
           </ThemedText>
           <ThemedText style={[styles.footerSubtext, { color: colors.textMuted }]}>
-            © 2026 Maestro Restaurant Systems
+            {tUI('settings.footerCopyright')}
           </ThemedText>
         </Animated.View>
       </ScrollView>
@@ -361,7 +363,7 @@ export default function SettingsScreen() {
       {/* Theme Selection Modal */}
       {showThemeModal && (
         <SelectionModal
-          title="Select Theme"
+          title={tUI('settings.selectTheme')}
           options={themeOptions}
           selected={theme}
           onSelect={handleThemeChange}
@@ -372,7 +374,7 @@ export default function SettingsScreen() {
       {/* Language Selection Modal */}
       {showLanguageModal && (
         <SelectionModal
-          title="Select Language"
+          title={tUI('settings.selectLanguage')}
           options={languageOptions}
           selected={language}
           onSelect={handleLanguageChange}

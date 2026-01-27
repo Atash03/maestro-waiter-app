@@ -4,9 +4,11 @@ import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
+import { useTranslation } from '@/src/hooks/useTranslation';
 
 export default function TabLayout() {
   const colorScheme = useEffectiveColorScheme();
+  const { tUI } = useTranslation();
 
   return (
     <Tabs
@@ -19,7 +21,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="tables/index"
         options={{
-          title: 'Tables',
+          title: tUI('tabs.tables'),
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="square.grid.2x2.fill" color={color} />
           ),
@@ -28,7 +30,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="orders/index"
         options={{
-          title: 'Orders',
+          title: tUI('tabs.orders'),
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="list.clipboard.fill" color={color} />
           ),
@@ -43,7 +45,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile/index"
         options={{
-          title: 'Profile',
+          title: tUI('tabs.profile'),
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
         }}
       />

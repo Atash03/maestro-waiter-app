@@ -122,37 +122,37 @@ export function CategoryCardGrid({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: BorderRadius.xl,
+    borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    paddingHorizontal: 5,
-    paddingTop: 5,
-    paddingBottom: Spacing.md,
+    paddingHorizontal: 3,
+    paddingTop: 3,
+    paddingBottom: Spacing.xs,
     alignItems: 'center',
   },
   image: {
     width: '100%',
     aspectRatio: 1,
-    borderRadius: 14,
+    borderRadius: 8,
   },
   title: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: '500',
     textAlign: 'center',
-    marginTop: Spacing.md,
+    marginTop: Spacing.xs,
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: Spacing.md,
+    gap: Spacing.sm,
   },
   gridTablet: {
-    gap: Spacing.lg,
+    gap: Spacing.md,
   },
   gridCell: {
-    width: '48%',
+    width: '31%',
   },
   gridCellTablet: {
-    width: '31%',
+    width: '23%',
   },
   emptyState: {
     flex: 1,

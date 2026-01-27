@@ -10,6 +10,7 @@
  * - Add items to existing order (Task 4.5)
  */
 
+import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -33,6 +34,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CategoryCardGrid, CategoryList } from '@/components/menu';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { BackButton } from '@/components/ui/BackButton';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { LocationInfo } from '@/components/ui/LocationInfo';
@@ -43,6 +45,7 @@ import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import { useMenuData } from '@/src/hooks/useMenuQueries';
 import { useSendToKitchen } from '@/src/hooks/useSendToKitchen';
 import { useTable } from '@/src/hooks/useTableQueries';
+import { getImageUrl } from '@/src/services/api/client';
 import { getTranslatedText, useMenuStore } from '@/src/stores/menuStore';
 import {
   formatPrice as formatOrderPrice,
@@ -62,6 +65,9 @@ import type { Extra, MenuCategory, MenuItem, OrderItemExtra } from '@/src/types/
 const TABLET_BREAKPOINT = 768;
 const SHEET_HEIGHT = 420;
 const BOTTOM_CARD_HEIGHT = 56;
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const placeholderImage = require('@/assets/images/placeholder.png');
 
 // ============================================================================
 // Helper Functions
@@ -135,7 +141,7 @@ function MenuSearch({ value, onChangeText }: MenuSearchProps) {
             color: colors.text,
           },
         ]}
-        placeholder="Search menu..."
+        placeholder="Search menu items..."
         placeholderTextColor={colors.textMuted}
         value={value}
         onChangeText={onChangeText}
@@ -186,6 +192,8 @@ function MenuItemCard({ item, quantity, onPress }: MenuItemCardProps) {
   }));
 
   const isUnavailable = !item.isActive;
+  const resolvedUrl = getImageUrl(item.imagePath);
+  const imageSource = resolvedUrl ? { uri: resolvedUrl } : placeholderImage;
 
   return (
     <Animated.View style={animatedStyle}>
@@ -205,31 +213,48 @@ function MenuItemCard({ item, quantity, onPress }: MenuItemCardProps) {
         disabled={isUnavailable}
         activeOpacity={0.8}
       >
-        {/* Quantity badge */}
-        {quantity > 0 && (
-          <View
-            testID={`menu-item-quantity-${item.id}`}
-            style={[styles.menuItemQuantityBadge, { backgroundColor: BrandColors.primary }]}
-          >
-            <ThemedText style={styles.menuItemQuantityText}>{quantity}</ThemedText>
-          </View>
-        )}
+        {/* Image */}
+        <View style={styles.menuItemImageContainer}>
+          <Image
+            source={imageSource}
+            style={styles.menuItemImage}
+            contentFit="cover"
+            transition={200}
+          />
 
-        {/* Item content */}
-        <View style={styles.menuItemContent}>
-          <ThemedText style={styles.menuItemTitle} numberOfLines={2}>
+          {/* Prep time badge */}
+          {item.timeForPreparation && (
+            <View style={[styles.prepTimeBadge, { backgroundColor: colors.background }]}>
+              <ThemedText style={[styles.prepTimeText, { color: colors.textMuted }]}>
+                {typeof item.timeForPreparation === 'object'
+                  ? `${item.timeForPreparation.minutes} min`
+                  : `${item.timeForPreparation} min`}
+              </ThemedText>
+            </View>
+          )}
+
+          {/* Quantity badge or add button */}
+          {quantity > 0 ? (
+            <View
+              testID={`menu-item-quantity-${item.id}`}
+              style={[styles.menuItemActionButton, { backgroundColor: BrandColors.primary }]}
+            >
+              <ThemedText style={styles.menuItemActionText}>{quantity}</ThemedText>
+            </View>
+          ) : (
+            <View style={[styles.menuItemActionButton, { backgroundColor: colors.background }]}>
+              <ThemedText style={[styles.menuItemActionIcon, { color: colors.text }]}>+</ThemedText>
+            </View>
+          )}
+        </View>
+
+        {/* Item info */}
+        <View style={styles.menuItemInfo}>
+          <ThemedText style={styles.menuItemTitle} numberOfLines={1}>
             {getTranslatedText(item.title)}
           </ThemedText>
-          {item.description && (
-            <ThemedText
-              style={[styles.menuItemDescription, { color: colors.textSecondary }]}
-              numberOfLines={2}
-            >
-              {getTranslatedText(item.description)}
-            </ThemedText>
-          )}
-          <ThemedText style={[styles.menuItemPrice, { color: BrandColors.primary }]}>
-            ${formatPrice(parsePrice(item.price))}
+          <ThemedText style={[styles.menuItemPrice, { color: colors.textSecondary }]}>
+            {formatPrice(parsePrice(item.price))} TMT
           </ThemedText>
         </View>
 
@@ -549,18 +574,7 @@ export default function OrderEntryScreen() {
 
     let result = itemsData;
 
-    // Filter by category
-    if (selectedParentHasChildren) {
-      // Parent has children: filter by the selected child tab
-      if (selectedCategoryId) {
-        result = result.filter((item) => item.categoryId === selectedCategoryId);
-      }
-    } else {
-      // Parent has no children: show items belonging to the parent category itself
-      result = result.filter((item) => item.categoryId === selectedParentCategoryId);
-    }
-
-    // Filter by search
+    // When searching, search across all menu items (ignore category)
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       result = result.filter((item) => {
@@ -574,6 +588,15 @@ export default function OrderEntryScreen() {
           item.description?.tm?.toLowerCase().includes(query);
         return titleMatch || descMatch;
       });
+    } else {
+      // No search — filter by category
+      if (selectedParentHasChildren) {
+        if (selectedCategoryId) {
+          result = result.filter((item) => item.categoryId === selectedCategoryId);
+        }
+      } else {
+        result = result.filter((item) => item.categoryId === selectedParentCategoryId);
+      }
     }
 
     return result;
@@ -585,6 +608,23 @@ export default function OrderEntryScreen() {
     selectedParentCategoryId,
     searchQuery,
   ]);
+
+  // Global search across all menu items (used on parent category view)
+  const globalSearchItems = useMemo(() => {
+    if (isDrilledDown || !searchQuery.trim()) return [];
+    const query = searchQuery.toLowerCase().trim();
+    return itemsData.filter((item) => {
+      const titleMatch =
+        item.title.en?.toLowerCase().includes(query) ||
+        item.title.ru?.toLowerCase().includes(query) ||
+        item.title.tm?.toLowerCase().includes(query);
+      const descMatch =
+        item.description?.en?.toLowerCase().includes(query) ||
+        item.description?.ru?.toLowerCase().includes(query) ||
+        item.description?.tm?.toLowerCase().includes(query);
+      return titleMatch || descMatch;
+    });
+  }, [itemsData, isDrilledDown, searchQuery]);
 
   // Handle refresh
   const handleRefresh = useCallback(async () => {
@@ -604,6 +644,7 @@ export default function OrderEntryScreen() {
   // Handle parent category card press - drill down to child categories
   const handleParentCategoryPress = useCallback(
     (category: MenuCategory) => {
+      setSearchQuery('');
       setSelectedParentCategoryId(category.id);
 
       // Backend returns flat list — find children by parentId
@@ -616,7 +657,7 @@ export default function OrderEntryScreen() {
         selectCategory(category.id);
       }
     },
-    [categoriesData, selectCategory]
+    [categoriesData, selectCategory, setSearchQuery]
   );
 
   // Handle back from child view to parent category grid
@@ -738,27 +779,17 @@ export default function OrderEntryScreen() {
       <View style={styles.menuSection}>
         {isDrilledDown ? (
           <>
-            {/* Back button + parent category title */}
+            {/* Back button + search */}
             <View style={[styles.drillDownHeader, { borderBottomColor: colors.border }]}>
-              <TouchableOpacity
-                testID="back-to-categories-button"
+              <BackButton
                 onPress={handleBackToParentCategories}
-                style={styles.backButton}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <ThemedText style={[styles.backButtonText, { color: BrandColors.primary }]}>
-                  {'‹ Back'}
-                </ThemedText>
-              </TouchableOpacity>
-              <ThemedText style={styles.drillDownTitle} numberOfLines={1}>
-                {getTranslatedText(
-                  categoriesData.find((c) => c.id === selectedParentCategoryId)?.title
-                )}
-              </ThemedText>
+                testID="back-to-categories-button"
+                size={28}
+              />
+              <View style={styles.drillDownSearchContainer}>
+                <MenuSearch value={searchQuery} onChangeText={setSearchQuery} />
+              </View>
             </View>
-
-            {/* Search */}
-            <MenuSearch value={searchQuery} onChangeText={setSearchQuery} />
 
             {/* Child category tabs (only if parent has children) */}
             {selectedParentHasChildren && (
@@ -797,6 +828,8 @@ export default function OrderEntryScreen() {
           </>
         ) : (
           /* Parent category card grid */
+          <>
+          <MenuSearch value={searchQuery} onChangeText={setSearchQuery} />
           <ScrollView
             style={styles.menuScrollView}
             contentContainerStyle={[
@@ -813,12 +846,22 @@ export default function OrderEntryScreen() {
             showsVerticalScrollIndicator={false}
             testID="parent-category-scroll-view"
           >
-            <CategoryCardGrid
-              categories={parentCategories}
-              onCategoryPress={handleParentCategoryPress}
-              isTablet={isTablet}
-            />
+            {searchQuery.trim() ? (
+              <MenuItemGrid
+                items={globalSearchItems}
+                orderItems={orderItems}
+                onItemPress={handleMenuItemPress}
+                isTablet={isTablet}
+              />
+            ) : (
+              <CategoryCardGrid
+                categories={parentCategories}
+                onCategoryPress={handleParentCategoryPress}
+                isTablet={isTablet}
+              />
+            )}
           </ScrollView>
+          </>
         )}
       </View>
 
@@ -988,62 +1031,91 @@ const styles = StyleSheet.create({
   menuItemGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: Spacing.md,
+    gap: Spacing.xs,
   },
   menuItemGridTablet: {
-    gap: Spacing.lg,
+    gap: Spacing.sm,
   },
   menuItemGridCell: {
-    width: '48%',
+    width: '31%',
   },
   menuItemGridCellTablet: {
-    width: '31%',
+    width: '23%',
   },
   menuItemCard: {
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    padding: Spacing.md,
-    minHeight: 120,
+    padding: 3,
     position: 'relative',
   },
-  menuItemQuantityBadge: {
+  menuItemImageContainer: {
+    width: '100%',
+    aspectRatio: 1,
+    borderRadius: 8,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  menuItemImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 8,
+  },
+  prepTimeBadge: {
     position: 'absolute',
-    top: -8,
-    right: -8,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    top: 0,
+    left: 0,
+    borderBottomRightRadius: 6,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+  },
+  prepTimeText: {
+    fontSize: 9,
+    fontWeight: '500',
+    lineHeight: 12,
+  },
+  menuItemActionButton: {
+    position: 'absolute',
+    bottom: 4,
+    right: 4,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.12,
+    shadowRadius: 1.5,
+    elevation: 2,
   },
-  menuItemQuantityText: {
+  menuItemActionText: {
     color: '#FFFFFF',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
   },
-  menuItemContent: {
-    flex: 1,
-  },
-  menuItemTitle: {
+  menuItemActionIcon: {
     fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  menuItemDescription: {
-    fontSize: 12,
-    marginBottom: 8,
+    fontWeight: '500',
     lineHeight: 16,
   },
+  menuItemInfo: {
+    paddingHorizontal: 4,
+    paddingTop: 4,
+    paddingBottom: 3,
+    gap: 2,
+  },
+  menuItemTitle: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
   menuItemPrice: {
-    fontSize: 16,
-    fontWeight: '700',
-    marginTop: 'auto',
+    fontSize: 11,
+    fontWeight: '600',
   },
   unavailableOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: BorderRadius.lg,
+    borderRadius: BorderRadius.xl,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1203,22 +1275,10 @@ const styles = StyleSheet.create({
   drillDownHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
+    paddingLeft: Spacing.sm,
     borderBottomWidth: 1,
-    gap: Spacing.sm,
   },
-  backButton: {
-    paddingVertical: Spacing.xs,
-    paddingRight: Spacing.sm,
-  },
-  backButtonText: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  drillDownTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+  drillDownSearchContainer: {
     flex: 1,
   },
   skeletonGrid: {

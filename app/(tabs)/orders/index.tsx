@@ -31,6 +31,7 @@ import { Skeleton, SkeletonGroup } from '@/components/ui/Skeleton';
 import { Spinner } from '@/components/ui/Spinner';
 import { BorderRadius, BrandColors, Colors, Spacing } from '@/constants/theme';
 import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
+import { useTranslation } from '@/src/hooks/useTranslation';
 import {
   countOrdersWithReadyItems,
   filterOrdersByStatus,
@@ -63,19 +64,19 @@ interface FilterTabProps {
 // Constants
 // ============================================================================
 
-const STATUS_FILTERS: { label: string; value: StatusFilter }[] = [
-  { label: 'All', value: 'all' },
-  { label: 'Pending', value: OrderStatus.PENDING },
-  { label: 'In Progress', value: OrderStatus.IN_PROGRESS },
-  { label: 'Completed', value: OrderStatus.COMPLETED },
-  { label: 'Cancelled', value: OrderStatus.CANCELLED },
+const STATUS_FILTERS: { key: string; value: StatusFilter }[] = [
+  { key: 'orders.filterAll', value: 'all' },
+  { key: 'orders.filterPending', value: OrderStatus.PENDING },
+  { key: 'orders.filterInProgress', value: OrderStatus.IN_PROGRESS },
+  { key: 'orders.filterCompleted', value: OrderStatus.COMPLETED },
+  { key: 'orders.filterCancelled', value: OrderStatus.CANCELLED },
 ];
 
-const TYPE_FILTERS: { label: string; value: TypeFilter }[] = [
-  { label: 'All Types', value: 'all' },
-  { label: 'Dine-in', value: OrderType.DINE_IN },
-  { label: 'Delivery', value: OrderType.DELIVERY },
-  { label: 'To Go', value: OrderType.TO_GO },
+const TYPE_FILTERS: { key: string; value: TypeFilter }[] = [
+  { key: 'orders.filterAllTypes', value: 'all' },
+  { key: 'orders.filterDineIn', value: OrderType.DINE_IN },
+  { key: 'orders.filterDelivery', value: OrderType.DELIVERY },
+  { key: 'orders.filterToGo', value: OrderType.TO_GO },
 ];
 
 // Performance optimization constants for FlatList
@@ -158,12 +159,15 @@ function OrdersListSkeleton() {
 function EmptyState({ statusFilter }: { statusFilter: StatusFilter }) {
   const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const { tUI } = useTranslation();
 
   const getMessage = () => {
     if (statusFilter === 'all') {
-      return 'No orders found';
+      return tUI('orders.noOrdersFound');
     }
-    return `No ${statusFilter.toLowerCase()} orders`;
+    const statusKey = STATUS_FILTERS.find((f) => f.value === statusFilter)?.key;
+    const statusLabel = statusKey ? tUI(statusKey) : statusFilter;
+    return tUI('orders.noOrdersFiltered').replace('{status}', statusLabel.toLowerCase());
   };
 
   return (
@@ -171,7 +175,7 @@ function EmptyState({ statusFilter }: { statusFilter: StatusFilter }) {
       <ThemedText style={[styles.emptyIcon]}>📋</ThemedText>
       <ThemedText style={[styles.emptyTitle, { color: colors.text }]}>{getMessage()}</ThemedText>
       <ThemedText style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-        Orders will appear here when created
+        {tUI('orders.ordersWillAppear')}
       </ThemedText>
     </View>
   );
@@ -180,22 +184,23 @@ function EmptyState({ statusFilter }: { statusFilter: StatusFilter }) {
 function ErrorState({ onRetry }: { onRetry: () => void }) {
   const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const { tUI } = useTranslation();
 
   return (
     <View style={styles.emptyContainer}>
       <ThemedText style={styles.emptyIcon}>⚠️</ThemedText>
       <ThemedText style={[styles.emptyTitle, { color: colors.text }]}>
-        Failed to load orders
+        {tUI('orders.failedToLoad')}
       </ThemedText>
       <ThemedText style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-        Please check your connection and try again
+        {tUI('orders.checkConnection')}
       </ThemedText>
       <TouchableOpacity
         onPress={onRetry}
         style={[styles.retryButton, { backgroundColor: BrandColors.primary }]}
         testID="retry-button"
       >
-        <ThemedText style={styles.retryButtonText}>Try Again</ThemedText>
+        <ThemedText style={styles.retryButtonText}>{tUI('orders.tryAgain')}</ThemedText>
       </TouchableOpacity>
     </View>
   );
@@ -210,6 +215,7 @@ export default function OrdersListScreen() {
   const colors = Colors[colorScheme ?? 'light'];
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { tUI } = useTranslation();
 
   // State
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -329,7 +335,7 @@ export default function OrdersListScreen() {
             { borderBottomColor: colors.border, paddingTop: insets.top + Spacing.md },
           ]}
         >
-          <ThemedText style={styles.headerTitle}>Orders</ThemedText>
+          <ThemedText style={styles.headerTitle}>{tUI('orders.title')}</ThemedText>
         </View>
         <OrdersListSkeleton />
       </ThemedView>
@@ -346,7 +352,7 @@ export default function OrdersListScreen() {
             { borderBottomColor: colors.border, paddingTop: insets.top + Spacing.md },
           ]}
         >
-          <ThemedText style={styles.headerTitle}>Orders</ThemedText>
+          <ThemedText style={styles.headerTitle}>{tUI('orders.title')}</ThemedText>
         </View>
         <ErrorState onRetry={handleRefresh} />
       </ThemedView>
@@ -363,16 +369,16 @@ export default function OrdersListScreen() {
         ]}
       >
         <View style={styles.headerLeft}>
-          <ThemedText style={styles.headerTitle}>Orders</ThemedText>
+          <ThemedText style={styles.headerTitle}>{tUI('orders.title')}</ThemedText>
           {readyOrdersCount > 0 && (
             <Badge variant="ready" size="sm">
-              {readyOrdersCount} ready
+              {readyOrdersCount} {tUI('orders.ready')}
             </Badge>
           )}
         </View>
         <View style={styles.headerRight}>
           <Badge variant="default" size="sm">
-            {filteredOrders.length} orders
+            {filteredOrders.length} {tUI('orders.ordersCount')}
           </Badge>
           <NotificationBell testID="notification-bell" />
         </View>
@@ -388,7 +394,7 @@ export default function OrdersListScreen() {
         {STATUS_FILTERS.map((filter) => (
           <FilterTab
             key={filter.value}
-            label={filter.label}
+            label={tUI(filter.key)}
             isActive={statusFilter === filter.value}
             onPress={() => handleStatusFilterChange(filter.value)}
             count={statusCounts[filter.value as keyof typeof statusCounts]}
@@ -427,7 +433,7 @@ export default function OrdersListScreen() {
                 },
               ]}
             >
-              {filter.label}
+              {tUI(filter.key)}
             </ThemedText>
           </TouchableOpacity>
         ))}

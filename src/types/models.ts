@@ -145,7 +145,7 @@ export interface MenuItem {
   imagePath: string | null;
   isActive: boolean;
   isGroup: boolean;
-  timeForPreparation?: string;
+  timeForPreparation?: { minutes: number } | string;
   availability?: MenuItemAvailability[];
   groupItems?: { menuItemId: string; quantity: number }[];
   groupDiscount?: string;

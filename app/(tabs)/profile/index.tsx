@@ -33,6 +33,7 @@ import { Skeleton, SkeletonGroup } from '@/components/ui/Skeleton';
 import { Spinner } from '@/components/ui/Spinner';
 import { BorderRadius, BrandColors, Colors, Spacing } from '@/constants/theme';
 import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
+import { useTranslation } from '@/src/hooks/useTranslation';
 import { getActiveOrders, useHapticRefresh, useOrders, useWaiterCalls } from '@/src/hooks';
 import { useAccount, useAuthLoading, useAuthStore } from '@/src/stores/authStore';
 import { OrderStatus } from '@/src/types/enums';
@@ -129,18 +130,15 @@ function formatCurrency(amount: number): string {
 }
 
 /**
- * Get role display name
+ * Get role translation key
  */
-function getRoleDisplayName(role: string): string {
-  const roleMap: Record<string, string> = {
-    admin: 'Administrator',
-    manager: 'Manager',
-    waiter: 'Waiter',
-    chef: 'Chef',
-    cashier: 'Cashier',
-  };
-  return roleMap[role.toLowerCase()] ?? role;
-}
+const ROLE_KEYS: Record<string, string> = {
+  admin: 'profile.roleAdmin',
+  manager: 'profile.roleManager',
+  waiter: 'profile.roleWaiter',
+  chef: 'profile.roleChef',
+  cashier: 'profile.roleCashier',
+};
 
 // ============================================================================
 // Sub-Components
@@ -214,6 +212,7 @@ export default function ProfileScreen() {
   const colors = Colors[colorScheme ?? 'light'];
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { tUI } = useTranslation();
 
   // Auth state
   const account = useAccount();
@@ -258,9 +257,9 @@ export default function ProfileScreen() {
       await logout();
       router.replace('/(auth)/login');
     } catch {
-      Alert.alert('Error', 'Failed to logout. Please try again.');
+      Alert.alert(tUI('profile.error'), tUI('profile.logoutError'));
     }
-  }, [logout, router]);
+  }, [logout, router, tUI]);
 
   const handleLogout = useCallback(() => {
     // Check for open orders first
@@ -270,15 +269,15 @@ export default function ProfileScreen() {
     }
 
     // No open orders, show simple confirm dialog
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(tUI('profile.logoutConfirmTitle'), tUI('profile.logoutConfirmMessage'), [
+      { text: tUI('profile.cancel'), style: 'cancel' },
       {
-        text: 'Logout',
+        text: tUI('profile.logout'),
         style: 'destructive',
         onPress: performLogout,
       },
     ]);
-  }, [waiterOpenOrders.length, performLogout]);
+  }, [waiterOpenOrders.length, performLogout, tUI]);
 
   const handleGoToOrder = useCallback(
     (orderId: string) => {
@@ -291,18 +290,18 @@ export default function ProfileScreen() {
   const handleContinueLogout = useCallback(() => {
     setShowOpenOrdersModal(false);
     Alert.alert(
-      'Confirm Logout',
-      'You have open orders that will remain unattended. Are you sure you want to continue?',
+      tUI('profile.confirmLogoutTitle'),
+      tUI('profile.confirmLogoutMessage'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: tUI('profile.cancel'), style: 'cancel' },
         {
-          text: 'Logout Anyway',
+          text: tUI('profile.logoutAnyway'),
           style: 'destructive',
           onPress: performLogout,
         },
       ]
     );
-  }, [performLogout]);
+  }, [performLogout, tUI]);
 
   const isLoading = isLoadingOrders || isLoadingCalls;
 
@@ -311,7 +310,7 @@ export default function ProfileScreen() {
     return (
       <ThemedView style={styles.container}>
         <View style={[styles.header, { borderBottomColor: colors.border, paddingTop: insets.top + Spacing.md }]}>
-          <ThemedText style={styles.headerTitle}>Profile</ThemedText>
+          <ThemedText style={styles.headerTitle}>{tUI('profile.title')}</ThemedText>
         </View>
         <ProfileSkeleton />
       </ThemedView>
@@ -322,7 +321,7 @@ export default function ProfileScreen() {
     <ThemedView style={styles.container}>
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: colors.border, paddingTop: insets.top + Spacing.md }]}>
-        <ThemedText style={styles.headerTitle}>Profile</ThemedText>
+        <ThemedText style={styles.headerTitle}>{tUI('profile.title')}</ThemedText>
       </View>
 
       <ScrollView
@@ -339,13 +338,13 @@ export default function ProfileScreen() {
       >
         {/* User Info Section */}
         <Animated.View entering={FadeIn.duration(300)} style={styles.userSection}>
-          <Avatar name={account?.username ?? 'User'} size="xl" testID="profile-avatar" />
+          <Avatar name={account?.username ?? tUI('profile.user')} size="xl" testID="profile-avatar" />
           <View style={styles.userInfo}>
             <ThemedText style={[styles.username, { color: colors.text }]}>
-              {account?.username ?? 'Unknown User'}
+              {account?.username ?? tUI('profile.unknownUser')}
             </ThemedText>
             <Badge variant="primary" size="md" testID="role-badge">
-              {getRoleDisplayName(account?.role ?? 'waiter')}
+              {tUI(ROLE_KEYS[account?.role?.toLowerCase() ?? 'waiter'] ?? 'profile.roleWaiter')}
             </Badge>
           </View>
         </Animated.View>
@@ -353,19 +352,19 @@ export default function ProfileScreen() {
         {/* Activity Summary Section */}
         <Animated.View entering={FadeIn.duration(300).delay(100)} style={styles.sectionContainer}>
           <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>
-            Today's Activity
+            {tUI('profile.todaysActivity')}
           </ThemedText>
           <View style={styles.statsGrid}>
             <View style={styles.statsRow}>
               <StatCard
-                title="Orders Taken"
+                title={tUI('profile.ordersTaken')}
                 value={activityStats.ordersTaken}
-                subtitle={`${activityStats.activeOrders} active`}
+                subtitle={`${activityStats.activeOrders} ${tUI('profile.active')}`}
                 icon="📋"
                 testID="stat-orders"
               />
               <StatCard
-                title="Total Sales"
+                title={tUI('profile.totalSales')}
                 value={formatCurrency(activityStats.totalSales)}
                 icon="💰"
                 testID="stat-sales"
@@ -373,13 +372,13 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.statsRow}>
               <StatCard
-                title="Calls Handled"
+                title={tUI('profile.callsHandled')}
                 value={activityStats.callsHandled}
                 icon="🔔"
                 testID="stat-calls"
               />
               <StatCard
-                title="Active Orders"
+                title={tUI('profile.activeOrders')}
                 value={activityStats.activeOrders}
                 icon="🍽️"
                 testID="stat-active"
@@ -391,24 +390,24 @@ export default function ProfileScreen() {
         {/* Session Info Section */}
         <Animated.View entering={FadeIn.duration(300).delay(200)} style={styles.sectionContainer}>
           <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>
-            Session Info
+            {tUI('profile.sessionInfo')}
           </ThemedText>
           <Card style={styles.sessionCard} bordered elevated={false}>
             <View style={styles.sessionRow}>
               <ThemedText style={[styles.sessionLabel, { color: colors.textSecondary }]}>
-                Organization
+                {tUI('profile.organization')}
               </ThemedText>
               <ThemedText style={[styles.sessionValue, { color: colors.text }]}>
-                {account?.organizationId ? 'Connected' : 'Not Connected'}
+                {account?.organizationId ? tUI('profile.connected') : tUI('profile.notConnected')}
               </ThemedText>
             </View>
             <View style={[styles.sessionDivider, { backgroundColor: colors.border }]} />
             <View style={styles.sessionRow}>
               <ThemedText style={[styles.sessionLabel, { color: colors.textSecondary }]}>
-                Account Created
+                {tUI('profile.accountCreated')}
               </ThemedText>
               <ThemedText style={[styles.sessionValue, { color: colors.text }]}>
-                {account?.createdAt ? new Date(account.createdAt).toLocaleDateString() : 'Unknown'}
+                {account?.createdAt ? new Date(account.createdAt).toLocaleDateString() : tUI('profile.notConnected')}
               </ThemedText>
             </View>
           </Card>
@@ -422,7 +421,7 @@ export default function ProfileScreen() {
             testID="settings-button"
           >
             <ThemedText style={styles.settingsIcon}>⚙️</ThemedText>
-            <ThemedText style={[styles.settingsText, { color: colors.text }]}>Settings</ThemedText>
+            <ThemedText style={[styles.settingsText, { color: colors.text }]}>{tUI('profile.settings')}</ThemedText>
             <ThemedText style={[styles.settingsArrow, { color: colors.textSecondary }]}>
               ›
             </ThemedText>
@@ -436,7 +435,7 @@ export default function ProfileScreen() {
             loading={isLoggingOut}
             testID="logout-button"
           >
-            Logout
+            {tUI('profile.logout')}
           </Button>
         </Animated.View>
       </ScrollView>
@@ -449,7 +448,7 @@ export default function ProfileScreen() {
           style={[styles.loadingOverlay, { backgroundColor: colors.overlay }]}
         >
           <Spinner size="lg" />
-          <ThemedText style={styles.loadingText}>Logging out...</ThemedText>
+          <ThemedText style={styles.loadingText}>{tUI('profile.loggingOut')}</ThemedText>
         </Animated.View>
       )}
 
@@ -457,13 +456,12 @@ export default function ProfileScreen() {
       <Modal
         visible={showOpenOrdersModal}
         onClose={() => setShowOpenOrdersModal(false)}
-        title="Open Orders"
+        title={tUI('profile.openOrders')}
         testID="open-orders-modal"
       >
         <View style={styles.modalContent}>
           <ThemedText style={[styles.modalDescription, { color: colors.textSecondary }]}>
-            You have {waiterOpenOrders.length} open order
-            {waiterOpenOrders.length !== 1 ? 's' : ''} that need attention before logging out.
+            {tUI('profile.openOrdersMessage').replace('{count}', String(waiterOpenOrders.length))}
           </ThemedText>
 
           <View style={styles.openOrdersList}>
@@ -479,7 +477,7 @@ export default function ProfileScreen() {
                     {order.orderCode}
                   </ThemedText>
                   <ThemedText style={[styles.openOrderTable, { color: colors.textSecondary }]}>
-                    Table: {order.table?.title ?? 'N/A'}
+                    {tUI('profile.table')}: {order.table?.title ?? 'N/A'}
                   </ThemedText>
                 </View>
                 <View style={styles.openOrderStatus}>
@@ -505,7 +503,7 @@ export default function ProfileScreen() {
               style={styles.modalButton}
               testID="cancel-logout-button"
             >
-              Cancel
+              {tUI('profile.cancel')}
             </Button>
             <Button
               variant="destructive"
@@ -514,7 +512,7 @@ export default function ProfileScreen() {
               style={styles.modalButton}
               testID="continue-logout-button"
             >
-              Logout Anyway
+              {tUI('profile.logoutAnyway')}
             </Button>
           </View>
         </View>
