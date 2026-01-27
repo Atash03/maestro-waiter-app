@@ -59,6 +59,53 @@
     "checkConnection": "Birikmäňizi barlaň we täzeden synanyşyň",
     "tryAgain": "Täzeden synanyşyň"
   },
+  "orderStatus": {
+    "pending": "Garaşylýar",
+    "inProgress": "Ýerine ýetirilýär",
+    "completed": "Tamamlanan",
+    "cancelled": "Ýatyrylan"
+  },
+  "orderType": {
+    "dineIn": "Ýerinde",
+    "delivery": "Eltip bermek",
+    "toGo": "Alyp gitmek"
+  },
+  "orderItemStatus": {
+    "pending": "Garaşylýar",
+    "sentToPrepare": "Taýýarlamaga iberildi",
+    "preparing": "Taýýarlanýar",
+    "ready": "Taýýar",
+    "served": "Hödürlendi",
+    "declined": "Ret edildi",
+    "canceled": "Ýatyryldy"
+  },
+  "orderCard": {
+    "orderPrefix": "Sargyt",
+    "justNow": "Häzir",
+    "minutesAgo": "{m} min öň",
+    "hoursMinutesAgo": "{h}sag {m}min öň",
+    "hoursAgo": "{h}sag öň",
+    "daysAgo": "{d}gün öň"
+  },
+  "tables": {
+    "title": "Stollar",
+    "table": "Stol",
+    "allZones": "Hemmesi",
+    "tableCount": "stol",
+    "seats": "Orun",
+    "guests": "myhman",
+    "noTablesFound": "Stol tapylmady",
+    "noTablesSubtext": "Stollar ulgama goşulandan soň şu ýerde görüner",
+    "failedToLoad": "Stollary ýükläp bolmady",
+    "retry": "Täzeden synanyşyň",
+    "accessibilityHint": "Saýlamak üçin basyň, goşmaça üçin saklaň"
+  },
+  "tableStatus": {
+    "available": "Boş",
+    "occupied": "Meşgul",
+    "reserved": "Bronlanan",
+    "needsAttention": "Üns gerek"
+  },
   "settings": {
     "title": "Sazlamalar",
     "notifications": "BILDIRIŞLER",

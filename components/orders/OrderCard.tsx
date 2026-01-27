@@ -19,6 +19,7 @@ import {
   Spacing,
 } from '@/constants/theme';
 import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
+import { useTranslation } from '@/src/hooks/useTranslation';
 import { type OrderItemStatus, OrderStatus, OrderType } from '@/src/types/enums';
 import type { Order, Translation } from '@/src/types/models';
 import { getTranslatedText } from '@/src/utils/translations';
@@ -65,9 +66,22 @@ export function getOrderStatusBadgeVariant(status: OrderStatus): BadgeVariant {
 }
 
 /**
+ * Order status translation key mapping
+ */
+const ORDER_STATUS_KEYS: Record<string, string> = {
+  [OrderStatus.PENDING]: 'orderStatus.pending',
+  [OrderStatus.IN_PROGRESS]: 'orderStatus.inProgress',
+  [OrderStatus.COMPLETED]: 'orderStatus.completed',
+  [OrderStatus.CANCELLED]: 'orderStatus.cancelled',
+};
+
+/**
  * Get human-readable label for order status
  */
-export function getOrderStatusLabel(status: OrderStatus): string {
+export function getOrderStatusLabel(status: OrderStatus, tUI?: (key: string) => string): string {
+  if (tUI) {
+    return tUI(ORDER_STATUS_KEYS[status] ?? 'orderStatus.pending');
+  }
   switch (status) {
     case OrderStatus.PENDING:
       return 'Pending';
@@ -99,9 +113,21 @@ export function getOrderTypeBadgeVariant(orderType: OrderType): BadgeVariant {
 }
 
 /**
+ * Order type translation key mapping
+ */
+const ORDER_TYPE_KEYS: Record<string, string> = {
+  [OrderType.DINE_IN]: 'orderType.dineIn',
+  [OrderType.DELIVERY]: 'orderType.delivery',
+  [OrderType.TO_GO]: 'orderType.toGo',
+};
+
+/**
  * Get human-readable label for order type
  */
-export function getOrderTypeLabel(orderType: OrderType): string {
+export function getOrderTypeLabel(orderType: OrderType, tUI?: (key: string) => string): string {
+  if (tUI) {
+    return tUI(ORDER_TYPE_KEYS[orderType] ?? 'orderType.dineIn');
+  }
   switch (orderType) {
     case OrderType.DINE_IN:
       return 'Dine-in';
@@ -117,7 +143,7 @@ export function getOrderTypeLabel(orderType: OrderType): string {
 /**
  * Format time since creation
  */
-export function formatTimeSince(dateString: string): string {
+export function formatTimeSince(dateString: string, tUI?: (key: string) => string): string {
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return '';
 
@@ -125,17 +151,26 @@ export function formatTimeSince(dateString: string): string {
   const diffMs = now.getTime() - date.getTime();
   const diffMins = Math.floor(diffMs / 60000);
 
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffMins < 1) return tUI ? tUI('orderCard.justNow') : 'Just now';
+  if (diffMins < 60) {
+    const template = tUI ? tUI('orderCard.minutesAgo') : '{m}m ago';
+    return template.replace('{m}', String(diffMins));
+  }
 
   const diffHours = Math.floor(diffMins / 60);
   if (diffHours < 24) {
     const mins = diffMins % 60;
-    return mins > 0 ? `${diffHours}h ${mins}m ago` : `${diffHours}h ago`;
+    if (mins > 0) {
+      const template = tUI ? tUI('orderCard.hoursMinutesAgo') : '{h}h {m}m ago';
+      return template.replace('{h}', String(diffHours)).replace('{m}', String(mins));
+    }
+    const template = tUI ? tUI('orderCard.hoursAgo') : '{h}h ago';
+    return template.replace('{h}', String(diffHours));
   }
 
   const diffDays = Math.floor(diffHours / 24);
-  return `${diffDays}d ago`;
+  const template = tUI ? tUI('orderCard.daysAgo') : '{d}d ago';
+  return template.replace('{d}', String(diffDays));
 }
 
 /**
@@ -227,6 +262,7 @@ export function OrderCard({ order, onPress, testID }: OrderCardProps) {
   const colorScheme = useEffectiveColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   const isDark = colorScheme === 'dark';
+  const { tUI } = useTranslation();
 
   const handlePress = () => {
     onPress?.(order);
@@ -247,9 +283,9 @@ export function OrderCard({ order, onPress, testID }: OrderCardProps) {
   const hasLocation = locationParts.length > 0;
   const fallbackLocation =
     order.orderType === OrderType.DELIVERY
-      ? 'Delivery'
+      ? tUI('orderType.delivery')
       : order.orderType === OrderType.TO_GO
-        ? 'To Go'
+        ? tUI('orderType.toGo')
         : '';
 
   // Theme-aware colors
@@ -277,7 +313,7 @@ export function OrderCard({ order, onPress, testID }: OrderCardProps) {
           {/* Row 1: Order code + date */}
           <View style={styles.orderInfoRow}>
             <ThemedText style={[styles.orderCode, { color: orderCodeColor }]}>
-              Order: #{order.orderNumber}
+              {tUI('orderCard.orderPrefix')}: #{order.orderNumber}
             </ThemedText>
             <ThemedText style={[styles.dateText, { color: dateColor }]}>
               {formatOrderDate(order.createdAt)}
@@ -307,7 +343,7 @@ export function OrderCard({ order, onPress, testID }: OrderCardProps) {
           {/* Row 3: Status badge */}
           <View style={[styles.statusBadge, { backgroundColor: badgeColors.bg }]}>
             <ThemedText style={[styles.statusBadgeText, { color: badgeColors.text }]}>
-              {getOrderStatusLabel(order.orderStatus)}
+              {getOrderStatusLabel(order.orderStatus, tUI)}
             </ThemedText>
           </View>
         </View>

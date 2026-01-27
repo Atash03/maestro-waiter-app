@@ -43,8 +43,9 @@ import { BorderRadius, Colors, Spacing, StatusColors } from '@/constants/theme';
 import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import { useHapticRefresh } from '@/src/hooks';
 import { useTablesAndZones, useTablesByZone } from '@/src/hooks/useTableQueries';
+import { useTranslation } from '@/src/hooks/useTranslation';
 import { useTableStore } from '@/src/stores/tableStore';
-import type { Table, Translation, Zone } from '@/src/types/models';
+import type { Table, Zone } from '@/src/types/models';
 
 // ============================================================================
 // Constants
@@ -57,14 +58,6 @@ const NUM_COLUMNS = 2;
 // ============================================================================
 // Helper Functions
 // ============================================================================
-
-/**
- * Get translated text from a Translation object
- * Falls back to 'en' if the requested language is not available
- */
-function getTranslatedText(translation: Translation, lang: 'en' | 'ru' | 'tm' = 'en'): string {
-  return translation[lang] || translation.en || '';
-}
 
 /**
  * Check whether an order was created today
@@ -118,6 +111,7 @@ interface ZoneTabsProps {
 function ZoneTabs({ zones, selectedZoneId, onSelectZone }: ZoneTabsProps) {
   const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const { t, tUI } = useTranslation();
 
   const activeZones = useMemo(() => zones.filter((zone) => zone.isActive), [zones]);
 
@@ -145,7 +139,7 @@ function ZoneTabs({ zones, selectedZoneId, onSelectZone }: ZoneTabsProps) {
           <ThemedText
             style={[styles.zoneTabText, selectedZoneId === null && styles.zoneTabTextActive]}
           >
-            All
+            {tUI('tables.allZones')}
           </ThemedText>
         </TouchableOpacity>
 
@@ -168,7 +162,7 @@ function ZoneTabs({ zones, selectedZoneId, onSelectZone }: ZoneTabsProps) {
             <ThemedText
               style={[styles.zoneTabText, selectedZoneId === zone.id && styles.zoneTabTextActive]}
             >
-              {getTranslatedText(zone.title)}
+              {t(zone.title)}
             </ThemedText>
           </TouchableOpacity>
         ))}
@@ -190,6 +184,7 @@ interface TableGridItemProps {
 
 function TableGridItem({ table, onPress, onLongPress, isSelected = false }: TableGridItemProps) {
   const statusColor = getStatusColor(table.status);
+  const { tUI } = useTranslation();
 
   // Animation values
   const pressScale = useSharedValue(1);
@@ -332,8 +327,8 @@ function TableGridItem({ table, onPress, onLongPress, isSelected = false }: Tabl
         delayLongPress={300}
         testID={`table-touchable-${table.id}`}
         accessibilityRole="button"
-        accessibilityLabel={`Table ${table.title}, ${table.status}${table.guestCount ? `, ${table.guestCount} guests` : ''}`}
-        accessibilityHint="Tap to select, long press for options"
+        accessibilityLabel={`${tUI('tables.table')} ${table.title}, ${tUI(`tableStatus.${table.status}`)}${table.guestCount ? `, ${table.guestCount} ${tUI('tables.guests')}` : ''}`}
+        accessibilityHint={tUI('tables.accessibilityHint')}
       >
         {/* Table title */}
         <ThemedText style={styles.gridItemTitle} numberOfLines={1}>
@@ -343,12 +338,12 @@ function TableGridItem({ table, onPress, onLongPress, isSelected = false }: Tabl
         {/* Guest count or capacity */}
         {showGuestCount ? (
           <View style={styles.guestCountContainer} testID={`table-guests-${table.id}`}>
-            <ThemedText style={styles.guestCountText}>{table.guestCount} guests</ThemedText>
+            <ThemedText style={styles.guestCountText}>{`${table.guestCount} ${tUI('tables.guests')}`}</ThemedText>
           </View>
         ) : (
           table.capacity > 0 && (
             <ThemedText style={styles.capacityText} testID={`table-capacity-${table.id}`}>
-              Seats {table.capacity}
+              {`${tUI('tables.seats')} ${table.capacity}`}
             </ThemedText>
           )
         )}
@@ -356,7 +351,7 @@ function TableGridItem({ table, onPress, onLongPress, isSelected = false }: Tabl
         {/* Status badge */}
         <View style={[styles.statusBadge, { backgroundColor: 'rgba(0,0,0,0.2)' }]}>
           <ThemedText style={styles.statusBadgeText}>
-            {table.status.charAt(0).toUpperCase() + table.status.slice(1)}
+            {tUI(`tableStatus.${table.status}`)}
           </ThemedText>
         </View>
 
@@ -421,6 +416,7 @@ interface ErrorStateProps {
 function ErrorState({ message, onRetry }: ErrorStateProps) {
   const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const { tUI } = useTranslation();
 
   return (
     <ThemedView style={styles.errorContainer} testID="tables-error">
@@ -431,7 +427,7 @@ function ErrorState({ message, onRetry }: ErrorStateProps) {
         onPress={onRetry}
         activeOpacity={0.7}
       >
-        <ThemedText style={styles.retryButtonText}>Retry</ThemedText>
+        <ThemedText style={styles.retryButtonText}>{tUI('tables.retry')}</ThemedText>
       </TouchableOpacity>
     </ThemedView>
   );
@@ -442,11 +438,13 @@ function ErrorState({ message, onRetry }: ErrorStateProps) {
 // ============================================================================
 
 function EmptyState() {
+  const { tUI } = useTranslation();
+
   return (
     <ThemedView style={styles.emptyContainer} testID="tables-empty">
-      <ThemedText style={styles.emptyText}>No tables found</ThemedText>
+      <ThemedText style={styles.emptyText}>{tUI('tables.noTablesFound')}</ThemedText>
       <ThemedText style={styles.emptySubtext}>
-        Tables will appear here once added to the system
+        {tUI('tables.noTablesSubtext')}
       </ThemedText>
     </ThemedView>
   );
@@ -461,6 +459,7 @@ export default function TablesScreen() {
   const colors = Colors[colorScheme ?? 'light'];
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { tUI } = useTranslation();
 
   // Table store for selection
   const { selectedZoneId, selectZone, selectTable } = useTableStore();
@@ -563,17 +562,17 @@ export default function TablesScreen() {
 
   // Show error state
   if (error) {
-    return <ErrorState message={error.message || 'Failed to load tables'} onRetry={refetchAll} />;
+    return <ErrorState message={error.message || tUI('tables.failedToLoad')} onRetry={refetchAll} />;
   }
 
   return (
     <ThemedView style={styles.container} testID="tables-screen">
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + Spacing.sm }]}>
-        <ThemedText style={styles.headerTitle}>Tables</ThemedText>
+        <ThemedText style={styles.headerTitle}>{tUI('tables.title')}</ThemedText>
         <View style={styles.headerRight}>
           <Badge variant="default" size="sm" testID="table-count-badge">
-            {`${tablesWithStatus.length} tables`}
+            {`${tablesWithStatus.length} ${tUI('tables.tableCount')}`}
           </Badge>
           <NotificationBell testID="notification-bell" />
         </View>

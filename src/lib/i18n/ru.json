@@ -59,6 +59,53 @@
     "checkConnection": "Проверьте подключение и попробуйте снова",
     "tryAgain": "Повторить"
   },
+  "orderStatus": {
+    "pending": "Ожидание",
+    "inProgress": "В процессе",
+    "completed": "Завершён",
+    "cancelled": "Отменён"
+  },
+  "orderType": {
+    "dineIn": "В зале",
+    "delivery": "Доставка",
+    "toGo": "С собой"
+  },
+  "orderItemStatus": {
+    "pending": "Ожидание",
+    "sentToPrepare": "Отправлен на кухню",
+    "preparing": "Готовится",
+    "ready": "Готов",
+    "served": "Подан",
+    "declined": "Отклонён",
+    "canceled": "Отменён"
+  },
+  "orderCard": {
+    "orderPrefix": "Заказ",
+    "justNow": "Только что",
+    "minutesAgo": "{m} мин назад",
+    "hoursMinutesAgo": "{h}ч {m}мин назад",
+    "hoursAgo": "{h}ч назад",
+    "daysAgo": "{d}д назад"
+  },
+  "tables": {
+    "title": "Столы",
+    "table": "Стол",
+    "allZones": "Все",
+    "tableCount": "столов",
+    "seats": "Мест",
+    "guests": "гостей",
+    "noTablesFound": "Столы не найдены",
+    "noTablesSubtext": "Столы появятся здесь после добавления в систему",
+    "failedToLoad": "Не удалось загрузить столы",
+    "retry": "Повторить",
+    "accessibilityHint": "Нажмите для выбора, удерживайте для параметров"
+  },
+  "tableStatus": {
+    "available": "Свободен",
+    "occupied": "Занят",
+    "reserved": "Забронирован",
+    "needsAttention": "Требует внимания"
+  },
   "settings": {
     "title": "Настройки",
     "notifications": "УВЕДОМЛЕНИЯ",
