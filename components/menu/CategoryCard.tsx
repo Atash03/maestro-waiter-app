@@ -66,7 +66,7 @@ export function CategoryCard({ category, onPress, testID }: CategoryCardProps) {
     <Animated.View style={animatedStyle}>
       <TouchableOpacity
         testID={testID ?? `category-card-${category.id}`}
-        style={[styles.card, { backgroundColor: colors.background }]}
+        style={[styles.card, { backgroundColor: colors.background, borderColor: colors.border }]}
         onPress={() => onPress(category)}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
@@ -123,6 +123,7 @@ export function CategoryCardGrid({
 const styles = StyleSheet.create({
   card: {
     borderRadius: BorderRadius.xl,
+    borderWidth: 1,
     paddingHorizontal: 5,
     paddingTop: 5,
     paddingBottom: Spacing.md,
