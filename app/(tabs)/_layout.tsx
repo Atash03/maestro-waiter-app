@@ -37,8 +37,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="calls/index"
         options={{
-          title: 'Calls',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="bell.fill" color={color} />,
+          href: null, // Hide from tab bar
         }}
       />
       <Tabs.Screen
