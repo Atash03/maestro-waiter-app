@@ -716,7 +716,11 @@ export default function OrderDetailScreen() {
       <View
         style={[
           styles.header,
-          { backgroundColor: colors.background, borderBottomColor: colors.border, paddingTop: insets.top + Spacing.sm },
+          {
+            backgroundColor: colors.background,
+            borderBottomColor: colors.border,
+            paddingTop: insets.top + Spacing.sm,
+          },
         ]}
       >
         {/* Back Button */}

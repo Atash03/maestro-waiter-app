@@ -12,7 +12,7 @@ import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Platform, ScrollView, StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
+import { Alert, Dimensions, Platform, ScrollView, StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
@@ -493,8 +493,7 @@ const styles = StyleSheet.create({
     padding: Spacing['2xl'],
   },
   modalContent: {
-    width: '100%',
-    maxWidth: 320,
+    width: Dimensions.get('window').width * 0.7,
     borderRadius: BorderRadius.xl,
     overflow: 'hidden',
   },
