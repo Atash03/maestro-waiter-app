@@ -9,6 +9,7 @@
  * - Item selection for split billing (future)
  */
 
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -19,15 +20,14 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import Animated, { FadeIn, FadeInDown, SlideInRight } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
-
-import { BackButton } from '@/components/ui/BackButton';
 import { DiscountSelector } from '@/components/bills/DiscountSelector';
 import { PaymentForm, type PaymentFormData } from '@/components/bills/PaymentForm';
 import { PaymentSuccessModal } from '@/components/bills/PaymentSuccessModal';
 import { ThemedText } from '@/components/themed-text';
+import { BackButton } from '@/components/ui/BackButton';
 import { Badge, type BadgeVariant } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -42,6 +42,7 @@ import {
 } from '@/src/hooks/useBillQueries';
 import { useOrder } from '@/src/hooks/useOrderQueries';
 import { createBill, updateBillDiscounts } from '@/src/services/api/bills';
+import { getImageUrl } from '@/src/services/api/client';
 import { createPayment } from '@/src/services/api/payments';
 import type { CalculateBillResponse } from '@/src/types/api';
 import { BillStatus, OrderItemStatus, PaymentMethod } from '@/src/types/enums';
@@ -189,41 +190,91 @@ interface BillItemRowProps {
 function BillItemRow({ item, testID }: BillItemRowProps) {
   const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const isDark = colorScheme === 'dark';
 
   const quantity = Number.parseInt(item.quantity, 10) || 0;
-  const extrasText = item.extras
-    ?.map((extra) => {
-      const name = getTranslatedText(extra.extraTitle, 'Extra');
-      return extra.quantity > 1 ? `${extra.quantity}x ${name}` : name;
-    })
-    .join(', ');
+  const hasExtras = item.extras && item.extras.length > 0;
+  const hasBottomRow = hasExtras || item.notes;
+
+  const borderColor = isDark ? colors.border : '#e0e0e0';
+  const bgColor = isDark ? colors.backgroundSecondary : '#fff';
+  const secondaryText = isDark ? colors.textSecondary : '#646464';
 
   return (
-    <Animated.View entering={SlideInRight.duration(300)} testID={testID}>
-      <View style={styles.billItemRow}>
-        <View style={styles.billItemInfo}>
-          <ThemedText style={styles.billItemName} numberOfLines={1}>
+    <View
+      style={[styles.itemContainer, { borderBottomColor: borderColor, backgroundColor: bgColor }]}
+      testID={testID}
+    >
+      {/* Top Row: Image + Info */}
+      <View style={styles.itemTopRow}>
+        {item.menuItem?.imagePath && (
+          <Image
+            source={{ uri: getImageUrl(item.menuItem.imagePath)! }}
+            style={styles.itemImage}
+            contentFit="cover"
+            transition={200}
+          />
+        )}
+
+        <View style={styles.itemInfoCol}>
+          <ThemedText style={styles.itemName} numberOfLines={2}>
             {getTranslatedText(item.itemTitle, 'Unknown Item')}
+            {quantity > 1 ? ` x${quantity}` : ''}
           </ThemedText>
-          {extrasText && (
-            <ThemedText
-              style={[styles.billItemExtras, { color: colors.textMuted }]}
-              numberOfLines={1}
-            >
-              {extrasText}
-            </ThemedText>
-          )}
-        </View>
-        <View style={styles.billItemQuantity}>
-          <ThemedText style={[styles.billItemQuantityText, { color: colors.textSecondary }]}>
-            x{quantity}
+          <ThemedText style={[styles.itemPrice, { color: secondaryText }]}>
+            {formatPrice(item.subtotal)}
           </ThemedText>
-        </View>
-        <View style={styles.billItemPrice}>
-          <ThemedText style={styles.billItemPriceText}>{formatPrice(item.subtotal)}</ThemedText>
         </View>
       </View>
-    </Animated.View>
+
+      {/* Bottom Row: Extras + Notes */}
+      {hasBottomRow && (
+        <View style={styles.itemBottomRow}>
+          {hasExtras && (
+            <View style={styles.itemExtrasCol}>
+              {item.extras!.map((extra) => (
+                <View key={extra.extraId} style={styles.itemExtraRow}>
+                  <ThemedText style={styles.itemExtraName}>
+                    {getTranslatedText(extra.extraTitle, 'Extra')}
+                    {extra.quantity > 1 ? ` x${extra.quantity}` : ''}:
+                  </ThemedText>
+                  {extra.totalPrice && (
+                    <View
+                      style={[
+                        styles.itemExtraPricePill,
+                        { backgroundColor: isDark ? colors.border : '#f0f0f0' },
+                      ]}
+                    >
+                      <ThemedText style={styles.itemExtraPriceText}>
+                        {formatPrice(extra.totalPrice)}
+                      </ThemedText>
+                    </View>
+                  )}
+                </View>
+              ))}
+            </View>
+          )}
+          {item.notes && (
+            <View
+              style={[
+                styles.itemNotesCol,
+                hasExtras && {
+                  borderLeftWidth: 1,
+                  borderLeftColor: isDark ? colors.border : '#e8e8e8',
+                },
+              ]}
+            >
+              <ThemedText
+                style={[styles.itemNotesText, { color: secondaryText }]}
+                numberOfLines={3}
+              >
+                {item.notes}
+              </ThemedText>
+            </View>
+          )}
+        </View>
+      )}
+    </View>
   );
 }
 
@@ -673,6 +724,13 @@ export default function BillScreen() {
 
   // Computed values
   const billableItems = useMemo(() => getBillableItems(order?.orderItems), [order?.orderItems]);
+  const itemsSubtotal = useMemo(
+    () =>
+      billableItems
+        .reduce((sum, item) => sum + (Number.parseFloat(item.subtotal ?? '0') || 0), 0)
+        .toFixed(2),
+    [billableItems]
+  );
   const canCreateBill = useMemo(
     () => !bill && canBillItems(order?.orderItems),
     [bill, order?.orderItems]
@@ -756,7 +814,11 @@ export default function BillScreen() {
       <View
         style={[
           styles.header,
-          { backgroundColor: colors.background, borderBottomColor: colors.border, paddingTop: insets.top + Spacing.sm },
+          {
+            backgroundColor: colors.background,
+            borderBottomColor: colors.border,
+            paddingTop: insets.top + Spacing.sm,
+          },
         ]}
       >
         <BackButton testID="bill-back-btn" />
@@ -794,7 +856,7 @@ export default function BillScreen() {
         {/* Order Items Section */}
         <View style={styles.section}>
           <ThemedText style={styles.sectionTitle}>Order Items</ThemedText>
-          <Card padding="md">
+          <Card padding="none">
             {billableItems.length > 0 ? (
               billableItems.map((item, index) => (
                 <BillItemRow key={item.id} item={item} testID={`bill-item-${index}`} />
@@ -817,7 +879,7 @@ export default function BillScreen() {
                 Subtotal
               </ThemedText>
               <ThemedText style={styles.summaryValue}>
-                {formatPrice(bill?.subtotal ?? order.totalAmount)}
+                {formatPrice(bill?.subtotal ?? itemsSubtotal)}
               </ThemedText>
             </View>
 
@@ -852,7 +914,13 @@ export default function BillScreen() {
             <View style={styles.summaryRow}>
               <ThemedText style={styles.totalLabel}>Total</ThemedText>
               <ThemedText style={styles.totalValue}>
-                {formatPrice(bill?.totalAmount ?? order.totalAmount)}
+                {formatPrice(
+                  bill?.totalAmount ??
+                    (
+                      Number.parseFloat(itemsSubtotal) +
+                      (Number.parseFloat(order.serviceFeeAmount ?? '0') || 0)
+                    ).toFixed(2)
+                )}
               </ThemedText>
             </View>
 
@@ -1114,39 +1182,70 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: Spacing.sm,
   },
-  billItemRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  itemContainer: {
+    paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E7EB',
+    borderBottomWidth: 1,
+    gap: 10,
   },
-  billItemInfo: {
+  itemTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.sm,
+  },
+  itemImage: {
+    width: 76,
+    height: 64,
+    borderRadius: BorderRadius.md,
+  },
+  itemInfoCol: {
     flex: 1,
-    marginRight: Spacing.sm,
+    gap: 2,
   },
-  billItemName: {
+  itemName: {
     fontSize: 14,
     fontWeight: '500',
+    lineHeight: 20,
   },
-  billItemExtras: {
-    fontSize: 12,
-    marginTop: 2,
+  itemPrice: {
+    fontSize: 14,
+    fontWeight: '500',
+    lineHeight: 20,
   },
-  billItemQuantity: {
-    width: 40,
+  itemBottomRow: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  billItemQuantityText: {
-    fontSize: 14,
+  itemExtrasCol: {
+    gap: 3,
   },
-  billItemPrice: {
-    width: 80,
-    alignItems: 'flex-end',
+  itemExtraRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
-  billItemPriceText: {
+  itemExtraName: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
+    lineHeight: 20,
+  },
+  itemExtraPricePill: {
+    borderRadius: BorderRadius.sm,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+  },
+  itemExtraPriceText: {
+    fontSize: 14,
+    fontWeight: '500',
+    lineHeight: 20,
+  },
+  itemNotesCol: {
+    flex: 1,
+    paddingHorizontal: 6,
+  },
+  itemNotesText: {
+    fontSize: 14,
+    lineHeight: 20,
   },
   summaryRow: {
     flexDirection: 'row',

@@ -5,12 +5,15 @@
  */
 
 // Types
+export type { CategoryCardGridProps, CategoryCardProps } from './CategoryCard';
 export type {
   CategoryChipProps,
   CategoryListProps,
   CategoryListVariant,
   CollapsibleCategoryProps,
 } from './CategoryList';
+// Category Card Component
+export { CategoryCard, CategoryCardGrid } from './CategoryCard';
 // Category List Component
 export {
   CategoryChip,

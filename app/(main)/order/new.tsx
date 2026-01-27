@@ -31,7 +31,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CategoryList } from '@/components/menu';
+import { CategoryCardGrid, CategoryList } from '@/components/menu';
 import { SendToKitchenModal, type SendToKitchenModalState } from '@/components/orders';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -54,7 +54,7 @@ import {
   useOrderNotes,
   useOrderTotals,
 } from '@/src/stores/orderStore';
-import type { Extra, MenuItem, OrderItemExtra } from '@/src/types/models';
+import type { Extra, MenuCategory, MenuItem, OrderItemExtra } from '@/src/types/models';
 
 // ============================================================================
 // Constants
@@ -483,22 +483,10 @@ function OrderSummary({
 function OrderEntrySkeleton() {
   return (
     <ThemedView style={styles.container} testID="order-entry-skeleton">
-      {/* Search skeleton */}
-      <View style={styles.searchContainer}>
-        <Skeleton variant="rounded" width="100%" height={44} />
-      </View>
-
-      {/* Categories skeleton */}
-      <View style={styles.searchContainer}>
-        <SkeletonGroup count={5} direction="horizontal" spacing={Spacing.sm}>
-          <Skeleton variant="rounded" width={80} height={36} />
-        </SkeletonGroup>
-      </View>
-
-      {/* Menu grid skeleton */}
-      <View style={styles.menuItemGrid}>
-        <SkeletonGroup count={6} direction="horizontal" spacing={Spacing.md}>
-          <Skeleton variant="rounded" width={160} height={140} />
+      {/* Category card grid skeleton */}
+      <View style={styles.skeletonGrid}>
+        <SkeletonGroup count={4} direction="horizontal" spacing={Spacing.md}>
+          <Skeleton variant="rounded" width={160} height={200} />
         </SkeletonGroup>
       </View>
     </ThemedView>
@@ -580,6 +568,22 @@ export default function OrderEntryScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showSendModal, setShowSendModal] = useState(false);
   const [sendDisabledUntil, setSendDisabledUntil] = useState<number | null>(null);
+  const [selectedParentCategoryId, setSelectedParentCategoryId] = useState<string | null>(null);
+
+  // Derived category data for drill-down navigation
+  const parentCategories = useMemo(
+    () => categoriesData.filter((cat) => cat.parentId === null),
+    [categoriesData]
+  );
+
+  const childCategories = useMemo(() => {
+    if (!selectedParentCategoryId) return [];
+    // Backend returns a flat list — filter by parentId to find children
+    return categoriesData.filter((cat) => cat.parentId === selectedParentCategoryId);
+  }, [categoriesData, selectedParentCategoryId]);
+
+  const isDrilledDown = selectedParentCategoryId !== null;
+  const selectedParentHasChildren = childCategories.length > 0;
 
   // Calculate modal state based on hook state
   const modalState: SendToKitchenModalState = useMemo(() => {
@@ -611,13 +615,22 @@ export default function OrderEntryScreen() {
     }
   }, [extrasData, setAvailableExtras]);
 
-  // Filter items by category and search
+  // Filter items by category and search (only when drilled down into a parent category)
   const filteredItems = useMemo(() => {
+    // No items shown on the parent category grid view
+    if (!isDrilledDown) return [];
+
     let result = itemsData;
 
     // Filter by category
-    if (selectedCategoryId) {
-      result = result.filter((item) => item.categoryId === selectedCategoryId);
+    if (selectedParentHasChildren) {
+      // Parent has children: filter by the selected child tab
+      if (selectedCategoryId) {
+        result = result.filter((item) => item.categoryId === selectedCategoryId);
+      }
+    } else {
+      // Parent has no children: show items belonging to the parent category itself
+      result = result.filter((item) => item.categoryId === selectedParentCategoryId);
     }
 
     // Filter by search
@@ -637,7 +650,14 @@ export default function OrderEntryScreen() {
     }
 
     return result;
-  }, [itemsData, selectedCategoryId, searchQuery]);
+  }, [
+    itemsData,
+    isDrilledDown,
+    selectedParentHasChildren,
+    selectedCategoryId,
+    selectedParentCategoryId,
+    searchQuery,
+  ]);
 
   // Handle refresh
   const handleRefresh = useCallback(async () => {
@@ -653,6 +673,31 @@ export default function OrderEntryScreen() {
     },
     [selectCategory]
   );
+
+  // Handle parent category card press - drill down to child categories
+  const handleParentCategoryPress = useCallback(
+    (category: MenuCategory) => {
+      setSelectedParentCategoryId(category.id);
+
+      // Backend returns flat list — find children by parentId
+      const children = categoriesData.filter((cat) => cat.parentId === category.id);
+      if (children.length > 0) {
+        // Auto-select first child category
+        selectCategory(children[0].id);
+      } else {
+        // No children — select the parent itself to show its items
+        selectCategory(category.id);
+      }
+    },
+    [categoriesData, selectCategory]
+  );
+
+  // Handle back from child view to parent category grid
+  const handleBackToParentCategories = useCallback(() => {
+    setSelectedParentCategoryId(null);
+    selectCategory(null);
+    setSearchQuery('');
+  }, [selectCategory, setSearchQuery]);
 
   // Handle menu item press - add to order using orderStore
   const handleMenuItemPress = useCallback(
@@ -795,37 +840,84 @@ export default function OrderEntryScreen() {
       <View style={[styles.content, isTablet && styles.contentTablet]}>
         {/* Menu section */}
         <View style={[styles.menuSection, isTablet && styles.menuSectionTablet]}>
-          {/* Search */}
-          <MenuSearch value={searchQuery} onChangeText={setSearchQuery} />
+          {isDrilledDown ? (
+            <>
+              {/* Back button + parent category title */}
+              <View style={[styles.drillDownHeader, { borderBottomColor: colors.border }]}>
+                <TouchableOpacity
+                  testID="back-to-categories-button"
+                  onPress={handleBackToParentCategories}
+                  style={styles.backButton}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <ThemedText style={[styles.backButtonText, { color: BrandColors.primary }]}>
+                    {'‹ Back'}
+                  </ThemedText>
+                </TouchableOpacity>
+                <ThemedText style={styles.drillDownTitle} numberOfLines={1}>
+                  {getTranslatedText(
+                    categoriesData.find((c) => c.id === selectedParentCategoryId)?.title
+                  )}
+                </ThemedText>
+              </View>
 
-          {/* Categories */}
-          <CategoryList
-            categories={categoriesData}
-            selectedCategoryId={selectedCategoryId}
-            onSelectCategory={handleSelectCategory}
-          />
+              {/* Search */}
+              <MenuSearch value={searchQuery} onChangeText={setSearchQuery} />
 
-          {/* Menu items */}
-          <ScrollView
-            style={styles.menuScrollView}
-            contentContainerStyle={styles.menuScrollContent}
-            refreshControl={
-              <RefreshControl
-                refreshing={isRefreshing}
-                onRefresh={handleRefresh}
-                tintColor={colors.tint}
+              {/* Child category tabs (only if parent has children) */}
+              {selectedParentHasChildren && (
+                <CategoryList
+                  categories={childCategories}
+                  selectedCategoryId={selectedCategoryId}
+                  onSelectCategory={handleSelectCategory}
+                  showAllOption={false}
+                />
+              )}
+
+              {/* Menu items */}
+              <ScrollView
+                style={styles.menuScrollView}
+                contentContainerStyle={styles.menuScrollContent}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={isRefreshing}
+                    onRefresh={handleRefresh}
+                    tintColor={colors.tint}
+                  />
+                }
+                showsVerticalScrollIndicator={false}
+                testID="menu-scroll-view"
+              >
+                <MenuItemGrid
+                  items={filteredItems}
+                  orderItems={orderItems}
+                  onItemPress={handleMenuItemPress}
+                  isTablet={isTablet}
+                />
+              </ScrollView>
+            </>
+          ) : (
+            /* Parent category card grid */
+            <ScrollView
+              style={styles.menuScrollView}
+              contentContainerStyle={styles.menuScrollContent}
+              refreshControl={
+                <RefreshControl
+                  refreshing={isRefreshing}
+                  onRefresh={handleRefresh}
+                  tintColor={colors.tint}
+                />
+              }
+              showsVerticalScrollIndicator={false}
+              testID="parent-category-scroll-view"
+            >
+              <CategoryCardGrid
+                categories={parentCategories}
+                onCategoryPress={handleParentCategoryPress}
+                isTablet={isTablet}
               />
-            }
-            showsVerticalScrollIndicator={false}
-            testID="menu-scroll-view"
-          >
-            <MenuItemGrid
-              items={filteredItems}
-              orderItems={orderItems}
-              onItemPress={handleMenuItemPress}
-              isTablet={isTablet}
-            />
-          </ScrollView>
+            </ScrollView>
+          )}
         </View>
 
         {/* Order summary section */}
@@ -1145,5 +1237,32 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: Spacing.lg,
     right: Spacing.lg,
+  },
+  drillDownHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderBottomWidth: 1,
+    gap: Spacing.sm,
+  },
+  backButton: {
+    paddingVertical: Spacing.xs,
+    paddingRight: Spacing.sm,
+  },
+  backButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  drillDownTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    flex: 1,
+  },
+  skeletonGrid: {
+    padding: Spacing.lg,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
   },
 });
