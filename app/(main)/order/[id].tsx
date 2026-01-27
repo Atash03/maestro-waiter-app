@@ -6,7 +6,7 @@
  * - List of order items with status badges and swipe actions
  * - Action buttons: Add Items, Mark Served, Create Bill
  * - Item-level actions: Mark as Served, Cancel item
- * - Order modification actions: Change Table, Edit Notes, Cancel Order
+ * - Header icon button: Change Table (dine-in only)
  */
 
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -29,7 +29,6 @@ import { toast } from 'sonner-native';
 import { CancelItemModal } from '@/components/orders/CancelItemModal';
 import { CancelOrderModal } from '@/components/orders/CancelOrderModal';
 import { ChangeTableModal } from '@/components/orders/ChangeTableModal';
-import { EditNotesModal } from '@/components/orders/EditNotesModal';
 import { formatOrderDate } from '@/components/orders/OrderCard';
 import { ThemedText } from '@/components/themed-text';
 import { Badge, type BadgeVariant } from '@/components/ui/Badge';
@@ -433,7 +432,6 @@ export default function OrderDetailScreen() {
 
   // Modal states
   const [showChangeTableModal, setShowChangeTableModal] = useState(false);
-  const [showEditNotesModal, setShowEditNotesModal] = useState(false);
   const [showCancelOrderModal, setShowCancelOrderModal] = useState(false);
   const [showCancelItemModal, setShowCancelItemModal] = useState(false);
   const [itemToCancel, setItemToCancel] = useState<OrderItem | null>(null);
@@ -556,26 +554,6 @@ export default function OrderDetailScreen() {
       }
     },
     [order?.id, invalidateOrder, invalidateOrders, refetch]
-  );
-
-  // Edit notes handler
-  const handleEditNotes = useCallback(
-    async (notes: string) => {
-      if (!order?.id) return;
-
-      try {
-        await updateOrder(order.id, { notes });
-        invalidateOrder(order.id);
-        await refetch();
-        setShowEditNotesModal(false);
-        toast.success('Notes Updated', {
-          description: notes ? 'Order notes have been saved' : 'Order notes have been cleared',
-        });
-      } catch (err) {
-        throw new Error(err instanceof Error ? err.message : 'Failed to update notes');
-      }
-    },
-    [order?.id, invalidateOrder, refetch]
   );
 
   // Cancel order handler
@@ -703,8 +681,18 @@ export default function OrderDetailScreen() {
           </Badge>
         </View>
 
-        {/* Empty spacer for alignment */}
-        <View style={styles.headerSpacer} />
+        {/* Change Table button or spacer for alignment */}
+        <View style={styles.headerSpacer}>
+          {isDineIn && isOrderActive ? (
+            <Pressable
+              onPress={() => setShowChangeTableModal(true)}
+              style={styles.changeTableButton}
+              testID="order-detail-change-table-btn"
+            >
+              <MaterialIcons name="swap-horiz" size={24} color={BrandColors.primary} />
+            </Pressable>
+          ) : null}
+        </View>
       </View>
 
       <ScrollView
@@ -797,10 +785,21 @@ export default function OrderDetailScreen() {
             </Card>
           )}
         </View>
+      </ScrollView>
 
+      {/* Bottom Bar: Total + Cancelled Message + Action Buttons */}
+      <View
+        style={[
+          styles.bottomBar,
+          {
+            backgroundColor: colors.background,
+            borderTopColor: colors.border,
+            paddingBottom: insets.bottom || Spacing.md,
+          },
+        ]}
+      >
         {/* Total */}
-        <Card padding="md" elevated style={styles.totalCard}>
-          {/* Subtotal */}
+        <View style={styles.bottomTotalSection}>
           <View style={styles.subtotalRow}>
             <ThemedText style={[styles.subtotalLabel, { color: colors.textSecondary }]}>
               Subtotal
@@ -810,8 +809,7 @@ export default function OrderDetailScreen() {
             </ThemedText>
           </View>
 
-          {/* Service Fee */}
-          {order.serviceFeeAmount && (
+          {order.serviceFeeAmount ? (
             <View style={styles.subtotalRow}>
               <ThemedText style={[styles.subtotalLabel, { color: colors.textSecondary }]}>
                 Service Fee{order.serviceFeePercent ? ` (${order.serviceFeePercent}%)` : ''}
@@ -820,22 +818,50 @@ export default function OrderDetailScreen() {
                 {formatPrice(order.serviceFeeAmount)}
               </ThemedText>
             </View>
-          )}
+          ) : null}
 
-          {/* Total */}
-          <View style={[styles.totalRow, { marginTop: Spacing.xs, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: Spacing.xs }]}>
+          <View
+            style={[
+              styles.totalRow,
+              {
+                marginTop: Spacing.xs,
+                borderTopWidth: 1,
+                borderTopColor: colors.border,
+                paddingTop: Spacing.xs,
+              },
+            ]}
+          >
             <ThemedText style={styles.totalLabel}>Total</ThemedText>
             <ThemedText style={styles.totalAmount}>
               {formatPrice(
-                (Number.parseFloat(itemsSubtotal) + (Number.parseFloat(order.serviceFeeAmount ?? '0') || 0)).toFixed(2)
+                (
+                  Number.parseFloat(itemsSubtotal) +
+                  (Number.parseFloat(order.serviceFeeAmount ?? '0') || 0)
+                ).toFixed(2)
               )}
             </ThemedText>
           </View>
-        </Card>
+        </View>
+
+        {/* Cancelled Order Message */}
+        {order.orderStatus === OrderStatus.CANCELLED && order.cancelReason ? (
+          <View style={[styles.cancelledBanner, { backgroundColor: '#FEE2E2' }]}>
+            <ThemedText style={styles.cancelledLabel}>Order Cancelled</ThemedText>
+            <ThemedText style={styles.cancelledReason}>{order.cancelReason}</ThemedText>
+          </View>
+        ) : null}
 
         {/* Action Buttons */}
-        {isOrderActive && (
-          <View style={styles.actionButtons}>
+        {isOrderActive ? (
+          <View style={styles.actionButtonsRow}>
+            <Button
+              variant="destructive"
+              onPress={() => setShowCancelOrderModal(true)}
+              style={styles.actionButton}
+              testID="order-detail-cancel-order-btn"
+            >
+              Cancel
+            </Button>
             <Button
               variant="outline"
               onPress={handleAddItems}
@@ -853,59 +879,8 @@ export default function OrderDetailScreen() {
               Create Bill
             </Button>
           </View>
-        )}
-
-        {/* Order Modification Actions */}
-        {isOrderActive && (
-          <View style={styles.modificationSection}>
-            <ThemedText style={[styles.sectionTitle, { marginBottom: Spacing.sm }]}>
-              Order Actions
-            </ThemedText>
-            <View style={styles.modificationButtons}>
-              {isDineIn && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onPress={() => setShowChangeTableModal(true)}
-                  style={styles.modButton}
-                  testID="order-detail-change-table-btn"
-                >
-                  Change Table
-                </Button>
-              )}
-              <Button
-                variant="outline"
-                size="sm"
-                onPress={() => setShowEditNotesModal(true)}
-                style={styles.modButton}
-                testID="order-detail-edit-notes-btn"
-              >
-                {order?.notes ? 'Edit Notes' : 'Add Notes'}
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onPress={() => setShowCancelOrderModal(true)}
-                style={styles.modButton}
-                testID="order-detail-cancel-order-btn"
-              >
-                Cancel Order
-              </Button>
-            </View>
-          </View>
-        )}
-
-        {/* Cancelled Order Message */}
-        {order.orderStatus === OrderStatus.CANCELLED && order.cancelReason && (
-          <Card
-            padding="md"
-            style={[styles.cancelledCard, { backgroundColor: '#FEE2E2' as const }]}
-          >
-            <ThemedText style={styles.cancelledLabel}>Order Cancelled</ThemedText>
-            <ThemedText style={styles.cancelledReason}>{order.cancelReason}</ThemedText>
-          </Card>
-        )}
-      </ScrollView>
+        ) : null}
+      </View>
 
       {/* Loading Overlay */}
       {isRefetching && !isRefreshing && (
@@ -921,14 +896,6 @@ export default function OrderDetailScreen() {
         onConfirm={handleChangeTable}
         onCancel={() => setShowChangeTableModal(false)}
         testID="order-detail-change-table-modal"
-      />
-
-      <EditNotesModal
-        visible={showEditNotesModal}
-        currentNotes={order?.notes}
-        onConfirm={handleEditNotes}
-        onCancel={() => setShowEditNotesModal(false)}
-        testID="order-detail-edit-notes-modal"
       />
 
       <CancelOrderModal
@@ -990,6 +957,12 @@ const styles = StyleSheet.create({
   },
   headerSpacer: {
     width: 60,
+    alignItems: 'flex-end',
+  },
+  changeTableButton: {
+    padding: Spacing.xs,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scrollView: {
     flex: 1,
@@ -1152,9 +1125,6 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 14,
   },
-  totalCard: {
-    marginBottom: Spacing.md,
-  },
   subtotalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1181,27 +1151,26 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: BrandColors.primary,
   },
-  actionButtons: {
+  bottomBar: {
+    paddingHorizontal: Spacing.md,
+    paddingTop: Spacing.sm,
+    borderTopWidth: 1,
+    gap: Spacing.sm,
+  },
+  bottomTotalSection: {
+    gap: 4,
+    marginBottom: Spacing.md,
+  },
+  actionButtonsRow: {
     flexDirection: 'row',
     gap: Spacing.sm,
-    marginBottom: Spacing.md,
   },
   actionButton: {
     flex: 1,
   },
-  modificationSection: {
-    marginBottom: Spacing.md,
-  },
-  modificationButtons: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-  },
-  modButton: {
-    minWidth: 100,
-  },
-  cancelledCard: {
-    marginBottom: Spacing.md,
+  cancelledBanner: {
+    borderRadius: BorderRadius.md,
+    padding: Spacing.sm,
   },
   cancelledLabel: {
     fontSize: 14,
