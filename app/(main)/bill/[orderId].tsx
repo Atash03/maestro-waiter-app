@@ -14,7 +14,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Modal,
-  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -24,6 +23,7 @@ import Animated, { FadeIn, FadeInDown, SlideInRight } from 'react-native-reanima
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
+import { BackButton } from '@/components/ui/BackButton';
 import { DiscountSelector } from '@/components/bills/DiscountSelector';
 import { PaymentForm, type PaymentFormData } from '@/components/bills/PaymentForm';
 import { PaymentSuccessModal } from '@/components/bills/PaymentSuccessModal';
@@ -727,9 +727,7 @@ export default function BillScreen() {
             { backgroundColor: colors.background, borderBottomColor: colors.border },
           ]}
         >
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <ThemedText style={styles.backButtonText}>{'<'} Back</ThemedText>
-          </Pressable>
+          <BackButton />
           <ThemedText style={styles.headerTitle}>Bill</ThemedText>
           <View style={styles.headerSpacer} />
         </View>
@@ -761,9 +759,7 @@ export default function BillScreen() {
           { backgroundColor: colors.background, borderBottomColor: colors.border, paddingTop: insets.top + Spacing.sm },
         ]}
       >
-        <Pressable onPress={() => router.back()} style={styles.backButton} testID="bill-back-btn">
-          <ThemedText style={styles.backButtonText}>{'<'} Back</ThemedText>
-        </Pressable>
+        <BackButton testID="bill-back-btn" />
         <ThemedText style={styles.headerTitle}>Bill - {order.orderCode}</ThemedText>
         <View style={styles.headerSpacer} />
       </View>
@@ -1067,14 +1063,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderBottomWidth: 1,
-  },
-  backButton: {
-    paddingVertical: Spacing.xs,
-    paddingRight: Spacing.md,
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: BrandColors.primary,
   },
   headerTitle: {
     fontSize: 18,

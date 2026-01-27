@@ -26,6 +26,7 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
+import { BackButton } from '@/components/ui/BackButton';
 import { CancelItemModal } from '@/components/orders/CancelItemModal';
 import { CancelOrderModal } from '@/components/orders/CancelOrderModal';
 import { ChangeTableModal } from '@/components/orders/ChangeTableModal';
@@ -665,13 +666,7 @@ export default function OrderDetailScreen() {
         ]}
       >
         {/* Back Button */}
-        <Pressable
-          onPress={() => router.back()}
-          style={styles.backButton}
-          testID="order-detail-back-btn"
-        >
-          <ThemedText style={styles.backButtonText}>{'<'} Back</ThemedText>
-        </Pressable>
+        <BackButton testID="order-detail-back-btn" />
 
         {/* Title + Status */}
         <View style={styles.headerTitleRow}>
@@ -937,14 +932,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderBottomWidth: 1,
-  },
-  backButton: {
-    paddingVertical: Spacing.xs,
-    paddingRight: Spacing.md,
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: BrandColors.primary,
   },
   headerTitleRow: {
     flexDirection: 'row',

@@ -9,13 +9,13 @@
  */
 
 import Constants from 'expo-constants';
-import { useRouter } from 'expo-router';
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Dimensions, Platform, ScrollView, StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
+import { BackButton } from '@/components/ui/BackButton';
 import { ThemedView } from '@/components/themed-view';
 import { Card } from '@/components/ui/Card';
 import { BorderRadius, BrandColors, Colors, Spacing } from '@/constants/theme';
@@ -183,7 +183,6 @@ function SelectionModal({
 export default function SettingsScreen() {
   const colorScheme = useEffectiveColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
-  const router = useRouter();
   const insets = useSafeAreaInsets();
 
   // Settings state
@@ -215,10 +214,6 @@ export default function SettingsScreen() {
   }, [isSettingsInitialized, initializeSettings]);
 
   // Handlers
-  const handleBack = useCallback(() => {
-    router.back();
-  }, [router]);
-
   const handleThemeChange = useCallback(
     async (newTheme: string) => {
       await setTheme(newTheme as ThemeMode);
@@ -278,9 +273,7 @@ export default function SettingsScreen() {
     <ThemedView style={styles.container}>
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: colors.border, paddingTop: insets.top + Spacing.md }]}>
-        <TouchableOpacity onPress={handleBack} style={styles.backButton} testID="back-button">
-          <ThemedText style={[styles.backText, { color: BrandColors.primary }]}>‹ Back</ThemedText>
-        </TouchableOpacity>
+        <BackButton testID="back-button" />
         <ThemedText style={styles.headerTitle}>Settings</ThemedText>
         <View style={styles.headerRight} />
       </View>
@@ -405,14 +398,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.md,
     borderBottomWidth: 1,
-  },
-  backButton: {
-    padding: Spacing.xs,
-    marginLeft: -Spacing.xs,
-  },
-  backText: {
-    fontSize: 17,
-    fontWeight: '400',
   },
   headerTitle: {
     fontSize: 17,
