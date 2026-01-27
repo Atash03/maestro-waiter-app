@@ -54,7 +54,7 @@ export interface ProtectedRouteState {
  * }
  * ```
  */
-export function useProtectedRoute(): ProtectedRouteState {
+export function useProtectedRoute(enabled = true): ProtectedRouteState {
   const router = useRouter();
   const segments = useSegments();
   const navigationState = useRootNavigationState();
@@ -65,9 +65,16 @@ export function useProtectedRoute(): ProtectedRouteState {
   // Check if navigation is ready
   const isNavigationReady = navigationState?.key != null;
 
+  // Reset navigation state when disabled (e.g., during re-discovery)
   useEffect(() => {
-    // Don't do anything if navigation isn't ready or still initializing auth
-    if (!isNavigationReady || isInitializing) {
+    if (!enabled) {
+      setHasNavigated(false);
+    }
+  }, [enabled]);
+
+  useEffect(() => {
+    // Don't do anything if disabled, navigation isn't ready, or still initializing auth
+    if (!enabled || !isNavigationReady || isInitializing) {
       return;
     }
 
@@ -88,7 +95,7 @@ export function useProtectedRoute(): ProtectedRouteState {
       setHasNavigated(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, isInitializing, isNavigationReady, segments, hasNavigated]);
+  }, [enabled, isAuthenticated, isInitializing, isNavigationReady, segments, hasNavigated]);
 
   return {
     isNavigationReady,

@@ -12,7 +12,7 @@ import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
-import { Platform, ScrollView, StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, ScrollView, StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
@@ -32,6 +32,7 @@ import {
   useSettingsInitialized,
   useTheme,
 } from '@/src/stores';
+import { useDiscoveryStore } from '@/src/stores/discoveryStore';
 
 // ============================================================================
 // Types
@@ -199,6 +200,9 @@ export default function SettingsScreen() {
   const notificationPrefs = useNotificationPreferences();
   const notificationStore = useNotificationStore();
 
+  // Discovery state
+  const resetDiscovery = useDiscoveryStore((s) => s.reset);
+
   // Modal state
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
@@ -242,6 +246,21 @@ export default function SettingsScreen() {
     },
     [notificationStore]
   );
+
+  const handleRediscover = useCallback(() => {
+    Alert.alert(
+      'Re-discover Server',
+      'This will disconnect from the current server and search for it again on the network.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Re-discover',
+          style: 'destructive',
+          onPress: () => resetDiscovery(),
+        },
+      ]
+    );
+  }, [resetDiscovery]);
 
   // Theme options
   const themeOptions = Object.entries(THEME_NAMES).map(([value, label]) => ({
@@ -326,8 +345,17 @@ export default function SettingsScreen() {
           <SettingsRow label="Build" value={BUILD_NUMBER} testID="build-info" />
         </SettingsSection>
 
+        {/* Server Section */}
+        <SettingsSection title="SERVER" delay={300}>
+          <SettingsRow
+            label="Re-discover Server"
+            onPress={handleRediscover}
+            testID="rediscover-server"
+          />
+        </SettingsSection>
+
         {/* Footer */}
-        <Animated.View entering={FadeIn.duration(300).delay(300)} style={styles.footer}>
+        <Animated.View entering={FadeIn.duration(300).delay(400)} style={styles.footer}>
           <ThemedText style={[styles.footerText, { color: colors.textMuted }]}>
             Maestro Waiter App
           </ThemedText>

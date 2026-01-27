@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
@@ -12,12 +12,14 @@ import { Toaster } from 'sonner-native';
 
 import { OfflineBanner } from '@/components/common/OfflineBanner';
 import { OfflineIndicator } from '@/components/common/OfflineIndicator';
+import { DiscoveryScreen } from '@/components/discovery/DiscoveryScreen';
 import { ErrorBoundary } from '@/components/errors/ErrorBoundary';
 import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import { useOfflineCacheSync, useOfflineInit } from '@/src/hooks/useOfflineSupport';
 import { useAuthCallbacks, useProtectedRoute } from '@/src/hooks/useProtectedRoute';
 import { initializeApiClient } from '@/src/services/api/client';
 import { useAuthStore } from '@/src/stores/authStore';
+import { useDiscoveryStore } from '@/src/stores/discoveryStore';
 import { useNetworkStore } from '@/src/stores/networkStore';
 import { useSettingsStore } from '@/src/stores/settingsStore';
 
@@ -34,17 +36,43 @@ const queryClient = new QueryClient({
   },
 });
 
-// Initialize API client
-initializeApiClient({
-  baseURL: process.env.EXPO_PUBLIC_API_URL || 'https://ybady.com.tm/maestro/api/v1',
-});
-
 function RootLayoutNav() {
   const colorScheme = useEffectiveColorScheme();
   const { isInitializing, initialize: initializeAuth } = useAuthStore();
   const { initialize: initializeSettings } = useSettingsStore();
   const { initialize: initializeNetwork, cleanup: cleanupNetwork } = useNetworkStore();
+
+  // Discovery state
+  const isResolved = useDiscoveryStore((s) => s.isResolved);
+  const serverUrl = useDiscoveryStore((s) => s.serverUrl);
+  const initializeDiscovery = useDiscoveryStore((s) => s.initialize);
+  const cleanupDiscovery = useDiscoveryStore((s) => s.cleanup);
+
+  const [apiInitialized, setApiInitialized] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const discoveryInitRef = useRef(false);
+
+  // Phase 1: Start service discovery (also re-triggers after reset)
+  useEffect(() => {
+    if (discoveryInitRef.current && !isResolved) {
+      // Discovery was reset — clear refs so it re-initializes
+      discoveryInitRef.current = false;
+      setApiInitialized(false);
+      setIsReady(false);
+    }
+    if (!discoveryInitRef.current && !isResolved) {
+      discoveryInitRef.current = true;
+      initializeDiscovery();
+    }
+  }, [isResolved, initializeDiscovery]);
+
+  // Phase 2: Initialize API client once server is discovered
+  useEffect(() => {
+    if (isResolved && serverUrl && !apiInitialized) {
+      initializeApiClient({ baseURL: serverUrl });
+      setApiInitialized(true);
+    }
+  }, [isResolved, serverUrl, apiInitialized]);
 
   // Initialize offline support (loads cached data and starts sync monitoring)
   useOfflineInit();
@@ -52,31 +80,36 @@ function RootLayoutNav() {
   // Sync data to offline cache when it changes
   useOfflineCacheSync();
 
-  // Initialize stores on app start
+  // Phase 3: Initialize stores once API client is ready
   useEffect(() => {
+    if (!apiInitialized) return;
+
     async function initApp() {
-      // Initialize network monitoring
       initializeNetwork();
-      // Initialize settings and auth in parallel
       await Promise.all([initializeAuth(), initializeSettings()]);
       setIsReady(true);
       await SplashScreen.hideAsync();
     }
     initApp();
 
-    // Cleanup network monitoring on unmount
     return () => {
       cleanupNetwork();
+      cleanupDiscovery();
     };
-  }, [initializeAuth, initializeSettings, initializeNetwork, cleanupNetwork]);
+  }, [apiInitialized, initializeAuth, initializeSettings, initializeNetwork, cleanupNetwork, cleanupDiscovery]);
 
   // Set up API client callbacks for auth errors (401/403)
   useAuthCallbacks();
 
-  // Handle protected route navigation
-  const { isNavigationReady, isCheckingAuth } = useProtectedRoute();
+  // Handle protected route navigation (disabled when discovery not resolved — no navigator mounted)
+  const { isNavigationReady, isCheckingAuth } = useProtectedRoute(isResolved);
 
-  // Show loading screen while initializing
+  // Show discovery screen while searching for server
+  if (!isResolved) {
+    return <DiscoveryScreen />;
+  }
+
+  // Show loading screen while initializing stores
   if (!isReady || isInitializing || !isNavigationReady || isCheckingAuth) {
     return (
       <View style={styles.loadingContainer}>
