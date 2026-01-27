@@ -3,16 +3,16 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Toaster } from 'sonner-native';
 
+import { AnimatedSplashLogo } from '@/components/common/AnimatedSplashLogo';
 import { OfflineBanner } from '@/components/common/OfflineBanner';
 import { OfflineIndicator } from '@/components/common/OfflineIndicator';
-import { DiscoveryScreen } from '@/components/discovery/DiscoveryScreen';
 import { ErrorBoundary } from '@/components/errors/ErrorBoundary';
 import { useEffectiveColorScheme } from '@/hooks/use-color-scheme';
 import { useOfflineCacheSync, useOfflineInit } from '@/src/hooks/useOfflineSupport';
@@ -50,6 +50,7 @@ function RootLayoutNav() {
 
   const [apiInitialized, setApiInitialized] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [splashAnimationDone, setSplashAnimationDone] = useState(false);
   const discoveryInitRef = useRef(false);
 
   // Phase 1: Start service discovery (also re-triggers after reset)
@@ -59,6 +60,7 @@ function RootLayoutNav() {
       discoveryInitRef.current = false;
       setApiInitialized(false);
       setIsReady(false);
+      setSplashAnimationDone(false);
     }
     if (!discoveryInitRef.current && !isResolved) {
       discoveryInitRef.current = true;
@@ -88,7 +90,6 @@ function RootLayoutNav() {
       initializeNetwork();
       await Promise.all([initializeAuth(), initializeSettings()]);
       setIsReady(true);
-      await SplashScreen.hideAsync();
     }
     initApp();
 
@@ -104,34 +105,46 @@ function RootLayoutNav() {
   // Handle protected route navigation (disabled when discovery not resolved — no navigator mounted)
   const { isNavigationReady, isCheckingAuth } = useProtectedRoute(isResolved);
 
-  // Show discovery screen while searching for server
-  if (!isResolved) {
-    return <DiscoveryScreen />;
-  }
+  const appReady = isResolved && isReady && !isInitializing && isNavigationReady && !isCheckingAuth;
 
-  // Show loading screen while initializing stores
-  if (!isReady || isInitializing || !isNavigationReady || isCheckingAuth) {
+  const handleSplashComplete = useCallback(() => {
+    setSplashAnimationDone(true);
+  }, []);
+
+  // Safety timeout — never block the app permanently
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setSplashAnimationDone(true);
+    }, 10_000);
+    return () => clearTimeout(timeout);
+  }, []);
+
+  // Show animated splash during all loading phases (discovery + init)
+  if (!appReady || !splashAnimationDone) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#F94623" />
-      </View>
+      <AnimatedSplashLogo
+        onAnimationComplete={handleSplashComplete}
+        startAnimation={appReady}
+      />
     );
   }
 
   return (
-    <ErrorBoundary>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="(main)" options={{ headerShown: false }} />
-        </Stack>
-        <OfflineBanner />
-        <OfflineIndicator />
-        <Toaster position="top-center" />
-        <StatusBar style="auto" />
-      </ThemeProvider>
-    </ErrorBoundary>
+    <Animated.View entering={FadeIn.duration(300)} style={styles.container}>
+      <ErrorBoundary>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <Stack>
+            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="(main)" options={{ headerShown: false }} />
+          </Stack>
+          <OfflineBanner />
+          <OfflineIndicator />
+          <Toaster position="top-center" />
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </ErrorBoundary>
+    </Animated.View>
   );
 }
 
@@ -150,11 +163,5 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
   },
 });
